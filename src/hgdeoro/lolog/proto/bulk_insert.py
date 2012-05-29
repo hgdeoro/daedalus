@@ -5,16 +5,11 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 import logging
-import os
 import random
+import time
 import uuid
 
-from pycassa import ConnectionPool, ColumnFamily
-from pycassa.system_manager import SystemManager, SIMPLE_STRATEGY
-import time
-
-KEYSPACE = 'lolog'
-CF_LOGS = 'Logs'
+from hgdeoro.lolog.proto import simple_client
 
 EXAMPLE_APPS = ['intranet', 'extranet', 'webserver', 'linux-webserver', 'linux-appserver']
 EXAMPLE_LOG_MESSAGES = [
@@ -78,21 +73,7 @@ def mass_insert(cf):
 
 
 def main():
-    cassandra_host = os.environ.get('CASSANDRA_HOST', 'localhost')
-    sys_mgr = SystemManager()
-    try:
-        sys_mgr.describe_ring(KEYSPACE)
-    except:
-        sys_mgr.create_keyspace(KEYSPACE, SIMPLE_STRATEGY, {'replication_factor': '1'})
-
-    pool = ConnectionPool(KEYSPACE, server_list=[cassandra_host])
-    try:
-        cf = ColumnFamily(pool, CF_LOGS)
-    except:
-        sys_mgr.create_column_family(KEYSPACE, CF_LOGS)
-        cf = ColumnFamily(pool, CF_LOGS)
-
-    cf.get_count(str(uuid.uuid4()))
+    _, cf = simple_client.get_connection()
     mass_insert(cf)
 
 
