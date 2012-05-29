@@ -10,6 +10,8 @@ import time
 import uuid
 
 from hgdeoro.lolog.proto import simple_client
+from pycassa.types import TimeUUIDType
+from pycassa.util import convert_time_to_uuid
 
 EXAMPLE_APPS = ['intranet', 'extranet', 'webserver', 'linux-webserver', 'linux-appserver']
 EXAMPLE_LOG_MESSAGES = [
@@ -59,8 +61,13 @@ def mass_insert(cf):
             app = rnd_inst.choice(EXAMPLE_APPS)
             msg = rnd_inst.choice(EXAMPLE_LOG_MESSAGES)
             # severity = msg.split(' ')[0]
+
+            # http://pycassa.github.com/pycassa/assorted/time_uuid.html
+            # http://www.slideshare.net/jeremiahdjordan/pycon-2012-apache-cassandra
+            # http://www.slideshare.net/rbranson/how-do-i-cassandra @ slide 80
+            # https://github.com/pycassa/pycassa/issues/135
             cf.insert(app, {
-                str(uuid.uuid4()): msg,
+                uuid.uuid1(): msg,
             })
             count += 1
             if count % 100 == 0:

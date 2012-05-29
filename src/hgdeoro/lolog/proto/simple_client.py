@@ -10,6 +10,7 @@ import uuid
 
 from pycassa import ConnectionPool, ColumnFamily
 from pycassa.system_manager import SystemManager, SIMPLE_STRATEGY
+from pycassa.types import TimeUUIDType
 
 KEYSPACE = 'lolog'
 CF_LOGS = 'Logs'
@@ -33,7 +34,7 @@ def get_connection():
     try:
         cf = ColumnFamily(pool, CF_LOGS)
     except:
-        sys_mgr.create_column_family(KEYSPACE, CF_LOGS)
+        sys_mgr.create_column_family(KEYSPACE, CF_LOGS, comparator_type=TimeUUIDType())
         cf = ColumnFamily(pool, CF_LOGS)
 
     sys_mgr.close()
