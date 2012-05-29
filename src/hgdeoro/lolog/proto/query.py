@@ -22,7 +22,7 @@ def query(pool):
     logging.info("Querying for key %s", row_key)
     logging.info("-" * 120) # ------------------------------
     count = 20
-    for k, v in cf_logs.get(row_key).iteritems(): #@UnusedVariable
+    for k, v in cf_logs.get(row_key, column_reversed=True).iteritems(): #@UnusedVariable
         logging.info(v)
         count -= 1
         if count == 0:
@@ -35,7 +35,7 @@ def query(pool):
     logging.info("Querying for key %s", row_key)
     logging.info("-" * 120) # ------------------------------
     count = 20
-    for k, v in cf_logs_by_app.get(row_key).iteritems(): #@UnusedVariable
+    for k, v in cf_logs_by_app.get(row_key, column_reversed=True).iteritems(): #@UnusedVariable
         logging.info(v)
         count -= 1
         if count == 0:
@@ -48,7 +48,7 @@ def query(pool):
     logging.info("Querying for key %s", row_key)
     logging.info("-" * 120) # ------------------------------
     count = 20
-    for k, v in cf_logs_by_host.get(row_key).iteritems(): #@UnusedVariable
+    for k, v in cf_logs_by_host.get(row_key, column_reversed=True).iteritems(): #@UnusedVariable
         logging.info(v)
         count -= 1
         if count == 0:
@@ -61,7 +61,7 @@ def query(pool):
     logging.info("Querying for key %s", row_key)
     logging.info("-" * 120) # ------------------------------
     count = 20
-    for k, v in cf_logs_by_severity.get(row_key).iteritems(): #@UnusedVariable
+    for k, v in cf_logs_by_severity.get(row_key, column_reversed=True).iteritems(): #@UnusedVariable
         logging.info(v)
         count -= 1
         if count == 0:
