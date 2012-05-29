@@ -14,6 +14,7 @@ from pycassa.types import TimeUUIDType
 
 KEYSPACE = 'lolog'
 CF_LOGS = 'Logs'
+CF_LOGS_BY_APP = 'Logs_by_app'
 
 
 def get_connection():
@@ -21,7 +22,7 @@ def get_connection():
     Creates a connection to Cassandra.
 
     Returs:
-        (pool, cf)
+        pool
     """
     cassandra_host = os.environ.get('CASSANDRA_HOST', 'localhost')
     sys_mgr = SystemManager()
@@ -32,15 +33,22 @@ def get_connection():
 
     pool = ConnectionPool(KEYSPACE, server_list=[cassandra_host])
     try:
-        cf = ColumnFamily(pool, CF_LOGS)
+        cf_logs = ColumnFamily(pool, CF_LOGS)
     except:
         sys_mgr.create_column_family(KEYSPACE, CF_LOGS, comparator_type=TimeUUIDType())
-        cf = ColumnFamily(pool, CF_LOGS)
+        cf_logs = ColumnFamily(pool, CF_LOGS)
+
+    try:
+        cf_logs_by_app = ColumnFamily(pool, CF_LOGS_BY_APP)
+    except:
+        sys_mgr.create_column_family(KEYSPACE, CF_LOGS_BY_APP, comparator_type=TimeUUIDType())
+        cf_logs_by_app = ColumnFamily(pool, CF_LOGS_BY_APP)
 
     sys_mgr.close()
-    cf.get_count(str(uuid.uuid4()))
+    cf_logs.get_count(str(uuid.uuid4()))
+    cf_logs_by_app.get_count(str(uuid.uuid4()))
 
-    return pool, cf
+    return pool
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

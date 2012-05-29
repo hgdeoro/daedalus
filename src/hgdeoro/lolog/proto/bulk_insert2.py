@@ -12,7 +12,7 @@ import uuid
 from pycassa.columnfamily import ColumnFamily
 
 from hgdeoro.lolog.proto import simple_client
-from hgdeoro.lolog.proto.simple_client import CF_LOGS
+from hgdeoro.lolog.proto.simple_client import CF_LOGS, CF_LOGS_BY_APP
 
 EXAMPLE_APPS = ['intranet', 'extranet', 'webserver', 'linux-webserver', 'linux-appserver']
 EXAMPLE_LOG_MESSAGES = [
@@ -54,6 +54,7 @@ EXAMPLE_LOG_MESSAGES = [
 
 def mass_insert(pool):
     cf_logs = ColumnFamily(pool, CF_LOGS)
+    cf_logs_by_app = ColumnFamily(pool, CF_LOGS_BY_APP)
     rnd_inst = random.Random()
     rnd_inst.seed(1)
     start = time.time()
@@ -68,12 +69,20 @@ def mass_insert(pool):
             # http://www.slideshare.net/jeremiahdjordan/pycon-2012-apache-cassandra
             # http://www.slideshare.net/rbranson/how-do-i-cassandra @ slide 80
             # https://github.com/pycassa/pycassa/issues/135
-            cf_logs.insert(app, {
-                uuid.uuid1(): msg,
+
+            event_uuid = uuid.uuid1()
+            row_key = (event_uuid.time / 10 ** 7) / (60 * 60 * 24)
+            cf_logs.insert(str(row_key), {
+                event_uuid: msg,
             })
-            count += 1
-            if count % 100 == 0:
-                logging.info("Inserted %d columns", count)
+            cf_logs_by_app.insert(app, {
+                event_uuid: msg,
+            })
+
+            count += 2
+            if count % 200 == 0:
+                avg = float(count) / (time.time() - start)
+                logging.info("Inserted %d columns, %f insert/sec", count, avg)
     except KeyboardInterrupt:
         logging.info("Stopping...")
     end = time.time()
