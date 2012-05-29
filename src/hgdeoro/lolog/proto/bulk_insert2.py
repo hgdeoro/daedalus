@@ -15,6 +15,7 @@ from hgdeoro.lolog.proto import simple_client
 from hgdeoro.lolog.proto.simple_client import CF_LOGS, CF_LOGS_BY_APP,\
     CF_LOGS_BY_HOST, CF_LOGS_BY_SEVERITY
 from hgdeoro.lolog.proto.random_log_generator import log_generator
+from hgdeoro.lolog.utils import ymd_from_uuid1
 
 
 def mass_insert(pool):
@@ -40,7 +41,7 @@ def mass_insert(pool):
 
             # Save on <CF> CF_LOGS
             event_uuid = uuid.uuid1()
-            row_key = (event_uuid.time / 10 ** 7) / (60 * 60 * 24)
+            row_key = ymd_from_uuid1(event_uuid)
             cf_logs.insert(str(row_key), {
                 event_uuid: msg,
             })
