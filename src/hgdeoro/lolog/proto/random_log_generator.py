@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import random
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,7 +67,9 @@ def log_generator(seed):
     rnd_inst.seed(seed)
     while True:
         app = rnd_inst.choice(EXAMPLE_APPS)
-        msg = rnd_inst.choice(EXAMPLE_LOG_MESSAGES)
+        full_msg = rnd_inst.choice(EXAMPLE_LOG_MESSAGES)
+        splitted = [item for item in full_msg.split() if item]
         host = rnd_inst.choice(EXAMPLE_HOSTS)
-        severity = msg.split(' ')[0]
+        severity = splitted[0]
+        msg = "{0}|{1}|{2}|{3}".format(severity, host, app, ' '.join(splitted[5:]))
         yield (msg, app, host, severity, )
