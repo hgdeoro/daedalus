@@ -15,6 +15,8 @@ from pycassa.types import TimeUUIDType
 KEYSPACE = 'lolog'
 CF_LOGS = 'Logs'
 CF_LOGS_BY_APP = 'Logs_by_app'
+CF_LOGS_BY_HOST = 'Logs_by_host'
+CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
 
 
 def get_connection():
@@ -32,21 +34,15 @@ def get_connection():
         sys_mgr.create_keyspace(KEYSPACE, SIMPLE_STRATEGY, {'replication_factor': '1'})
 
     pool = ConnectionPool(KEYSPACE, server_list=[cassandra_host])
-    try:
-        cf_logs = ColumnFamily(pool, CF_LOGS)
-    except:
-        sys_mgr.create_column_family(KEYSPACE, CF_LOGS, comparator_type=TimeUUIDType())
-        cf_logs = ColumnFamily(pool, CF_LOGS)
-
-    try:
-        cf_logs_by_app = ColumnFamily(pool, CF_LOGS_BY_APP)
-    except:
-        sys_mgr.create_column_family(KEYSPACE, CF_LOGS_BY_APP, comparator_type=TimeUUIDType())
-        cf_logs_by_app = ColumnFamily(pool, CF_LOGS_BY_APP)
+    for cf_name in [CF_LOGS, CF_LOGS_BY_APP, CF_LOGS_BY_HOST, CF_LOGS_BY_SEVERITY]:
+        try:
+            cf = ColumnFamily(pool, cf_name)
+        except:
+            sys_mgr.create_column_family(KEYSPACE, cf_name, comparator_type=TimeUUIDType())
+            cf = ColumnFamily(pool, cf_name)
+            cf.get_count(str(uuid.uuid4()))
 
     sys_mgr.close()
-    cf_logs.get_count(str(uuid.uuid4()))
-    cf_logs_by_app.get_count(str(uuid.uuid4()))
 
     return pool
 

@@ -5,7 +5,11 @@ import random
 # Copyright (C) 2012 - Horacio Guillermo de Oro <hgdeoro@gmail.com>
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-EXAMPLE_APPS = ['intranet', 'extranet', 'webserver', 'linux-webserver', 'linux-appserver']
+EXAMPLE_APPS = ['intranet', 'extranet', 'gunicorn', 'nginx-dmz']
+
+EXAMPLE_HOSTS = ['webserver1', 'webserver2', 'webserver3',
+    'dbserver1', 'dbserver2', 'dbserver3']
+
 EXAMPLE_LOG_MESSAGES = [
     'INFO [main] 2012-05-28 21:11:08,982 CacheService.java (line 96) Initializing key cache with capacity of 50 MBs.',
     'INFO [main] 2012-05-28 21:11:09,001 CacheService.java (line 107) Scheduling key cache save to each 14400 seconds (going to save all keys).', #@IgnorePep8
@@ -48,11 +52,21 @@ def log_generator(seed):
     Generator. In each iteration returns a list with:
     - log message
     - application
+    - host
+    - severity
+    
+    Use:
+        for item in log_generator(1):
+            msg = item[0]
+            app = item[1]
+            host = item[2]
+            severity = item[3]
     """
     rnd_inst = random.Random()
     rnd_inst.seed(seed)
     while True:
         app = rnd_inst.choice(EXAMPLE_APPS)
         msg = rnd_inst.choice(EXAMPLE_LOG_MESSAGES)
-        # severity = msg.split(' ')[0]
-        yield (msg, app, )
+        host = rnd_inst.choice(EXAMPLE_HOSTS)
+        severity = msg.split(' ')[0]
+        yield (msg, app, host, severity, )
