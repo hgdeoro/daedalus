@@ -2,7 +2,7 @@
 
 from django.conf.urls import patterns, url
 
-from hgdeoro.lolog.web_backend.views import home
+from hgdeoro.lolog.web_backend.views import save_log, home
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'web_backend.views.home', name='home'),
     # url(r'^web_backend/', include('web_backend.foo.urls')),
 
+    url(r'^save/', save_log),
     url(r'^.*', home),
 
     # Uncomment the admin/doc line below to enable admin documentation:
