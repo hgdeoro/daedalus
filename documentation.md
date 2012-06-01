@@ -40,6 +40,8 @@ Not implemented right now
 
 * No autentication to see messages
 
+* Client provided timestamps (for supporting bulk-upload of messages)
+
 ----------------------------------------
 General architecture
 ----------------------------------------
