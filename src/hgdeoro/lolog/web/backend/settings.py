@@ -124,10 +124,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'hgdeoro.lolog.web_backend.urls'
+ROOT_URLCONF = 'hgdeoro.lolog.web.backend.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'hgdeoro.lolog.web_backend.wsgi.application'
+WSGI_APPLICATION = 'hgdeoro.lolog.web.backend.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -146,7 +146,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    'hgdeoro.lolog.web_backend',
+    'hgdeoro.lolog.web.backend',
 )
 
 # A sample logging configuration. The only tangible logging

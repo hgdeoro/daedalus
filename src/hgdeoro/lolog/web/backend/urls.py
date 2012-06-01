@@ -21,7 +21,7 @@
 
 from django.conf.urls import patterns, url
 
-from hgdeoro.lolog.web_backend.views import save_log, home
+from hgdeoro.lolog.web.backend.views import save_log, home
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin

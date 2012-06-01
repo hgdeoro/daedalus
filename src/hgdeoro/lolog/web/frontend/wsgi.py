@@ -36,7 +36,7 @@ framework.
 """
 import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hgdeoro.lolog.web_frontend.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hgdeoro.lolog.web.frontend.settings")
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
