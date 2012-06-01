@@ -7,6 +7,7 @@
 import logging
 
 from pycassa.columnfamily import ColumnFamily
+from pycassa.cassandra.c10.ttypes import NotFoundException
 
 from hgdeoro.lolog.proto import simple_client
 from hgdeoro.lolog.proto.simple_client import CF_LOGS, CF_LOGS_BY_APP,\
@@ -16,9 +17,15 @@ from hgdeoro.lolog.utils import ymd_from_epoch
 
 
 def query(pool):
-    logging.info("-" * 120) # ------------------------------
     cf_logs = ColumnFamily(pool, CF_LOGS)
     row_key = ymd_from_epoch()
+    try:
+        cf_logs.get(row_key, column_count=0)
+    except NotFoundException:
+        # FIXME: this is extremely inefficient!
+        row_key = cf_logs.get_range().next()[0]
+
+    logging.info("-" * 120) # ------------------------------
     logging.info("Querying for key %s", row_key)
     logging.info("-" * 120) # ------------------------------
     count = 20
