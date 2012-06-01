@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import logging
 import time
 
@@ -7,7 +8,6 @@ from django.test.testcases import TestCase
 
 from hgdeoro.lolog import storage
 from hgdeoro.lolog.proto.random_log_generator import log_generator
-import json
 
 
 class Storagetest(TestCase):

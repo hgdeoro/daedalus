@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import logging
 import uuid
 
@@ -10,7 +11,6 @@ from pycassa.system_manager import SystemManager, SIMPLE_STRATEGY
 from pycassa.types import TimeUUIDType
 
 from hgdeoro.lolog.utils import ymd_from_uuid1
-import json
 
 logger = logging.getLogger(__name__)
 
