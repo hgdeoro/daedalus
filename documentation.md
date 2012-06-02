@@ -1,10 +1,10 @@
-----------------------------------------
 Current iteration goals
 ----------------------------------------
 
 * Implemente the server and a python client
 
-----------------------------------------
+
+
 Functional use cases
 ----------------------------------------
 
@@ -15,17 +15,20 @@ Functional use cases
   - b. Search by host
   - c. Search by severity
 
-----------------------------------------
+
+
 Non-functional use cases
 ----------------------------------------
 
-----------------------------------------
+
+
 Next iteration
 ----------------------------------------
 
 * TTL of messages
 
-----------------------------------------
+
+
 Not implemented right now
 ----------------------------------------
 
@@ -42,17 +45,19 @@ Not implemented right now
 
 * Client provided timestamps (for supporting bulk-upload of messages)
 
-----------------------------------------
+
+
 General architecture
 ----------------------------------------
 
 * Client + server app.
 
-* HTTP
+* Messages sent over HTTP
 
 * Messages encoded using JSON
 
-----------------------------------------
+
+
 Server architecture
 ----------------------------------------
 
@@ -66,13 +71,15 @@ Server architecture
 
 * Message encoding
 
-----------------------------------------
+
+
 Client architecture
 ----------------------------------------
 
 * Http client to save messages
 
-----------------------------------------
+
+
 Glosary
 ----------------------------------------
 
@@ -84,7 +91,8 @@ Glosary
   - severity
   - timestamp (Cassandra)
 
-----------------------------------------
+
+
 Examples
 ----------------------------------------
 
@@ -96,7 +104,8 @@ Examples
   - **Severity**: FATAL
   - **Timestamp**: 1338569478
 
-----------------------------------------
+
+
 License
 ----------------------------------------
 
@@ -118,4 +127,3 @@ License
     #    You should have received a copy of the GNU General Public License
     #    along with lolog; see the file LICENSE.txt.
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
