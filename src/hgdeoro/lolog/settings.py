@@ -27,6 +27,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 KEYSPACE_REAL = 'lolog'
+
 KEYSPACE_TESTS = 'lolog_tests'
 
 KEYSPACE = KEYSPACE_REAL
