@@ -19,11 +19,24 @@
 ##    along with lolog; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import json
+
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 
+from hgdeoro.lolog.storage import query
+
 
 def home(request):
+    cassandra_result = query()
+    result = []
+    for _, columns in cassandra_result:
+        for _, col in columns.iteritems():
+            message = json.loads(col)
+            result.append(message)
+    ctx = {
+        'result': result,
+    }
     return HttpResponse(render_to_response('index.html',
-        context_instance=RequestContext(request)))
+        context_instance=RequestContext(request, ctx)))
