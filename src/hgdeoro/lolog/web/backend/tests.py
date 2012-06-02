@@ -50,11 +50,11 @@ def _truncate_all_column_families():
     sys_mgr.close()
 
 
-def _save_500_random_messages_to_real_keyspace():
+def _save_random_messages_to_real_keyspace(max_count):
     settings.KEYSPACE = settings.KEYSPACE_REAL
     print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
     _create_keyspace_and_cfs()
-    _save_random_messages(500)
+    _save_random_messages(max_count)
 
 
 def _save_random_messages(max_count=None):
@@ -149,7 +149,11 @@ class StorageTest(TestCase):
 
     def save_500_random_messages_to_real_keyspace(self):
         logging.basicConfig(level=logging.INFO)
-        _save_500_random_messages_to_real_keyspace()
+        _save_random_messages_to_real_keyspace(500)
+
+    def save_random_messages_to_real_keyspace(self):
+        logging.basicConfig(level=logging.INFO)
+        _save_random_messages_to_real_keyspace(0)
 
 
 class ResetRealKeyspace(StorageTest):
