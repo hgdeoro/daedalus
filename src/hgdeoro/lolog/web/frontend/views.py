@@ -25,7 +25,7 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 
-from hgdeoro.lolog.storage import query
+from hgdeoro.lolog.storage import query, query_by_severity
 
 
 def home(request):
@@ -43,13 +43,11 @@ def home(request):
 
 
 def search_by_severity(request, severity):
-    cassandra_result = query()
+    cassandra_result = query_by_severity(severity)
     result = []
-    for _, columns in cassandra_result:
-        for _, col in columns.iteritems():
-            message = json.loads(col)
-            if message['severity'] == severity:
-                result.append(message)
+    for _, col in cassandra_result.iteritems():
+        message = json.loads(col)
+        result.append(message)
     ctx = {
         'result': result,
     }

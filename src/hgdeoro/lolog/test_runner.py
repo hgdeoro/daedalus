@@ -33,7 +33,7 @@ class CassandraDjangoTestSuiteRunner(DjangoTestSuiteRunner):
         super(CassandraDjangoTestSuiteRunner, self).__init__(*args, **kwargs)
 
     def setup_databases(self, **kwargs):
-        settings.KEYSPACE = "{0}_test".format(settings.KEYSPACE)
+        settings.KEYSPACE = settings.KEYSPACE_TESTS
         print "Patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
         sys_mgr = SystemManager()
         try:

@@ -26,7 +26,10 @@
 # Non-Django settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-KEYSPACE = 'lolog'
+KEYSPACE_REAL = 'lolog'
+KEYSPACE_TESTS = 'lolog_tests'
+
+KEYSPACE = KEYSPACE_REAL
 
 CASSANDRA_HOSTS = ["127.0.0.1"]
 

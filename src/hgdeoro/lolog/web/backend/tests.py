@@ -24,17 +24,34 @@ import logging
 import time
 
 from django.test.testcases import TestCase
+from django.conf import settings
 from pycassa.system_manager import SystemManager
+from pycassa.columnfamily import ColumnFamily
+from pycassa.pool import ConnectionPool
 
 from hgdeoro.lolog import storage
 from hgdeoro.lolog.proto.random_log_generator import log_generator
 from hgdeoro.lolog.storage import _create_keyspace_and_cfs
-from django.conf import settings
+from hgdeoro.lolog.utils import ymd_from_epoch
+import uuid
+
+
+def truncate_all_column_families():
+    sys_mgr = SystemManager()
+    for cf_name, _ in sys_mgr.get_keyspace_column_families(settings.KEYSPACE).iteritems():
+        pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
+        print "Truncating {0}".format(cf_name)
+        ColumnFamily(pool, cf_name).truncate()
+    sys_mgr.close()
 
 
 class StorageTest(TestCase):
-    
-    def test_save_log(self):
+
+    def setUp(self):
+        truncate_all_column_families()
+
+    def test_save_and_queries(self):
+        # Test storage.save_log()
         message = {
             'application': u'dbus ',
             'host': u'localhost',
@@ -42,6 +59,34 @@ class StorageTest(TestCase):
             'message': u"Successfully activated service 'org.kde.powerdevil.backlighthelper'",
         }
         storage.save_log(message)
+
+        # Test storage.query()
+        result = storage.query()
+        a_row = result.next()
+        self.assertEqual(a_row[0], ymd_from_epoch())
+        columns_iterator = a_row[1].iteritems()
+        col_k, col_v = columns_iterator.next()
+        self.assertEqual(type(col_k), uuid.UUID)
+        retrieved_message = json.loads(col_v)
+        self.assertEquals(retrieved_message['severity'], message['severity'])
+        self.assertEquals(retrieved_message['host'], message['host'])
+        self.assertEquals(retrieved_message['application'], message['application'])
+        self.assertEquals(retrieved_message['message'], message['message'])
+
+        self.assertRaises(StopIteration, result.next)
+        self.assertRaises(StopIteration, columns_iterator.next)
+
+        # Test storage.query_by_severity()
+        result = storage.query_by_severity("INFO")
+        columns_iterator = result.iteritems()
+        col_k, col_v = columns_iterator.next()
+        retrieved_message = json.loads(col_v)
+        self.assertEquals(retrieved_message['severity'], message['severity'])
+        self.assertEquals(retrieved_message['host'], message['host'])
+        self.assertEquals(retrieved_message['application'], message['application'])
+        self.assertEquals(retrieved_message['message'], message['message'])
+
+        self.assertRaises(StopIteration, columns_iterator.next)
 
     def test_save_500_log(self):
         self.stress_save_log(500)
@@ -75,11 +120,18 @@ class StorageTest(TestCase):
         avg = float(count) / (end - start)
         logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
 
-    def reset_db(self):
+    def reset_real_keyspace(self):
         """
-        Drops the keyspace and re-create it and the CFs.
+        Resets the REAL keyspace (not the used for tests).
+        To do this, the 'settings.KEYSPACE' is overwriten with
+            the value of 'settings.KEYSPACE_REAL
+'
+        1. drops the keyspace
+        2. re-creates CF
+        3. insert random data
         """
         logging.basicConfig(level=logging.INFO)
+        settings.KEYSPACE = settings.KEYSPACE_REAL
         sys_mgr = SystemManager()
         logging.info("Dropping keyspace %s", settings.KEYSPACE)
         sys_mgr.drop_keyspace(settings.KEYSPACE)
@@ -89,6 +141,9 @@ class StorageTest(TestCase):
 
 
 class WebBackendTest(TestCase):
+
+    def setUp(self):
+        truncate_all_column_families()
 
     def test_insert(self):
         json_message = json.dumps({

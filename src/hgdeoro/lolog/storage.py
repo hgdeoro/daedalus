@@ -38,6 +38,10 @@ CF_LOGS_BY_HOST = 'Logs_by_host'
 CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
 
 
+def _check_severity(severity):
+    assert severity in ('ERROR', 'WARN', 'INFO', 'DEBUG')
+
+
 def _create_keyspace_and_cfs():
     """
     Creates the KEYSPACE and CF
@@ -84,7 +88,9 @@ def save_log(message):
     host = message['host']
     severity = message['severity']
     # timestamp = message['timestamp']
-    
+
+    _check_severity(severity)
+
     json_message = json.dumps(message)
 
     # Save on <CF> CF_LOGS
@@ -111,14 +117,34 @@ def save_log(message):
 
 
 def query():
+    """
+    Returns list of OrderedDict.
+
+    Use:
+        cassandra_result = query()
+        result = []
+        for _, columns in cassandra_result:
+            for _, col in columns.iteritems():
+                message = json.loads(col)
+                result.append(message)
+    """
     pool = _get_connection()
     cf_logs = ColumnFamily(pool, CF_LOGS)
     return cf_logs.get_range()
-    #    row_key = cf_logs.get_range().next()[0]
-    #    return cf_logs.get(row_key, column_reversed=True)
 
 
 def query_by_severity(severity):
+    """
+    Returns OrderedDict.
+
+    Use:
+        cassandra_result = query_by_severity(severity)
+        result = []
+        for _, col in cassandra_result.iteritems():
+            message = json.loads(col)
+            result.append(message)
+    """
+    _check_severity(severity)
     pool = _get_connection()
     cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-    return cf_logs.get(severity.lower())
+    return cf_logs.get(severity)
