@@ -28,7 +28,14 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from pycassa.util import convert_uuid_to_time
 
-from hgdeoro.lolog.storage import query, query_by_severity
+from hgdeoro.lolog.storage import query, query_by_severity, list_applications,\
+    query_by_application
+
+
+def _ctx(**kwargs):
+    ctx = dict(kwargs)
+    ctx['app_list'] = list_applications()
+    return ctx
 
 
 def home(request):
@@ -39,9 +46,7 @@ def home(request):
             message = json.loads(col_val)
             message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
             result.append(message)
-    ctx = {
-        'result': result,
-    }
+    ctx = _ctx(result=result)
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 
@@ -53,8 +58,18 @@ def search_by_severity(request, severity):
         message = json.loads(col_val)
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
         result.append(message)
-    ctx = {
-        'result': result,
-    }
+    ctx = _ctx(result=result)
+    return HttpResponse(render_to_response('index.html',
+        context_instance=RequestContext(request, ctx)))
+
+
+def search_by_application(request, application):
+    cassandra_result = query_by_application(application)
+    result = []
+    for col_key, col_val in cassandra_result.iteritems():
+        message = json.loads(col_val)
+        message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
+        result.append(message)
+    ctx = _ctx(result=result)
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))

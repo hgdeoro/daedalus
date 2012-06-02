@@ -53,7 +53,7 @@ class StorageTest(TestCase):
     def test_save_and_queries(self):
         # Test storage.save_log()
         message = {
-            'application': u'dbus ',
+            'application': u'dbus',
             'host': u'localhost',
             'severity': u"INFO",
             'message': u"Successfully activated service 'org.kde.powerdevil.backlighthelper'",
@@ -87,6 +87,22 @@ class StorageTest(TestCase):
         self.assertEquals(retrieved_message['message'], message['message'])
 
         self.assertRaises(StopIteration, columns_iterator.next)
+
+        # Test storage.query_by_application()
+        result = storage.query_by_application("dbus")
+        columns_iterator = result.iteritems()
+        col_k, col_v = columns_iterator.next()
+        retrieved_message = json.loads(col_v)
+        self.assertEquals(retrieved_message['severity'], message['severity'])
+        self.assertEquals(retrieved_message['host'], message['host'])
+        self.assertEquals(retrieved_message['application'], message['application'])
+        self.assertEquals(retrieved_message['message'], message['message'])
+
+        self.assertRaises(StopIteration, columns_iterator.next)
+
+        # Test storage.list_applications()
+        apps = storage.list_applications()
+        self.assertListEqual(apps, ['dbus'])
 
     def test_save_500_log(self):
         self.stress_save_log(500)
@@ -154,7 +170,7 @@ class WebBackendTest(TestCase):
 
     def test_insert(self):
         json_message = json.dumps({
-            'application': u'dbus ',
+            'application': u'dbus',
             'host': u'localhost',
             'severity': u"INFO",
             'message': u"Successfully activated service 'org.kde.powerdevil.backlighthelper'",

@@ -21,6 +21,7 @@
 
 import json
 import logging
+import re
 import uuid
 
 from django.conf import settings
@@ -32,6 +33,9 @@ from hgdeoro.lolog.utils import ymd_from_uuid1
 
 logger = logging.getLogger(__name__)
 
+# TODO: this regex should be valid only for valid Cassandra row keys
+APPLICATION_REGEX = re.compile(r'^[a-zA-Z0-9/-]+$')
+
 CF_LOGS = 'Logs'
 CF_LOGS_BY_APP = 'Logs_by_app'
 CF_LOGS_BY_HOST = 'Logs_by_host'
@@ -40,6 +44,11 @@ CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
 
 def _check_severity(severity):
     assert severity in ('ERROR', 'WARN', 'INFO', 'DEBUG')
+
+
+def _check_application(application):
+    if not APPLICATION_REGEX.search(application):
+        assert False, "Invalid identifier for application: '{0}'".format(application)
 
 
 def _create_keyspace_and_cfs():
@@ -89,6 +98,7 @@ def save_log(message):
     severity = message['severity']
     # timestamp = message['timestamp']
 
+    _check_application(application)
     _check_severity(severity)
 
     json_message = json.dumps(message)
@@ -148,3 +158,29 @@ def query_by_severity(severity):
     pool = _get_connection()
     cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
     return cf_logs.get(severity)
+
+
+def query_by_application(application):
+    """
+    Returns OrderedDict.
+
+    Use:
+        cassandra_result = query_by_application(severity)
+        result = []
+        for _, col in cassandra_result.iteritems():
+            message = json.loads(col)
+            result.append(message)
+    """
+    _check_application(application)
+    pool = _get_connection()
+    cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
+    return cf_logs.get(application)
+
+
+def list_applications():
+    """
+    Returns a list of valid applications.
+    """
+    pool = _get_connection()
+    cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
+    return [item[0] for item in cf_logs.get_range(column_count=1)]
