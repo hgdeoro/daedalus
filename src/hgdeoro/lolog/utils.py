@@ -30,13 +30,14 @@ from pycassa.util import convert_uuid_to_time
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def ymd_from_epoch(epoch=None):
+def ymd_from_epoch(a_time=None):
     """
-    Returns a string with the format YEAR+MONTH+DAY
+    Returns a string with the format YEAR+MONTH+DAY.
+    If 'a_time' is None (default) generates YMD for now.
     """
-    if epoch is None:
-        epoch = time.time()
-    a_date = date.fromtimestamp(time.time())
+    if a_time is None:
+        a_time = time.time()
+    a_date = date.fromtimestamp(a_time)
     return "{0:04d}{1:02d}{2:02d}".format(
         a_date.year, a_date.month, a_date.day)
 
