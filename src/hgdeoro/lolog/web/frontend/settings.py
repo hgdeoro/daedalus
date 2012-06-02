@@ -21,9 +21,9 @@
 
 from os.path import join, abspath, dirname
 
-LOLOG_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
+from hgdeoro.lolog.settings import * #@UnusedWildImport
 
-CASSANDRA_HOSTS = ["127.0.0.1"]
+LOLOG_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

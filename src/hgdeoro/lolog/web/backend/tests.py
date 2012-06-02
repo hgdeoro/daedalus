@@ -28,10 +28,11 @@ from pycassa.system_manager import SystemManager
 
 from hgdeoro.lolog import storage
 from hgdeoro.lolog.proto.random_log_generator import log_generator
-from hgdeoro.lolog.storage import KEYSPACE, _create_keyspace_and_cfs
+from hgdeoro.lolog.storage import _create_keyspace_and_cfs
+from django.conf import settings
 
 
-class Storagetest(TestCase):
+class StorageTest(TestCase):
     
     def test_save_log(self):
         message = {
@@ -80,8 +81,8 @@ class Storagetest(TestCase):
         """
         logging.basicConfig(level=logging.INFO)
         sys_mgr = SystemManager()
-        logging.info("Dropping keyspace %s", KEYSPACE)
-        sys_mgr.drop_keyspace(KEYSPACE)
+        logging.info("Dropping keyspace %s", settings.KEYSPACE)
+        sys_mgr.drop_keyspace(settings.KEYSPACE)
         sys_mgr.close()
         _create_keyspace_and_cfs()
         self.stress_save_log(1000)

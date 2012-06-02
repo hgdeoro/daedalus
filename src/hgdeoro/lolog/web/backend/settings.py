@@ -19,9 +19,11 @@
 ##    along with lolog; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-import os
+from os.path import join, abspath, dirname
 
-CASSANDRA_HOSTS = ["127.0.0.1"]
+from hgdeoro.lolog.settings import * #@UnusedWildImport
+
+LOLOG_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -35,8 +37,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(os.path.abspath(
-            os.path.dirname(__file__)), '..', '..', '..', '..', 'lolog_web_backend.sqlite'),
+        'NAME': join(LOLOG_DIR, 'lolog_web_backend.sqlite'),
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
