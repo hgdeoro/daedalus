@@ -21,7 +21,7 @@
 
 from django.conf.urls import patterns, url
 
-from hgdeoro.lolog.web.frontend.views import home
+from hgdeoro.lolog.web.frontend.views import home, search_by_severity
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -32,7 +32,8 @@ urlpatterns = patterns('',
     # url(r'^$', 'web_frontend.views.home', name='home'),
     # url(r'^web_frontend/', include('web_frontend.foo.urls')),
 
-    url(r'^.*', home),
+    url(r'^$', home),
+    url(r'^search/severity/(.*)/', search_by_severity),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

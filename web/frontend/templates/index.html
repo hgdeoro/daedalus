@@ -8,8 +8,19 @@
 
 	{% block container %}
 
-	<h1>Home</h1>
-	<p>Showing some messages...</p>
+	<p>
+		<a class="btn btn-mini btn-danger"
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">ERROR</a>
+		<a class="btn btn-mini btn-warning"
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">WARN</a>
+		<a class="btn btn-mini btn-info"
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">INFO</a>
+		<a class="btn btn-mini"
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">DEBUG</a>
+		<a class="btn btn-mini btn-inverse"
+			href="{% url hgdeoro.lolog.web.frontend.views.home %}">ALL</a>
+		&nbsp; | &nbsp;
+	</p>
 
 	<table class="table table-striped table-condensed">
 		<thead>
@@ -33,7 +44,7 @@
 					{% elif item.severity == 'DEBUG' %}
 						<span class="label">{{ item.severity }}</span>
 					{% else %}
-						<span class="label label-inverse">{{ item.severity }}</span>
+						<span class="label">{{ item.severity }}</span>
 					{% endif %}
 				</td>
 				<td>{{ item.message }}</td>
