@@ -24,17 +24,19 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
+        <!--
           <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
+          -->
           <a class="brand" href="#">Lolog</a>
           <div class="nav-collapse">
-            <ul class="nav">
-              <li class="active"><a href="/">Home</a></li>
-              <li><a href="/static/twitter-bootstrap-ebc6935/docs/index.html" target="_blank">Docs Bootstrap</a></li>
-            </ul>
+
+			{% block extra_navbar %}
+			{% endblock extra_navbar %}
+
           </div><!--/.nav-collapse -->
         </div>
       </div>

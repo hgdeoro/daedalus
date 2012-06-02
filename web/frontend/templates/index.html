@@ -6,9 +6,7 @@
 </head>
 <body>
 
-	{% block container %}
-
-	<p>
+	{% block extra_navbar %}
 		<a class="btn btn-mini btn-inverse"
 			href="{% url hgdeoro.lolog.web.frontend.views.home %}">ALL</a>
 		&nbsp; | &nbsp; <!-- .............................. -->
@@ -25,8 +23,9 @@
 			<a class="btn btn-mini btn-success"
 				href="{% url hgdeoro.lolog.web.frontend.views.search_by_application app %}">{{ app }}</a>
 		{% endfor %}
-	</p>
+	{% endblock extra_navbar %}
 
+	{% block container %}
 	<table class="table table-striped table-condensed">
 		<thead>
 			<tr>
