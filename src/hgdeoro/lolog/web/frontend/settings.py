@@ -19,7 +19,9 @@
 ##    along with lolog; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-import os
+from os.path import join, abspath, dirname
+
+LOLOG_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
 
 CASSANDRA_HOSTS = ["127.0.0.1"]
 
@@ -35,8 +37,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(os.path.abspath(
-            os.path.dirname(__file__)), '..', '..', '..', '..', 'lolog_web_frontend.sqlite'),
+        'NAME': join(LOLOG_DIR, 'lolog_web_frontend.sqlite'),
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
@@ -91,9 +92,7 @@ STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+    abspath(join(LOLOG_DIR, 'web', 'frontend', 'static')),
 )
 
 # List of finder classes that know how to find static files in
@@ -133,6 +132,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    abspath(join(LOLOG_DIR, 'web', 'frontend', 'templates')),
 )
 
 INSTALLED_APPS = (
