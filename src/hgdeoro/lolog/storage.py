@@ -40,17 +40,15 @@ CF_LOGS_BY_HOST = 'Logs_by_host'
 CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
 
 
-def _get_connection():
+def _create_keyspace_and_cfs():
     """
-    Creates a connection to Cassandra.
-
-    Returs:
-        pool
+    Creates the KEYSPACE and CF
     """
     sys_mgr = SystemManager()
     try:
         sys_mgr.describe_ring(KEYSPACE)
     except:
+        logger.info("Creating keyspace %s", KEYSPACE)
         sys_mgr.create_keyspace(KEYSPACE, SIMPLE_STRATEGY, {'replication_factor': '1'})
 
     pool = ConnectionPool(KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
@@ -58,12 +56,22 @@ def _get_connection():
         try:
             cf = ColumnFamily(pool, cf_name)
         except:
+            logger.info("Creating column family %s", cf_name)
             sys_mgr.create_column_family(KEYSPACE, cf_name, comparator_type=TimeUUIDType())
             cf = ColumnFamily(pool, cf_name)
             cf.get_count(str(uuid.uuid4()))
 
     sys_mgr.close()
 
+
+def _get_connection():
+    """
+    Creates a connection to Cassandra.
+
+    Returs:
+        pool
+    """
+    pool = ConnectionPool(KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
     return pool
 
 
@@ -102,3 +110,11 @@ def save_log(message):
     cf_logs_by_severity.insert(severity, {
         event_uuid: json_message,
     })
+
+
+def query():
+    pool = _get_connection()
+    cf_logs = ColumnFamily(pool, CF_LOGS)
+    return cf_logs.get_range()
+    #    row_key = cf_logs.get_range().next()[0]
+    #    return cf_logs.get(row_key, column_reversed=True)
