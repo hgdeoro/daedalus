@@ -21,9 +21,12 @@
 
 import json
 
+from datetime import datetime
+
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
+from pycassa.util import convert_uuid_to_time
 
 from hgdeoro.lolog.storage import query, query_by_severity
 
@@ -32,8 +35,9 @@ def home(request):
     cassandra_result = query()
     result = []
     for _, columns in cassandra_result:
-        for _, col in columns.iteritems():
-            message = json.loads(col)
+        for col_key, col_val in columns.iteritems():
+            message = json.loads(col_val)
+            message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
             result.append(message)
     ctx = {
         'result': result,
@@ -45,8 +49,9 @@ def home(request):
 def search_by_severity(request, severity):
     cassandra_result = query_by_severity(severity)
     result = []
-    for _, col in cassandra_result.iteritems():
-        message = json.loads(col)
+    for col_key, col_val in cassandra_result.iteritems():
+        message = json.loads(col_val)
+        message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
         result.append(message)
     ctx = {
         'result': result,
