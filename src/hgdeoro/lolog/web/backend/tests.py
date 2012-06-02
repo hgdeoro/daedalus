@@ -50,6 +50,41 @@ def _truncate_all_column_families():
     sys_mgr.close()
 
 
+def _save_500_random_messages_to_real_keyspace():
+    settings.KEYSPACE = settings.KEYSPACE_REAL
+    print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
+    _save_random_messages(500)
+
+
+def _save_random_messages(max_count=None):
+    start = time.time()
+    count = 0
+    try:
+        for item in log_generator(1):
+            msg = item[0]
+            app = item[1]
+            host = item[2]
+            severity = item[3]
+            message = {
+                'application': app,
+                'host': host,
+                'severity': severity,
+                'message': msg,
+            }
+            storage.save_log(message)
+            count += 1
+            if count % 100 == 0:
+                avg = float(count) / (time.time() - start)
+                logging.info("Inserted %d messages, %f insert/sec", count, avg)
+                if max_count > 0 and count > max_count:
+                    break
+    except KeyboardInterrupt:
+        logging.info("Stopping...")
+    end = time.time()
+    avg = float(count) / (end - start)
+    logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
+
+
 class StorageTest(TestCase):
 
     def test_save_and_queries(self):
@@ -109,44 +144,7 @@ class StorageTest(TestCase):
         self.assertListEqual(apps, ['dbus'])
 
     def test_save_500_log(self):
-        self._save_random_messages(500)
-
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Utility non-test methods
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def _save_500_random_messages_to_real_keyspace(self):
-        settings.KEYSPACE = settings.KEYSPACE_REAL
-        print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
-        self._save_random_messages(500)
-
-    def _save_random_messages(self, max_count=None):
-        start = time.time()
-        count = 0
-        try:
-            for item in log_generator(1):
-                msg = item[0]
-                app = item[1]
-                host = item[2]
-                severity = item[3]
-                message = {
-                    'application': app,
-                    'host': host,
-                    'severity': severity,
-                    'message': msg,
-                }
-                storage.save_log(message)
-                count += 1
-                if count % 100 == 0:
-                    avg = float(count) / (time.time() - start)
-                    logging.info("Inserted %d messages, %f insert/sec", count, avg)
-                    if max_count > 0 and count > max_count:
-                        break
-        except KeyboardInterrupt:
-            logging.info("Stopping...")
-        end = time.time()
-        avg = float(count) / (end - start)
-        logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
+        _save_random_messages(500)
 
 
 class ResetRealKeyspace(StorageTest):
@@ -172,7 +170,7 @@ class ResetRealKeyspace(StorageTest):
             pass
         sys_mgr.close()
         _create_keyspace_and_cfs()
-        self._save_random_messages(1000)
+        _save_random_messages(1000)
 
 
 class WebBackendTest(TestCase):
