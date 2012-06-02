@@ -53,6 +53,7 @@ def _truncate_all_column_families():
 def _save_500_random_messages_to_real_keyspace():
     settings.KEYSPACE = settings.KEYSPACE_REAL
     print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
+    _create_keyspace_and_cfs()
     _save_random_messages(500)
 
 
@@ -145,6 +146,10 @@ class StorageTest(TestCase):
 
     def test_save_500_log(self):
         _save_random_messages(500)
+
+    def save_500_random_messages_to_real_keyspace(self):
+        logging.basicConfig(level=logging.INFO)
+        _save_500_random_messages_to_real_keyspace()
 
 
 class ResetRealKeyspace(StorageTest):
