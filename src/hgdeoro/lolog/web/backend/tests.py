@@ -24,9 +24,11 @@ import logging
 import time
 
 from django.test.testcases import TestCase
+from pycassa.system_manager import SystemManager
 
 from hgdeoro.lolog import storage
 from hgdeoro.lolog.proto.random_log_generator import log_generator
+from hgdeoro.lolog.storage import KEYSPACE, _create_keyspace_and_cfs
 
 
 class Storagetest(TestCase):
@@ -71,6 +73,18 @@ class Storagetest(TestCase):
         end = time.time()
         avg = float(count) / (end - start)
         logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
+
+    def reset_db(self):
+        """
+        Drops the keyspace and re-create it and the CFs.
+        """
+        logging.basicConfig(level=logging.INFO)
+        sys_mgr = SystemManager()
+        logging.info("Dropping keyspace %s", KEYSPACE)
+        sys_mgr.drop_keyspace(KEYSPACE)
+        sys_mgr.close()
+        _create_keyspace_and_cfs()
+        self.stress_save_log(1000)
 
 
 class WebBackendTest(TestCase):
