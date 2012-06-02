@@ -140,7 +140,7 @@ def query():
     """
     pool = _get_connection()
     cf_logs = ColumnFamily(pool, CF_LOGS)
-    return cf_logs.get_range()
+    return cf_logs.get_range(column_reversed=True)
 
 
 def query_by_severity(severity):
@@ -157,7 +157,7 @@ def query_by_severity(severity):
     _check_severity(severity)
     pool = _get_connection()
     cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-    return cf_logs.get(severity)
+    return cf_logs.get(severity, column_reversed=True)
 
 
 def query_by_application(application):
@@ -174,7 +174,7 @@ def query_by_application(application):
     _check_application(application)
     pool = _get_connection()
     cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
-    return cf_logs.get(application)
+    return cf_logs.get(application, column_reversed=True)
 
 
 def list_applications():
