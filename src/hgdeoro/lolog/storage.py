@@ -59,7 +59,7 @@ def _create_keyspace_and_cfs():
     try:
         sys_mgr.describe_ring(settings.KEYSPACE)
     except:
-        logger.info("Creating keyspace %s", settings.KEYSPACE)
+        logger.info("_create_keyspace_and_cfs(): Creating keyspace %s", settings.KEYSPACE)
         sys_mgr.create_keyspace(settings.KEYSPACE, SIMPLE_STRATEGY, {'replication_factor': '1'})
 
     pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
@@ -67,7 +67,7 @@ def _create_keyspace_and_cfs():
         try:
             cf = ColumnFamily(pool, cf_name)
         except:
-            logger.info("Creating column family %s", cf_name)
+            logger.info("_create_keyspace_and_cfs(): Creating column family %s", cf_name)
             sys_mgr.create_column_family(settings.KEYSPACE, cf_name, comparator_type=TimeUUIDType())
             cf = ColumnFamily(pool, cf_name)
             cf.get_count(str(uuid.uuid4()))

@@ -38,8 +38,11 @@ class CassandraDjangoTestSuiteRunner(DjangoTestSuiteRunner):
         sys_mgr = SystemManager()
         try:
             sys_mgr.drop_keyspace(settings.KEYSPACE)
+            print "Keyspace {0} droped OK".format(settings.KEYSPACE)
         except:
             pass
+        # keyspace 'settings.KEYSPACE' shouldn't exists
+        assert settings.KEYSPACE not in sys_mgr.list_keyspaces()
         sys_mgr.close()
         _create_keyspace_and_cfs()
         return super(CassandraDjangoTestSuiteRunner, self).setup_databases(**kwargs)

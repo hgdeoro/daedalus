@@ -35,22 +35,26 @@ from hgdeoro.lolog.proto.random_log_generator import log_generator
 from hgdeoro.lolog.storage import _create_keyspace_and_cfs
 from hgdeoro.lolog.utils import ymd_from_epoch
 
+logger = logging.getLogger(__name__)
 
-def truncate_all_column_families():
+
+def _truncate_all_column_families():
+    """
+    Truncates all the existing CF on the keyspace 'settings.KEYSPACE'
+    """
     sys_mgr = SystemManager()
     for cf_name, _ in sys_mgr.get_keyspace_column_families(settings.KEYSPACE).iteritems():
         pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
-        print "Truncating {0}".format(cf_name)
+        logger.info("Truncating CF: '%s'...", cf_name)
         ColumnFamily(pool, cf_name).truncate()
     sys_mgr.close()
 
 
 class StorageTest(TestCase):
 
-    def setUp(self):
-        truncate_all_column_families()
-
     def test_save_and_queries(self):
+        _truncate_all_column_families()
+
         # Test storage.save_log()
         message = {
             'application': u'dbus',
@@ -105,14 +109,18 @@ class StorageTest(TestCase):
         self.assertListEqual(apps, ['dbus'])
 
     def test_save_500_log(self):
-        self.stress_save_log(500)
+        self._save_random_messages(500)
 
-    def save_500_log_to_real_keyspace(self):
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Utility non-test methods
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def _save_500_random_messages_to_real_keyspace(self):
         settings.KEYSPACE = settings.KEYSPACE_REAL
-        self.stress_save_log(500)
+        print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
+        self._save_random_messages(500)
 
-    def stress_save_log(self, max_count=None):
-        logging.basicConfig(level=logging.INFO)
+    def _save_random_messages(self, max_count=None):
         start = time.time()
         count = 0
         try:
@@ -140,7 +148,10 @@ class StorageTest(TestCase):
         avg = float(count) / (end - start)
         logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
 
-    def reset_real_keyspace(self):
+
+class ResetRealKeyspace(StorageTest):
+
+    def _reset_real_keyspace(self):
         """
         Resets the REAL keyspace (not the used for tests).
         To do this, the 'settings.KEYSPACE' is overwriten with
@@ -152,6 +163,7 @@ class StorageTest(TestCase):
         """
         logging.basicConfig(level=logging.INFO)
         settings.KEYSPACE = settings.KEYSPACE_REAL
+        print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
         sys_mgr = SystemManager()
         try:
             logging.info("Dropping keyspace %s", settings.KEYSPACE)
@@ -160,15 +172,13 @@ class StorageTest(TestCase):
             pass
         sys_mgr.close()
         _create_keyspace_and_cfs()
-        self.stress_save_log(1000)
+        self._save_random_messages(1000)
 
 
 class WebBackendTest(TestCase):
 
-    def setUp(self):
-        truncate_all_column_families()
-
-    def test_insert(self):
+    def test_insert_via_web(self):
+        _truncate_all_column_families()
         json_message = json.dumps({
             'application': u'dbus',
             'host': u'localhost',
@@ -181,10 +191,13 @@ class WebBackendTest(TestCase):
         self.assertEquals(content['status'], 'ok')
 
     def test_save_100_log(self):
-        self.stress_save_log(100)
+        self._save_random_messages_via_web(100)
 
-    def stress_save_log(self, max_count=None):
-        logging.basicConfig(level=logging.INFO)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Utility non-test methods
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def _save_random_messages_via_web(self, max_count=None):
         start = time.time()
         count = 0
         try:
