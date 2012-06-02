@@ -22,6 +22,7 @@
 import json
 import logging
 import time
+import uuid
 
 from django.test.testcases import TestCase
 from django.conf import settings
@@ -33,7 +34,6 @@ from hgdeoro.lolog import storage
 from hgdeoro.lolog.proto.random_log_generator import log_generator
 from hgdeoro.lolog.storage import _create_keyspace_and_cfs
 from hgdeoro.lolog.utils import ymd_from_epoch
-import uuid
 
 
 def truncate_all_column_families():
@@ -89,6 +89,10 @@ class StorageTest(TestCase):
         self.assertRaises(StopIteration, columns_iterator.next)
 
     def test_save_500_log(self):
+        self.stress_save_log(500)
+
+    def save_500_log_to_real_keyspace(self):
+        settings.KEYSPACE = settings.KEYSPACE_REAL
         self.stress_save_log(500)
 
     def stress_save_log(self, max_count=None):
