@@ -23,7 +23,6 @@ import time
 
 from datetime import date
 
-from django.test.simple import DjangoTestSuiteRunner
 from pycassa.util import convert_uuid_to_time
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,13 +48,3 @@ def ymd_from_uuid1(uuid1_value):
     a_date = date.fromtimestamp(convert_uuid_to_time(uuid1_value))
     return "{0:04d}{1:02d}{2:02d}".format(
         a_date.year, a_date.month, a_date.day)
-
-
-class CassandraDjangoTestSuiteRunner(DjangoTestSuiteRunner):
-
-    def __init__(self, *args, **kwargs):
-        print "Instantiating CassandraDjangoTestSuiteRunner..."
-        super(CassandraDjangoTestSuiteRunner, self).__init__(*args, **kwargs)
-
-    def setup_databases(self, **kwargs):
-        return super(CassandraDjangoTestSuiteRunner, self).setup_databases(**kwargs)

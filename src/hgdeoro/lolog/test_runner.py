@@ -19,19 +19,27 @@
 ##    along with lolog; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-# Here are the settings common for both frontend and backend.
-# This exists to achieve the DRY philosophy.
+from django.test.simple import DjangoTestSuiteRunner
+from django.conf import settings
+from pycassa.system_manager import SystemManager
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Non-Django settings
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from hgdeoro.lolog.storage import _create_keyspace_and_cfs
 
-KEYSPACE = 'lolog'
 
-CASSANDRA_HOSTS = ["127.0.0.1"]
+class CassandraDjangoTestSuiteRunner(DjangoTestSuiteRunner):
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Non-Django settings
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    def __init__(self, *args, **kwargs):
+        print "Instantiating CassandraDjangoTestSuiteRunner..."
+        super(CassandraDjangoTestSuiteRunner, self).__init__(*args, **kwargs)
 
-TEST_RUNNER = 'hgdeoro.lolog.test_runner.CassandraDjangoTestSuiteRunner'
+    def setup_databases(self, **kwargs):
+        settings.KEYSPACE = "{0}_test".format(settings.KEYSPACE)
+        print "Patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
+        sys_mgr = SystemManager()
+        try:
+            sys_mgr.drop_keyspace(settings.KEYSPACE)
+        except:
+            pass
+        sys_mgr.close()
+        _create_keyspace_and_cfs()
+        return super(CassandraDjangoTestSuiteRunner, self).setup_databases(**kwargs)
