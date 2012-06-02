@@ -137,8 +137,11 @@ class StorageTest(TestCase):
         logging.basicConfig(level=logging.INFO)
         settings.KEYSPACE = settings.KEYSPACE_REAL
         sys_mgr = SystemManager()
-        logging.info("Dropping keyspace %s", settings.KEYSPACE)
-        sys_mgr.drop_keyspace(settings.KEYSPACE)
+        try:
+            logging.info("Dropping keyspace %s", settings.KEYSPACE)
+            sys_mgr.drop_keyspace(settings.KEYSPACE)
+        except:
+            pass
         sys_mgr.close()
         _create_keyspace_and_cfs()
         self.stress_save_log(1000)
