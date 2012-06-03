@@ -25,6 +25,13 @@ from hgdeoro.lolog.settings import * #@UnusedWildImport
 
 LOLOG_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'lolog-location'
+    }
+}
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 

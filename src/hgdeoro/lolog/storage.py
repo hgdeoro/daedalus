@@ -26,6 +26,7 @@ import time
 import uuid
 
 from django.conf import settings
+from django.core.cache import cache
 from pycassa import ConnectionPool, ColumnFamily
 from pycassa.system_manager import SystemManager, SIMPLE_STRATEGY
 from pycassa.types import TimeUUIDType
@@ -208,26 +209,33 @@ class StorageService(object):
         """
         Returns a list of valid applications.
         """
+        cached_app_list = cache.get('lolog:application_list')
+        if cached_app_list:
+            return json.loads(cached_app_list)
         pool = _get_connection()
         cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
-        return [item[0] for item in cf_logs.get_range(column_count=1)]
-    
-    def get_error_count(self):
+        app_list = [item[0] for item in cf_logs.get_range(column_count=1)]
+        cache.set('lolog:application_list', json.dumps(app_list), 60)
+        return app_list
+
+    def _get_severity_count(self, severity):
+        cached_count = cache.get('lolog:severity_count:' + severity)
+        if cached_count:
+            return int(cached_count)
         pool = _get_connection()
         cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-        return cf_logs.get_count('ERROR')
+        count = cf_logs.get_count(severity)
+        cache.set('lolog:severity_count:' + severity, str(count), 15)
+        return count
+
+    def get_error_count(self):
+        return self._get_severity_count('ERROR')
     
     def get_warn_count(self):
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-        return cf_logs.get_count('WARN')
+        return self._get_severity_count('WARN')
     
     def get_info_count(self):
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-        return cf_logs.get_count('INFO')
+        return self._get_severity_count('INFO')
     
     def get_debug_count(self):
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-        return cf_logs.get_count('DEBUG')
+        return self._get_severity_count('DEBUG')
