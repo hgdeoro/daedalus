@@ -112,13 +112,14 @@ def search_by_severity(request, severity):
 
 
 def search_by_application(request, application):
-    cassandra_result = storage.get_service().query_by_application(application)
+    from_col = str_to_column_key(request.GET.get('from', None))
+    cassandra_result = storage.get_service().query_by_application(application, from_col=from_col)
     result = []
     for col_key, col_val in cassandra_result.iteritems():
         message = json.loads(col_val)
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
         result.append(message)
-    ctx = _ctx(result=result)
+    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key))
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 
