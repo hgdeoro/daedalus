@@ -46,6 +46,15 @@ CF_LOGS_BY_HOST = 'Logs_by_host'
 CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
 
 
+def _json_cache(key, ttl, callback, *args, **kwargs):
+    cached = cache.get(key)
+    if cached is not None:
+        return json.loads(cached)
+    data = callback(*args, **kwargs)
+    cache.set(key, json.dumps(data), ttl)
+    return data
+
+
 def _check_severity(severity):
     assert severity in ('ERROR', 'WARN', 'INFO', 'DEBUG')
 
@@ -209,14 +218,11 @@ class StorageService(object):
         """
         Returns a list of valid applications.
         """
-        cached_app_list = cache.get('lolog:application_list')
-        if cached_app_list:
-            return json.loads(cached_app_list)
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
-        app_list = [item[0] for item in cf_logs.get_range(column_count=1)]
-        cache.set('lolog:application_list', json.dumps(app_list), 60)
-        return app_list
+        def _callback():
+            pool = _get_connection()
+            cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
+            return [item[0] for item in cf_logs.get_range(column_count=1)]
+        return _json_cache('lolog:application_list', settings.LOLOG_CACHE_APP_LIST, _callback)
 
     def _get_severity_count(self, severity):
         cached_count = cache.get('lolog:severity_count:' + severity)
@@ -225,7 +231,8 @@ class StorageService(object):
         pool = _get_connection()
         cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
         count = cf_logs.get_count(severity)
-        cache.set('lolog:severity_count:' + severity, str(count), 15)
+        cache.set('lolog:severity_count:' + severity, str(count),
+            settings.LOLOG_CACHE_SEVERITY_COUNT)
         return count
 
     def get_error_count(self):

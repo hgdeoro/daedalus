@@ -25,6 +25,10 @@ from hgdeoro.lolog.settings import * #@UnusedWildImport
 
 LOLOG_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
 
+LOLOG_CACHE_SEVERITY_COUNT = 30
+
+LOLOG_CACHE_APP_LIST = 180
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
