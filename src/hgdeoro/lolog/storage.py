@@ -91,7 +91,7 @@ def _get_connection(retry=None, wait_between_retry=None):
         except AllServersUnavailable:
             num += 1
             if num >= retry:
-                logger.warn("Giving up")
+                logger.exception("Giving up after many retries....")
                 raise
             logger.warn("AllServersUnavailable detected. Retrying (%d of %d)...", num, retry)
             time.sleep(wait_between_retry)
@@ -287,38 +287,45 @@ class StorageService(object):
 
     def get_status(self):
         status = {}
+        _logger = logging.getLogger(__name__ + '.get_status')
         try:
             pool = _get_connection()
             pool.dispose()
             status['get_connection'] = "ok"
         except:
             status['get_connection'] = "error"
+            _logger.exception("_get_connection() failed")
 
         try:
             status['get_error_count'] = self.get_error_count()
         except:
             status['get_error_count'] = "error"
+            _logger.exception("get_error_count() failed")
 
         try:
             status['get_warn_count'] = self.get_warn_count()
         except:
             status['get_warn_count'] = "error"
+            _logger.exception("get_warn_count() failed")
 
         try:
             status['get_info_count'] = self.get_info_count()
         except:
             status['get_info_count'] = "error"
+            _logger.exception("get_info_count() failed")
 
         try:
             status['get_debug_count'] = self.get_debug_count()
         except:
             status['get_debug_count'] = "error"
+            _logger.exception("get_debug_count() failed")
 
         try:
             self.query()
             status['query'] = "ok"
         except:
             status['query'] = "error"
+            _logger.exception("query() failed")
 
         try:
             apps = self.list_applications()
@@ -328,8 +335,10 @@ class StorageService(object):
                     status['query_by_application_' + app] = len(self.query_by_application(app).keys())
                 except:
                     status['query_by_application_' + app] = "error"
+                    _logger.exception("query_by_application() failed")
         except:
             status['list_applications'] = "error"
+            _logger.exception("list_applications() failed")
 
         sys_mgr = SystemManager()
         try:
@@ -337,5 +346,6 @@ class StorageService(object):
             status['SystemManager.describe_ring(%s)' % settings.KEYSPACE] = 'ok'
         except:
             status['SystemManager.describe_ring(%s)' % settings.KEYSPACE] = 'error'
+            _logger.exception("SystemManager.describe_ring() failed")
 
         return status
