@@ -52,11 +52,22 @@
 				<a class="btn btn-mini"
 					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">D ({{ debug_count }})</a>
 
-				&nbsp; | &nbsp; <!-- .............................. -->
+				{% if app_list %}
+					&nbsp; | &nbsp; <!-- .............................. -->
+				{% endif %}
 
 				{% for app in app_list %}
 					<a class="btn btn-mini btn-success"
 						href="{% url hgdeoro.lolog.web.frontend.views.search_by_application app %}">{{ app }}</a>
+				{% endfor %}
+
+				{% if host_list %}
+					&nbsp; | &nbsp; <!-- .............................. -->
+				{% endif %}
+
+				{% for host in host_list %}
+					<a class="btn btn-mini btn-success"
+						href="{% url hgdeoro.lolog.web.frontend.views.search_by_host host %}">{{ host }}</a>
 				{% endfor %}
 
 			{% endblock extra_navbar %}

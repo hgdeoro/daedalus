@@ -161,6 +161,10 @@ class StorageTest(TestCase):
         apps = storage.get_service().list_applications()
         self.assertListEqual(apps, ['dbus'])
 
+        # Test storage.list_hosts()
+        hosts = storage.get_service().list_hosts()
+        self.assertListEqual(hosts, ['localhost'])
+
     def test_save_500_log(self):
         """
         Saves 500 messages on the configured keyspace (settings.KEYSPACE)

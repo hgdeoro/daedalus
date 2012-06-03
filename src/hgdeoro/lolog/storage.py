@@ -264,6 +264,20 @@ class StorageService(object):
         else:
             return _callback()
 
+    def list_hosts(self):
+        """
+        Returns a list of valid hosts.
+        """
+        def _callback():
+            pool = _get_connection()
+            cf_logs = ColumnFamily(pool, CF_LOGS_BY_HOST)
+            return [item[0] for item in cf_logs.get_range(column_count=1)]
+
+        if self.cache_enabled:
+            return _json_cache('lolog:host_list', settings.LOLOG_CACHE_APP_LIST, _callback)
+        else:
+            return _callback()
+
     def _get_severity_count(self, severity):
         def _callback():
             pool = _get_connection()

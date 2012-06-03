@@ -45,6 +45,11 @@ def _ctx(**kwargs):
         ctx['render_messages'].append("Error detected while trying to get application list")
 
     try:
+        ctx['host_list'] = service.list_hosts()
+    except:
+        ctx['render_messages'].append("Error detected while trying to get host list")
+
+    try:
         ctx['error_count'] = service.get_error_count()
     except:
         ctx['error_count'] = '?'
