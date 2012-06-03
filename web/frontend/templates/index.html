@@ -11,13 +11,13 @@
 			href="{% url hgdeoro.lolog.web.frontend.views.home %}">ALL</a>
 		&nbsp; | &nbsp; <!-- .............................. -->
 		<a class="btn btn-mini btn-danger"
-			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">ERROR</a>
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">E ({{ error_count }})</a>
 		<a class="btn btn-mini btn-warning"
-			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">WARN</a>
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">W ({{ warn_count }})</a>
 		<a class="btn btn-mini btn-info"
-			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">INFO</a>
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">I ({{ info_count }})</a>
 		<a class="btn btn-mini"
-			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">DEBUG</a>
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">D ({{ debug_count }})</a>
 		&nbsp; | &nbsp; <!-- .............................. -->
 		{% for app in app_list %}
 			<a class="btn btn-mini btn-success"

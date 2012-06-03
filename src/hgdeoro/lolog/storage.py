@@ -210,3 +210,27 @@ def list_applications():
     pool = _get_connection()
     cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
     return [item[0] for item in cf_logs.get_range(column_count=1)]
+
+
+def get_error_count():
+    pool = _get_connection()
+    cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
+    return cf_logs.get_count('ERROR')
+
+
+def get_warn_count():
+    pool = _get_connection()
+    cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
+    return cf_logs.get_count('WARN')
+
+
+def get_info_count():
+    pool = _get_connection()
+    cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
+    return cf_logs.get_count('INFO')
+
+
+def get_debug_count():
+    pool = _get_connection()
+    cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
+    return cf_logs.get_count('DEBUG')

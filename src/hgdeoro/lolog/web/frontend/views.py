@@ -29,12 +29,17 @@ from django.template.context import RequestContext
 from pycassa.util import convert_uuid_to_time
 
 from hgdeoro.lolog.storage import query, query_by_severity, list_applications,\
-    query_by_application
+    query_by_application, get_error_count, get_warn_count, get_info_count,\
+    get_debug_count
 
 
 def _ctx(**kwargs):
     ctx = dict(kwargs)
     ctx['app_list'] = list_applications()
+    ctx['error_count'] = get_error_count()
+    ctx['warn_count'] = get_warn_count()
+    ctx['info_count'] = get_info_count()
+    ctx['debug_count'] = get_debug_count()
     return ctx
 
 
