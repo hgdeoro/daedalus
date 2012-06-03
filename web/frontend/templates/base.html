@@ -35,6 +35,30 @@
           <div class="nav-collapse">
 
 			{% block extra_navbar %}
+
+				<a class="btn btn-mini btn-inverse"
+					href="{% url hgdeoro.lolog.web.frontend.views.home %}">All</a>
+				<a class="btn btn-mini btn-inverse"
+					href="{% url hgdeoro.lolog.web.frontend.views.status %}">Status</a>
+
+				&nbsp; | &nbsp; <!-- .............................. -->
+
+				<a class="btn btn-mini btn-danger"
+					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">E ({{ error_count }})</a>
+				<a class="btn btn-mini btn-warning"
+					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">W ({{ warn_count }})</a>
+				<a class="btn btn-mini btn-info"
+					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">I ({{ info_count }})</a>
+				<a class="btn btn-mini"
+					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">D ({{ debug_count }})</a>
+
+				&nbsp; | &nbsp; <!-- .............................. -->
+
+				{% for app in app_list %}
+					<a class="btn btn-mini btn-success"
+						href="{% url hgdeoro.lolog.web.frontend.views.search_by_application app %}">{{ app }}</a>
+				{% endfor %}
+
 			{% endblock extra_navbar %}
 
           </div><!--/.nav-collapse -->
