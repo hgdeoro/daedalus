@@ -40,6 +40,9 @@ logger = logging.getLogger(__name__)
 # TODO: this regex should be valid only for valid Cassandra row keys
 APPLICATION_REGEX = re.compile(r'^[a-zA-Z0-9/-]+$')
 
+# TODO: this regex should be valid only for valid Cassandra row keys
+HOST_REGEX = re.compile(r'^[a-zA-Z0-9-\.]+$')
+
 CF_LOGS = 'Logs'
 CF_LOGS_BY_APP = 'Logs_by_app'
 CF_LOGS_BY_HOST = 'Logs_by_host'
@@ -62,6 +65,11 @@ def _check_severity(severity):
 def _check_application(application):
     if not APPLICATION_REGEX.search(application):
         assert False, "Invalid identifier for application: '{0}'".format(application)
+
+
+def _check_host(host):
+    if not HOST_REGEX.search(host):
+        assert False, "Invalid identifier for host: '{0}'".format(host)
 
 
 def _get_connection(retry=None, wait_between_retry=None):
@@ -89,11 +97,14 @@ def _get_connection(retry=None, wait_between_retry=None):
             time.sleep(wait_between_retry)
 
 
-def get_service():
-    return StorageService()
+def get_service(*args, **kwargs):
+    return StorageService(*args, **kwargs)
 
 
 class StorageService(object):
+
+    def __init__(self, cache_enabled=True):
+        self.cache_enabled = cache_enabled
 
     def create_keyspace_and_cfs(self):
         """
@@ -214,6 +225,22 @@ class StorageService(object):
         cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
         return cf_logs.get(application, column_reversed=True)
     
+    def query_by_host(self, host):
+        """
+        Returns OrderedDict.
+    
+        Use:
+            cassandra_result = query_by_host(severity)
+            result = []
+            for _, col in cassandra_result.iteritems():
+                message = json.loads(col)
+                result.append(message)
+        """
+        _check_host(host)
+        pool = _get_connection()
+        cf_logs = ColumnFamily(pool, CF_LOGS_BY_HOST)
+        return cf_logs.get(host, column_reversed=True)
+    
     def list_applications(self):
         """
         Returns a list of valid applications.
@@ -222,18 +249,29 @@ class StorageService(object):
             pool = _get_connection()
             cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
             return [item[0] for item in cf_logs.get_range(column_count=1)]
-        return _json_cache('lolog:application_list', settings.LOLOG_CACHE_APP_LIST, _callback)
+
+        if self.cache_enabled:
+            return _json_cache('lolog:application_list', settings.LOLOG_CACHE_APP_LIST, _callback)
+        else:
+            return _callback()
 
     def _get_severity_count(self, severity):
-        cached_count = cache.get('lolog:severity_count:' + severity)
-        if cached_count:
-            return int(cached_count)
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-        count = cf_logs.get_count(severity)
-        cache.set('lolog:severity_count:' + severity, str(count),
-            settings.LOLOG_CACHE_SEVERITY_COUNT)
-        return count
+        def _callback():
+            pool = _get_connection()
+            cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
+            count = cf_logs.get_count(severity)
+            return count
+
+        if self.cache_enabled:
+            cached_count = cache.get('lolog:severity_count:' + severity)
+            if cached_count:
+                return int(cached_count)
+            count = _callback()
+            cache.set('lolog:severity_count:' + severity, str(count),
+                settings.LOLOG_CACHE_SEVERITY_COUNT)
+            return count
+        else:
+            return _callback()
 
     def get_error_count(self):
         return self._get_severity_count('ERROR')

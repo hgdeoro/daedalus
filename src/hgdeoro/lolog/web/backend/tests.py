@@ -145,6 +145,18 @@ class StorageTest(TestCase):
 
         self.assertRaises(StopIteration, columns_iterator.next)
 
+        # Test storage.query_by_host()
+        result = storage.get_service().query_by_host("localhost")
+        columns_iterator = result.iteritems()
+        col_k, col_v = columns_iterator.next()
+        retrieved_message = json.loads(col_v)
+        self.assertEquals(retrieved_message['severity'], message['severity'])
+        self.assertEquals(retrieved_message['host'], message['host'])
+        self.assertEquals(retrieved_message['application'], message['application'])
+        self.assertEquals(retrieved_message['message'], message['message'])
+
+        self.assertRaises(StopIteration, columns_iterator.next)
+
         # Test storage.list_applications()
         apps = storage.get_service().list_applications()
         self.assertListEqual(apps, ['dbus'])
