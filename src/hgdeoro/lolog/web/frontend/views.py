@@ -28,23 +28,22 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from pycassa.util import convert_uuid_to_time
 
-from hgdeoro.lolog.storage import query, query_by_severity, list_applications,\
-    query_by_application, get_error_count, get_warn_count, get_info_count,\
-    get_debug_count
+from hgdeoro.lolog import storage
 
 
 def _ctx(**kwargs):
     ctx = dict(kwargs)
-    ctx['app_list'] = list_applications()
-    ctx['error_count'] = get_error_count()
-    ctx['warn_count'] = get_warn_count()
-    ctx['info_count'] = get_info_count()
-    ctx['debug_count'] = get_debug_count()
+    service = storage.get_service()
+    ctx['app_list'] = service.list_applications()
+    ctx['error_count'] = service.get_error_count()
+    ctx['warn_count'] = service.get_warn_count()
+    ctx['info_count'] = service.get_info_count()
+    ctx['debug_count'] = service.get_debug_count()
     return ctx
 
 
 def home(request):
-    cassandra_result = query()
+    cassandra_result = storage.get_service().query()
     result = []
     for _, columns in cassandra_result:
         for col_key, col_val in columns.iteritems():
@@ -57,7 +56,7 @@ def home(request):
 
 
 def search_by_severity(request, severity):
-    cassandra_result = query_by_severity(severity)
+    cassandra_result = storage.get_service().query_by_severity(severity)
     result = []
     for col_key, col_val in cassandra_result.iteritems():
         message = json.loads(col_val)
@@ -69,7 +68,7 @@ def search_by_severity(request, severity):
 
 
 def search_by_application(request, application):
-    cassandra_result = query_by_application(application)
+    cassandra_result = storage.get_service().query_by_application(application)
     result = []
     for col_key, col_val in cassandra_result.iteritems():
         message = json.loads(col_val)

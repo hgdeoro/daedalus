@@ -24,8 +24,7 @@ import os
 from django.test.simple import DjangoTestSuiteRunner
 from django.conf import settings
 from pycassa.system_manager import SystemManager
-
-from hgdeoro.lolog.storage import _create_keyspace_and_cfs
+from hgdeoro.lolog import storage
 
 
 class CassandraDjangoTestSuiteRunner(DjangoTestSuiteRunner):
@@ -49,5 +48,5 @@ class CassandraDjangoTestSuiteRunner(DjangoTestSuiteRunner):
             assert settings.KEYSPACE not in sys_mgr.list_keyspaces()
             sys_mgr.close()
 
-        _create_keyspace_and_cfs()
+        storage.get_service().create_keyspace_and_cfs()
         return super(CassandraDjangoTestSuiteRunner, self).setup_databases(**kwargs)

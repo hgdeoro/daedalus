@@ -42,5 +42,5 @@ def save_log(request):
     #
     json_encoded_payload = request.POST['payload']
     message = json.loads(json_encoded_payload)
-    storage.save_log(message)
+    storage.get_service().save_log(message)
     return HttpResponse(json.dumps({'status': 'ok'}), status=201)

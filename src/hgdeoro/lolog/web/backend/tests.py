@@ -32,7 +32,6 @@ from pycassa.pool import ConnectionPool
 
 from hgdeoro.lolog import storage
 from hgdeoro.lolog.proto.random_log_generator import log_generator
-from hgdeoro.lolog.storage import _create_keyspace_and_cfs
 from hgdeoro.lolog.utils import ymd_from_epoch
 
 logger = logging.getLogger(__name__)
@@ -63,7 +62,7 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None):
     """
     Saves messages to the configured keyspace (settings.KEYSPACE)
     """
-    _create_keyspace_and_cfs()
+    storage.get_service().create_keyspace_and_cfs()
     start = time.time()
     count = 0
     try:
@@ -78,7 +77,7 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None):
                 'severity': severity,
                 'message': msg,
             }
-            storage.save_log(message)
+            storage.get_service().save_log(message)
             count += 1
             if count % 100 == 0:
                 avg = float(count) / (time.time() - start)
@@ -104,10 +103,10 @@ class StorageTest(TestCase):
             'severity': u"INFO",
             'message': u"Successfully activated service 'org.kde.powerdevil.backlighthelper'",
         }
-        storage.save_log(message)
+        storage.get_service().save_log(message)
 
         # Test storage.query()
-        result = storage.query()
+        result = storage.get_service().query()
         a_row = result.next()
         self.assertEqual(a_row[0], ymd_from_epoch())
         columns_iterator = a_row[1].iteritems()
@@ -123,7 +122,7 @@ class StorageTest(TestCase):
         self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.query_by_severity()
-        result = storage.query_by_severity("INFO")
+        result = storage.get_service().query_by_severity("INFO")
         columns_iterator = result.iteritems()
         col_k, col_v = columns_iterator.next()
         retrieved_message = json.loads(col_v)
@@ -135,7 +134,7 @@ class StorageTest(TestCase):
         self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.query_by_application()
-        result = storage.query_by_application("dbus")
+        result = storage.get_service().query_by_application("dbus")
         columns_iterator = result.iteritems()
         col_k, col_v = columns_iterator.next()
         retrieved_message = json.loads(col_v)
@@ -147,7 +146,7 @@ class StorageTest(TestCase):
         self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.list_applications()
-        apps = storage.list_applications()
+        apps = storage.get_service().list_applications()
         self.assertListEqual(apps, ['dbus'])
 
     def test_save_500_log(self):
@@ -193,7 +192,7 @@ class ResetRealKeyspace(StorageTest):
         except:
             pass
         sys_mgr.close()
-        _create_keyspace_and_cfs()
+        storage.get_service()._create_keyspace_and_cfs()
         _bulk_save_random_messages_to_real_keyspace(1000)
 
 
