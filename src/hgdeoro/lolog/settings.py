@@ -38,8 +38,19 @@ CASSANDRA_CONNECT_RETRY_COUNT = 600
 
 CASSANDRA_CONNECT_RETRY_WAIT = 0.1
 
+LOLOG_CACHE_SEVERITY_COUNT = 30
+
+LOLOG_CACHE_APP_LIST = 180
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Non-Django settings
+# Django settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+        'LOCATION': '127.0.0.1:11211'
+    }
+}
 
 TEST_RUNNER = 'hgdeoro.lolog.test_runner.CassandraDjangoTestSuiteRunner'
