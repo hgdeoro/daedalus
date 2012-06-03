@@ -193,7 +193,7 @@ class StorageService(object):
         cf_logs = ColumnFamily(pool, CF_LOGS)
         return cf_logs.get_range(column_reversed=True)
     
-    def query_by_severity(self, severity):
+    def query_by_severity(self, severity, from_col=None):
         """
         Returns OrderedDict.
     
@@ -207,8 +207,11 @@ class StorageService(object):
         _check_severity(severity)
         pool = _get_connection()
         cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-        return cf_logs.get(severity, column_reversed=True)
-    
+        if from_col is None:
+            return cf_logs.get(severity, column_reversed=True)
+        else:
+            return cf_logs.get(severity, column_reversed=True, column_start=from_col)
+
     def query_by_application(self, application):
         """
         Returns OrderedDict.

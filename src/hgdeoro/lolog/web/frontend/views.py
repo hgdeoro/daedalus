@@ -20,6 +20,7 @@
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import json
+import uuid
 
 from datetime import datetime
 
@@ -32,6 +33,9 @@ from hgdeoro.lolog import storage
 
 
 def _ctx(**kwargs):
+    """
+    Generates a context instance for rendering the Django view.
+    """
     ctx = dict(kwargs)
     ctx['render_messages'] = []
     service = storage.get_service()
@@ -67,6 +71,16 @@ def _ctx(**kwargs):
     return ctx
 
 
+def column_key_to_str(col_key):
+    return col_key.get_hex()
+
+
+def str_to_column_key(str_key):
+    if str_key is None:
+        return None
+    return uuid.UUID(hex=str_key)
+
+
 def home(request):
     result = []
     ctx = _ctx(result=result)
@@ -84,13 +98,15 @@ def home(request):
 
 
 def search_by_severity(request, severity):
-    cassandra_result = storage.get_service().query_by_severity(severity)
+    from_col = str_to_column_key(request.GET.get('from', None))
+    cassandra_result = storage.get_service().query_by_severity(severity, from_col=from_col)
     result = []
     for col_key, col_val in cassandra_result.iteritems():
         message = json.loads(col_val)
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
         result.append(message)
-    ctx = _ctx(result=result)
+    # col_key -> last column
+    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key))
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 

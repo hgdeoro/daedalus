@@ -12,6 +12,15 @@
 	-->
 
 	{% block container %}
+
+	<div class="pagination pagination-right">
+		<ul>
+			<li>
+				<a href="?from={{ last_message_timestamp }}">Next</a>
+			</li>
+		</ul>
+	</div>
+
 	<table class="table table-striped table-condensed">
 		<thead>
 			<tr>
