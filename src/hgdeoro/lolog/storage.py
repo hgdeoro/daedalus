@@ -106,24 +106,30 @@ def save_log(message):
     # Save on <CF> CF_LOGS
     event_uuid = uuid.uuid1()
     row_key = ymd_from_uuid1(event_uuid)
-    cf_logs.insert(str(row_key), {
+    ret1 = cf_logs.insert(str(row_key), {
         event_uuid: json_message,
     })
 
     # Save on <CF> CF_LOGS_BY_APP
-    cf_logs_by_app.insert(application, {
+    ret2 = cf_logs_by_app.insert(application, {
         event_uuid: json_message,
     })
 
     # Save on <CF> CF_LOGS_BY_HOST
-    cf_logs_by_host.insert(host, {
+    ret3 = cf_logs_by_host.insert(host, {
         event_uuid: json_message,
     })
 
     # Save on <CF> CF_LOGS_BY_SEVERITY
-    cf_logs_by_severity.insert(severity, {
+    ret4 = cf_logs_by_severity.insert(severity, {
         event_uuid: json_message,
     })
+
+    assert ret1 > 0
+    assert ret2 > 0
+    assert ret3 > 0
+    assert ret4 > 0
+    return ret1, ret2, ret3, ret4
 
 
 def query():
