@@ -24,8 +24,8 @@ import logging
 from django.test.testcases import TestCase
 from django.core.urlresolvers import reverse
 
-from hgdeoro.lolog.web.backend.tests import _save_random_messages,\
-    _truncate_all_column_families
+from hgdeoro.lolog.web.backend.tests import _truncate_all_column_families,\
+    _bulk_save_random_messages_to_default_keyspace
 from hgdeoro.lolog.web.frontend import views
 from hgdeoro.lolog.proto.random_log_generator import EXAMPLE_APPS
 
@@ -37,7 +37,7 @@ class WebFrontendTest(TestCase):
     def test(self, max_count=1000, truncate=True):
         if truncate:
             _truncate_all_column_families()
-        _save_random_messages(max_count)
+        _bulk_save_random_messages_to_default_keyspace(max_count)
 
         response = self.client.get(reverse(views.home))
         self.assertTemplateUsed(response, 'index.html')
@@ -55,4 +55,4 @@ class WebFrontendTest(TestCase):
     def repeated_test(self):
         logging.basicConfig(level=logging.INFO)
         while True:
-            self.test(max_count=2000, truncate=False)
+            self.test(max_count=200, truncate=False)

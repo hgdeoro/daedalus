@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 def _truncate_all_column_families():
     """
-    Truncates all the existing CF on the keyspace 'settings.KEYSPACE'
+    Truncates all the existing CF on the configured keyspace (settings.KEYSPACE)
     """
     sys_mgr = SystemManager()
     for cf_name, _ in sys_mgr.get_keyspace_column_families(settings.KEYSPACE).iteritems():
@@ -50,14 +50,20 @@ def _truncate_all_column_families():
     sys_mgr.close()
 
 
-def _save_random_messages_to_real_keyspace(max_count):
+def _bulk_save_random_messages_to_real_keyspace(max_count):
+    """
+    Saves messages on REAL keyspace.
+    """
     settings.KEYSPACE = settings.KEYSPACE_REAL
     print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
+    _bulk_save_random_messages_to_default_keyspace(max_count)
+
+
+def _bulk_save_random_messages_to_default_keyspace(max_count=None):
+    """
+    Saves messages to the configured keyspace (settings.KEYSPACE)
+    """
     _create_keyspace_and_cfs()
-    _save_random_messages(max_count)
-
-
-def _save_random_messages(max_count=None):
     start = time.time()
     count = 0
     try:
@@ -145,15 +151,24 @@ class StorageTest(TestCase):
         self.assertListEqual(apps, ['dbus'])
 
     def test_save_500_log(self):
-        _save_random_messages(500)
+        """
+        Saves 500 messages on the configured keyspace (settings.KEYSPACE)
+        """
+        _bulk_save_random_messages_to_default_keyspace(500)
 
-    def save_500_random_messages_to_real_keyspace(self):
+    def bulk_save_500_messages_to_real_keyspace(self):
+        """
+        Saves 500 messages on REAL keyspace.
+        """
         logging.basicConfig(level=logging.INFO)
-        _save_random_messages_to_real_keyspace(500)
+        _bulk_save_random_messages_to_real_keyspace(500)
 
-    def save_random_messages_to_real_keyspace(self):
+    def bulk_save_messages_to_real_keyspace(self):
+        """
+        Saves messages on REAL keyspace until canceled.
+        """
         logging.basicConfig(level=logging.INFO)
-        _save_random_messages_to_real_keyspace(0)
+        _bulk_save_random_messages_to_real_keyspace(0)
 
 
 class ResetRealKeyspace(StorageTest):
@@ -179,7 +194,7 @@ class ResetRealKeyspace(StorageTest):
             pass
         sys_mgr.close()
         _create_keyspace_and_cfs()
-        _save_random_messages(1000)
+        _bulk_save_random_messages_to_real_keyspace(1000)
 
 
 class WebBackendTest(TestCase):
