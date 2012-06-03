@@ -33,24 +33,52 @@ from hgdeoro.lolog import storage
 
 def _ctx(**kwargs):
     ctx = dict(kwargs)
+    ctx['render_messages'] = []
     service = storage.get_service()
-    ctx['app_list'] = service.list_applications()
-    ctx['error_count'] = service.get_error_count()
-    ctx['warn_count'] = service.get_warn_count()
-    ctx['info_count'] = service.get_info_count()
-    ctx['debug_count'] = service.get_debug_count()
+    try:
+        ctx['app_list'] = service.list_applications()
+    except:
+        ctx['render_messages'].append("Error detected while trying to get application list")
+
+    try:
+        ctx['error_count'] = service.get_error_count()
+    except:
+        ctx['error_count'] = '?'
+        ctx['render_messages'].append("Error detected while trying to get the count of ERRORs")
+
+    try:
+        ctx['warn_count'] = service.get_warn_count()
+    except:
+        ctx['warn_count'] = '?'
+        ctx['render_messages'].append("Error detected while trying to get the count of WARNs")
+
+    try:
+        ctx['info_count'] = service.get_info_count()
+    except:
+        ctx['info_count'] = '?'
+        ctx['render_messages'].append("Error detected while trying to get the count of INFOs")
+
+    try:
+        ctx['debug_count'] = service.get_debug_count()
+    except:
+        ctx['debug_count'] = '?'
+        ctx['render_messages'].append("Error detected while trying to get the count of DEBUGs")
+
     return ctx
 
 
 def home(request):
-    cassandra_result = storage.get_service().query()
     result = []
-    for _, columns in cassandra_result:
-        for col_key, col_val in columns.iteritems():
-            message = json.loads(col_val)
-            message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
-            result.append(message)
     ctx = _ctx(result=result)
+    try:
+        cassandra_result = storage.get_service().query()
+        for _, columns in cassandra_result:
+            for col_key, col_val in columns.iteritems():
+                message = json.loads(col_val)
+                message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
+                result.append(message)
+    except:
+        ctx['render_messages'].append("Error detected while executing query()")
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 
@@ -76,4 +104,14 @@ def search_by_application(request, application):
         result.append(message)
     ctx = _ctx(result=result)
     return HttpResponse(render_to_response('index.html',
+        context_instance=RequestContext(request, ctx)))
+
+
+def status(request):
+    status_list = []
+    ctx = _ctx(status_list=status_list)
+    storage_status = storage.get_service().get_status()
+    for key in sorted(storage_status.keys()):
+        status_list.append((key, storage_status[key]))
+    return HttpResponse(render_to_response('status.html',
         context_instance=RequestContext(request, ctx)))

@@ -22,7 +22,7 @@
 from django.conf.urls import patterns, url
 
 from hgdeoro.lolog.web.frontend.views import home, search_by_severity,\
-    search_by_application
+    search_by_application, status
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -34,6 +34,7 @@ urlpatterns = patterns('',
     # url(r'^web_frontend/', include('web_frontend.foo.urls')),
 
     url(r'^$', home),
+    url(r'^status/', status),
     url(r'^search/severity/(.*)/', search_by_severity),
     url(r'^search/application/(.*)/', search_by_application),
 

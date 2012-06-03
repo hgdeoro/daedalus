@@ -284,3 +284,57 @@ class StorageService(object):
     
     def get_debug_count(self):
         return self._get_severity_count('DEBUG')
+
+    def get_status(self):
+        status = {}
+        try:
+            pool = _get_connection()
+            status['get_connection'] = "ok"
+        except:
+            status['get_connection'] = "error"
+
+        try:
+            status['get_error_count'] = self.get_error_count()
+        except:
+            status['get_error_count'] = "error"
+
+        try:
+            status['get_warn_count'] = self.get_warn_count()
+        except:
+            status['get_warn_count'] = "error"
+
+        try:
+            status['get_info_count'] = self.get_info_count()
+        except:
+            status['get_info_count'] = "error"
+
+        try:
+            status['get_debug_count'] = self.get_debug_count()
+        except:
+            status['get_debug_count'] = "error"
+
+        try:
+            self.query()
+            status['query'] = "ok"
+        except:
+            status['query'] = "error"
+
+        try:
+            apps = self.list_applications()
+            status['list_applications'] = ", ".join(apps)
+            for app in apps:
+                try:
+                    status['query_by_application_' + app] = len(self.query_by_application(app).keys())
+                except:
+                    status['query_by_application_' + app] = "error"
+        except:
+            status['list_applications'] = "error"
+
+        sys_mgr = SystemManager()
+        try:
+            sys_mgr.describe_ring(settings.KEYSPACE)
+            status['SystemManager.describe_ring(%s)' % settings.KEYSPACE] = 'ok'
+        except:
+            status['SystemManager.describe_ring(%s)' % settings.KEYSPACE] = 'error'
+
+        return status

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+</head>
+<body>
+
+	{% block extra_navbar %}
+		<a class="btn btn-mini btn-inverse"
+			href="{% url hgdeoro.lolog.web.frontend.views.home %}">ALL</a>
+		&nbsp; | &nbsp; <!-- .............................. -->
+		<a class="btn btn-mini btn-danger"
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">E ({{ error_count }})</a>
+		<a class="btn btn-mini btn-warning"
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">W ({{ warn_count }})</a>
+		<a class="btn btn-mini btn-info"
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">I ({{ info_count }})</a>
+		<a class="btn btn-mini"
+			href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">D ({{ debug_count }})</a>
+		&nbsp; | &nbsp; <!-- .............................. -->
+		{% for app in app_list %}
+			<a class="btn btn-mini btn-success"
+				href="{% url hgdeoro.lolog.web.frontend.views.search_by_application app %}">{{ app }}</a>
+		{% endfor %}
+	{% endblock extra_navbar %}
+
+	{% block container %}
+	<table class="table table-striped table-condensed">
+		<thead>
+			<tr>
+				<th>Status</th>
+				<th>Item</th>
+				<th>Text</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for item, status in status_list %}
+			<tr>
+				<td>
+					{% if status == 'error' %}
+						<span class="label label-important">error</span>
+					{% else %}
+						<span class="label label-success">ok</span>
+					{% endif %}
+				</td>
+				<td>
+					{{ item }}:
+				</td>
+				<td>
+					{{ status }}
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	{% endblock container %}
+
+</body>
+</html>

@@ -43,6 +43,14 @@
     </div>
 
     <div class="container">
+    {% block errors %}
+    	{% for msg in render_messages %}
+    		<div class="alert alert-error">
+    			{{ msg }}
+    		</div>
+    	{% endfor %}
+    {% endblock errors %}
+
     {% block container %}
       <h1>Contents here!</h1>
       <p>Use this document as a way to quick start any new project.<br>
