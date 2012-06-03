@@ -231,7 +231,7 @@ class StorageService(object):
         else:
             return cf_logs.get(application, column_reversed=True, column_start=from_col)
     
-    def query_by_host(self, host):
+    def query_by_host(self, host, from_col=None):
         """
         Returns OrderedDict.
     
@@ -245,7 +245,10 @@ class StorageService(object):
         _check_host(host)
         pool = _get_connection()
         cf_logs = ColumnFamily(pool, CF_LOGS_BY_HOST)
-        return cf_logs.get(host, column_reversed=True)
+        if from_col is None:
+            return cf_logs.get(host, column_reversed=True)
+        else:
+            return cf_logs.get(host, column_reversed=True, column_start=from_col)
     
     def list_applications(self):
         """
