@@ -289,6 +289,7 @@ class StorageService(object):
         status = {}
         try:
             pool = _get_connection()
+            pool.dispose()
             status['get_connection'] = "ok"
         except:
             status['get_connection'] = "error"
