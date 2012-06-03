@@ -34,6 +34,10 @@ KEYSPACE = KEYSPACE_REAL
 
 CASSANDRA_HOSTS = ["127.0.0.1"]
 
+CASSANDRA_CONNECT_RETRY_COUNT = 600
+
+CASSANDRA_CONNECT_RETRY_WAIT = 0.1
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Non-Django settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

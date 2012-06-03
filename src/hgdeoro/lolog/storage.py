@@ -22,12 +22,15 @@
 import json
 import logging
 import re
+import time
 import uuid
 
 from django.conf import settings
 from pycassa import ConnectionPool, ColumnFamily
 from pycassa.system_manager import SystemManager, SIMPLE_STRATEGY
 from pycassa.types import TimeUUIDType
+from pycassa.batch import Mutator
+from pycassa.pool import AllServersUnavailable
 
 from hgdeoro.lolog.utils import ymd_from_uuid1
 
@@ -75,15 +78,29 @@ def _create_keyspace_and_cfs():
     sys_mgr.close()
 
 
-def _get_connection():
+def _get_connection(retry=None, wait_between_retry=None):
     """
     Creates a connection to Cassandra.
 
     Returs:
         pool
     """
-    pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
-    return pool
+    num = 0
+    if retry is None:
+        retry = settings.CASSANDRA_CONNECT_RETRY_COUNT
+    if wait_between_retry is None:
+        wait_between_retry = settings.CASSANDRA_CONNECT_RETRY_WAIT
+    while True:
+        try:
+            pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
+            return pool
+        except AllServersUnavailable:
+            num += 1
+            if num >= retry:
+                logger.warn("Giving up")
+                raise
+            logger.warn("AllServersUnavailable detected. Retrying (%d of %d)...", num, retry)
+            time.sleep(wait_between_retry)
 
 
 def save_log(message):
@@ -102,34 +119,37 @@ def save_log(message):
     _check_severity(severity)
 
     json_message = json.dumps(message)
-
-    # Save on <CF> CF_LOGS
     event_uuid = uuid.uuid1()
-    row_key = ymd_from_uuid1(event_uuid)
-    ret1 = cf_logs.insert(str(row_key), {
-        event_uuid: json_message,
-    })
 
-    # Save on <CF> CF_LOGS_BY_APP
-    ret2 = cf_logs_by_app.insert(application, {
-        event_uuid: json_message,
-    })
+    with Mutator(pool) as batch:
+        # Save on <CF> CF_LOGS
+        row_key = ymd_from_uuid1(event_uuid)
+        batch.insert(
+            cf_logs,
+            str(row_key), {
+                event_uuid: json_message,
+        })
 
-    # Save on <CF> CF_LOGS_BY_HOST
-    ret3 = cf_logs_by_host.insert(host, {
-        event_uuid: json_message,
-    })
+        # Save on <CF> CF_LOGS_BY_APP
+        batch.insert(
+            cf_logs_by_app,
+            application, {
+                event_uuid: json_message,
+        })
 
-    # Save on <CF> CF_LOGS_BY_SEVERITY
-    ret4 = cf_logs_by_severity.insert(severity, {
-        event_uuid: json_message,
-    })
+        # Save on <CF> CF_LOGS_BY_HOST
+        batch.insert(
+            cf_logs_by_host,
+            host, {
+                event_uuid: json_message,
+        })
 
-    assert ret1 > 0
-    assert ret2 > 0
-    assert ret3 > 0
-    assert ret4 > 0
-    return ret1, ret2, ret3, ret4
+        # Save on <CF> CF_LOGS_BY_SEVERITY
+        batch.insert(
+            cf_logs_by_severity,
+            severity, {
+                event_uuid: json_message,
+        })
 
 
 def query():
