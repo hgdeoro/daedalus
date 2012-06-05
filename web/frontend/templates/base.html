@@ -24,60 +24,54 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-        <!--
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          -->
-          <a class="brand" href="#">Lolog</a>
-          <div class="nav-collapse">
 
+        <div class="navbar navbar-fixed-top">
+
+		<a class="brand" href="{% url hgdeoro.lolog.web.frontend.views.home %}">Lolog</a>
+
+          <ul class="nav">
+          
 			{% block extra_navbar %}
 
-				<a class="btn btn-mini btn-inverse"
-					href="{% url hgdeoro.lolog.web.frontend.views.home %}">All</a>
-				<a class="btn btn-mini btn-inverse"
-					href="{% url hgdeoro.lolog.web.frontend.views.status %}">Status</a>
+				<li><a href="{% url hgdeoro.lolog.web.frontend.views.home %}">All</a></li>
+				<li><a href="{% url hgdeoro.lolog.web.frontend.views.status %}">Status</a></li>
 
-				&nbsp; | &nbsp; <!-- .............................. -->
+				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">Error ({{ error_count }})</a></li>
+				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">Warn ({{ warn_count }})</a></li>
+				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">Info ({{ info_count }})</a></li>
+				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">Debug ({{ debug_count }})</a></li>
 
-				<a class="btn btn-mini btn-danger"
-					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">E ({{ error_count }})</a>
-				<a class="btn btn-mini btn-warning"
-					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">W ({{ warn_count }})</a>
-				<a class="btn btn-mini btn-info"
-					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">I ({{ info_count }})</a>
-				<a class="btn btn-mini"
-					href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">D ({{ debug_count }})</a>
+					{% if app_list %}
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown"> By App. <b class="caret"></b></a>
+							<ul class="dropdown-menu">
+								{% for app in app_list %}
+									<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_application app %}">{{ app }}</a></li>
+								{% endfor %}
+							</ul>
+						</li>
+					{% endif %}
 
-				{% if app_list %}
-					&nbsp; | &nbsp; <!-- .............................. -->
-				{% endif %}
-
-				{% for app in app_list %}
-					<a class="btn btn-mini btn-success"
-						href="{% url hgdeoro.lolog.web.frontend.views.search_by_application app %}">{{ app }}</a>
-				{% endfor %}
-
-				{% if host_list %}
-					&nbsp; | &nbsp; <!-- .............................. -->
-				{% endif %}
-
-				{% for host in host_list %}
-					<a class="btn btn-mini btn-success"
-						href="{% url hgdeoro.lolog.web.frontend.views.search_by_host host %}">{{ host }}</a>
-				{% endfor %}
+					{% if app_list %}
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown"> By Host <b class="caret"></b></a>
+							<ul class="dropdown-menu">
+								{% for host in host_list %}
+									<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_host host %}">{{ host }}</a></li>
+								{% endfor %}
+							</ul>
+						</li>
+					{% endif %}
 
 			{% endblock extra_navbar %}
 
-          </div><!--/.nav-collapse -->
+		</ul>
+		</div>
         </div>
       </div>
     </div>
 
-    <div class="container">
+	<div class="container">
     {% block errors %}
     	{% for msg in render_messages %}
     		<div class="alert alert-error">
