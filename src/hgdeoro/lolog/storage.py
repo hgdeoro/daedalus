@@ -358,10 +358,23 @@ class StorageService(object):
                     status['query_by_application_' + app] = len(self.query_by_application(app).keys())
                 except:
                     status['query_by_application_' + app] = "error"
-                    _logger.exception("query_by_application() failed")
+                    _logger.exception("query_by_application() failed for app {0}".format(app))
         except:
             status['list_applications'] = "error"
             _logger.exception("list_applications() failed")
+
+        try:
+            hosts = self.list_hosts()
+            status['list_hosts'] = ", ".join(apps)
+            for a_host in hosts:
+                try:
+                    status['query_by_host_' + a_host] = len(self.query_by_host(a_host).keys())
+                except:
+                    status['query_by_host_' + a_host] = "error"
+                    _logger.exception("query_by_host() failed for host {0}".format(a_host))
+        except:
+            status['list_hosts'] = "error"
+            _logger.exception("list_hosts() failed")
 
         sys_mgr = SystemManager()
         try:
