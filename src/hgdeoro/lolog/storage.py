@@ -365,7 +365,7 @@ class StorageService(object):
 
         try:
             hosts = self.list_hosts()
-            status['list_hosts'] = ", ".join(apps)
+            status['list_hosts'] = ", ".join(hosts)
             for a_host in hosts:
                 try:
                     status['query_by_host_' + a_host] = len(self.query_by_host(a_host).keys())
