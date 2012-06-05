@@ -111,7 +111,8 @@ def search_by_severity(request, severity):
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
         result.append(message)
     # col_key -> last column
-    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key))
+    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key),
+        top_message="Showing only '{0}' messages.".format(severity))
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 
@@ -124,7 +125,8 @@ def search_by_application(request, application):
         message = json.loads(col_val)
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
         result.append(message)
-    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key))
+    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key),
+        top_message="Showing only messages of application '{0}'.".format(application))
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 
@@ -137,7 +139,8 @@ def search_by_host(request, host):
         message = json.loads(col_val)
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
         result.append(message)
-    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key))
+    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key),
+        top_message="Showing only messages from host '{0}'.".format(host))
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 

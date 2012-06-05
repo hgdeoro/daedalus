@@ -23,6 +23,12 @@
 
 	{% block container %}
 
+	{% if top_message %}
+		<div class="alert alert-info">
+			{{ top_message }}
+		</div>
+	{% endif %}
+
 	<table class="table table-striped table-condensed">
 		<thead>
 			<tr>
