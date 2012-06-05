@@ -148,7 +148,7 @@ def search_by_host(request, host):
 def status(request):
     status_list = []
     ctx = _ctx(status_list=status_list)
-    storage_status = storage.get_service().get_status()
+    storage_status = storage.get_service(cache_enabled=False).get_status()
     for key in sorted(storage_status.keys()):
         status_list.append((key, storage_status[key]))
     return HttpResponse(render_to_response('status.html',
