@@ -6,22 +6,22 @@
 </head>
 <body>
 
-	<!--
-	{ % block extra_navbar % }
-	{ % endblock extra_navbar % }
-	-->
+	{% block extra_navbar %}
+
+		{% if last_message_timestamp %}
+			<ul class="nav pull-right">
+					<li>
+						<a href="?from={{ last_message_timestamp }}">Next</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">&nbsp;</a>
+					</li>
+			</ul>
+		{% endif %}
+
+	{% endblock extra_navbar %}
 
 	{% block container %}
-
-	{% if last_message_timestamp %}
-	<div class="pagination pagination-right">
-		<ul>
-			<li>
-				<a href="?from={{ last_message_timestamp }}">Next</a>
-			</li>
-		</ul>
-	</div>
-	{% endif %}
 
 	<table class="table table-striped table-condensed">
 		<thead>

@@ -30,12 +30,11 @@
 		<a class="brand" href="{% url hgdeoro.lolog.web.frontend.views.home %}">Lolog</a>
 
           <ul class="nav">
-          
-			{% block extra_navbar %}
 
+				<li class="divider-vertical"></li>
 				<li><a href="{% url hgdeoro.lolog.web.frontend.views.home %}">All</a></li>
 				<li><a href="{% url hgdeoro.lolog.web.frontend.views.status %}">Status</a></li>
-
+				<li class="divider-vertical"></li>
 				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">Error ({{ error_count }})</a></li>
 				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">Warn ({{ warn_count }})</a></li>
 				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">Info ({{ info_count }})</a></li>
@@ -63,9 +62,11 @@
 						</li>
 					{% endif %}
 
-			{% endblock extra_navbar %}
-
 		</ul>
+
+		{% block extra_navbar %}
+		{% endblock extra_navbar %}
+
 		</div>
         </div>
       </div>
