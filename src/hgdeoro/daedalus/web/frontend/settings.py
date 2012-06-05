@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
 
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-##    lolog - Centralized log server
+##    daedalus - Centralized log server
 ##    Copyright (C) 2012 - Horacio Guillermo de Oro <hgdeoro@gmail.com>
 ##
-##    This file is part of lolog.
+##    This file is part of daedalus.
 ##
-##    lolog is free software; you can redistribute it and/or modify
+##    daedalus is free software; you can redistribute it and/or modify
 ##    it under the terms of the GNU General Public License as published by
 ##    the Free Software Foundation version 2.
 ##
-##    lolog is distributed in the hope that it will be useful,
+##    daedalus is distributed in the hope that it will be useful,
 ##    but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##    GNU General Public License version 2 for more details.
 ##
 ##    You should have received a copy of the GNU General Public License
-##    along with lolog; see the file LICENSE.txt.
+##    along with daedalus; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 from os.path import join, abspath, dirname
 
-from hgdeoro.lolog.settings import * #@UnusedWildImport
+from hgdeoro.daedalus.settings import * #@UnusedWildImport
 
-LOLOG_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
+DAEDALUS_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -37,7 +37,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': join(LOLOG_DIR, 'lolog_web_frontend.sqlite'),
+        'NAME': join(DAEDALUS_DIR, 'daedalus_web_frontend.sqlite'),
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
@@ -92,7 +92,7 @@ STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    abspath(join(LOLOG_DIR, 'web', 'frontend', 'static')),
+    abspath(join(DAEDALUS_DIR, 'web', 'frontend', 'static')),
 )
 
 # List of finder classes that know how to find static files in
@@ -123,16 +123,16 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'hgdeoro.lolog.web.frontend.urls'
+ROOT_URLCONF = 'hgdeoro.daedalus.web.frontend.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'hgdeoro.lolog.web.frontend.wsgi.application'
+WSGI_APPLICATION = 'hgdeoro.daedalus.web.frontend.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    abspath(join(LOLOG_DIR, 'web', 'frontend', 'templates')),
+    abspath(join(DAEDALUS_DIR, 'web', 'frontend', 'templates')),
 )
 
 INSTALLED_APPS = (
@@ -146,7 +146,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    'hgdeoro.lolog.web.frontend',
+    'hgdeoro.daedalus.web.frontend',
 )
 
 # A sample logging configuration. The only tangible logging

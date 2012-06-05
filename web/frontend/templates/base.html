@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Lolog</title>
+    <title>Daedalus</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -27,25 +27,25 @@
 
         <div class="navbar navbar-fixed-top">
 
-		<a class="brand" href="{% url hgdeoro.lolog.web.frontend.views.home %}">Lolog</a>
+		<a class="brand" href="{% url hgdeoro.daedalus.web.frontend.views.home %}">Daedalus</a>
 
           <ul class="nav">
 
 				<li class="divider-vertical"></li>
-				<li><a href="{% url hgdeoro.lolog.web.frontend.views.home %}">All</a></li>
-				<li><a href="{% url hgdeoro.lolog.web.frontend.views.status %}">Status</a></li>
+				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.home %}">All</a></li>
+				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.status %}">Status</a></li>
 				<li class="divider-vertical"></li>
-				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'ERROR' %}">Error ({{ error_count }})</a></li>
-				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'WARN' %}">Warn ({{ warn_count }})</a></li>
-				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'INFO' %}">Info ({{ info_count }})</a></li>
-				<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_severity 'DEBUG' %}">Debug ({{ debug_count }})</a></li>
+				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_severity 'ERROR' %}">Error ({{ error_count }})</a></li>
+				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_severity 'WARN' %}">Warn ({{ warn_count }})</a></li>
+				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_severity 'INFO' %}">Info ({{ info_count }})</a></li>
+				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_severity 'DEBUG' %}">Debug ({{ debug_count }})</a></li>
 
 					{% if app_list %}
 						<li class="dropdown">
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown"> By App. <b class="caret"></b></a>
 							<ul class="dropdown-menu">
 								{% for app in app_list %}
-									<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_application app %}">{{ app }}</a></li>
+									<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_application app %}">{{ app }}</a></li>
 								{% endfor %}
 							</ul>
 						</li>
@@ -56,7 +56,7 @@
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown"> By Host <b class="caret"></b></a>
 							<ul class="dropdown-menu">
 								{% for host in host_list %}
-									<li><a href="{% url hgdeoro.lolog.web.frontend.views.search_by_host host %}">{{ host }}</a></li>
+									<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_host host %}">{{ host }}</a></li>
 								{% endfor %}
 							</ul>
 						</li>

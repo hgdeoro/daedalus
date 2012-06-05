@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-##    lolog - Centralized log server
+##    daedalus - Centralized log server
 ##    Copyright (C) 2012 - Horacio Guillermo de Oro <hgdeoro@gmail.com>
 ##
-##    This file is part of lolog.
+##    This file is part of daedalus.
 ##
-##    lolog is free software; you can redistribute it and/or modify
+##    daedalus is free software; you can redistribute it and/or modify
 ##    it under the terms of the GNU General Public License as published by
 ##    the Free Software Foundation version 2.
 ##
-##    lolog is distributed in the hope that it will be useful,
+##    daedalus is distributed in the hope that it will be useful,
 ##    but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##    GNU General Public License version 2 for more details.
 ##
 ##    You should have received a copy of the GNU General Public License
-##    along with lolog; see the file LICENSE.txt.
+##    along with daedalus; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import json
@@ -33,7 +33,7 @@ from pycassa.types import TimeUUIDType
 from pycassa.batch import Mutator
 from pycassa.pool import AllServersUnavailable
 
-from hgdeoro.lolog.utils import ymd_from_uuid1
+from hgdeoro.daedalus.utils import ymd_from_uuid1
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +260,7 @@ class StorageService(object):
             return [item[0] for item in cf_logs.get_range(column_count=1)]
 
         if self.cache_enabled:
-            return _json_cache('lolog:application_list', settings.LOLOG_CACHE_APP_LIST, _callback)
+            return _json_cache('daedalus:application_list', settings.DAEDALUS_CACHE_APP_LIST, _callback)
         else:
             return _callback()
 
@@ -274,7 +274,7 @@ class StorageService(object):
             return [item[0] for item in cf_logs.get_range(column_count=1)]
 
         if self.cache_enabled:
-            return _json_cache('lolog:host_list', settings.LOLOG_CACHE_APP_LIST, _callback)
+            return _json_cache('daedalus:host_list', settings.DAEDALUS_CACHE_APP_LIST, _callback)
         else:
             return _callback()
 
@@ -286,12 +286,12 @@ class StorageService(object):
             return count
 
         if self.cache_enabled:
-            cached_count = cache.get('lolog:severity_count:' + severity)
+            cached_count = cache.get('daedalus:severity_count:' + severity)
             if cached_count:
                 return int(cached_count)
             count = _callback()
-            cache.set('lolog:severity_count:' + severity, str(count),
-                settings.LOLOG_CACHE_SEVERITY_COUNT)
+            cache.set('daedalus:severity_count:' + severity, str(count),
+                settings.DAEDALUS_CACHE_SEVERITY_COUNT)
             return count
         else:
             return _callback()

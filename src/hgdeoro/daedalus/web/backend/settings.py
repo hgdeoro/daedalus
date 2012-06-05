@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
 
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-##    lolog - Centralized log server
+##    daedalus - Centralized log server
 ##    Copyright (C) 2012 - Horacio Guillermo de Oro <hgdeoro@gmail.com>
 ##
-##    This file is part of lolog.
+##    This file is part of daedalus.
 ##
-##    lolog is free software; you can redistribute it and/or modify
+##    daedalus is free software; you can redistribute it and/or modify
 ##    it under the terms of the GNU General Public License as published by
 ##    the Free Software Foundation version 2.
 ##
-##    lolog is distributed in the hope that it will be useful,
+##    daedalus is distributed in the hope that it will be useful,
 ##    but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##    GNU General Public License version 2 for more details.
 ##
 ##    You should have received a copy of the GNU General Public License
-##    along with lolog; see the file LICENSE.txt.
+##    along with daedalus; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 from os.path import join, abspath, dirname
 
-from hgdeoro.lolog.settings import * #@UnusedWildImport
+from hgdeoro.daedalus.settings import * #@UnusedWildImport
 
-LOLOG_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
+DAEDALUS_DIR = abspath(join(dirname(__file__), '..', '..', '..', '..', '..'))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -37,7 +37,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': join(LOLOG_DIR, 'lolog_web_backend.sqlite'),
+        'NAME': join(DAEDALUS_DIR, 'daedalus_web_backend.sqlite'),
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
@@ -125,10 +125,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'hgdeoro.lolog.web.backend.urls'
+ROOT_URLCONF = 'hgdeoro.daedalus.web.backend.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'hgdeoro.lolog.web.backend.wsgi.application'
+WSGI_APPLICATION = 'hgdeoro.daedalus.web.backend.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -147,7 +147,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    'hgdeoro.lolog.web.backend',
+    'hgdeoro.daedalus.web.backend',
 )
 
 # A sample logging configuration. The only tangible logging
