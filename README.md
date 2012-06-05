@@ -1,8 +1,15 @@
+Daedalus
+----------------------------------------
+
+Daedalus is a Django application to store log messages on Cassandra.
+The messages are sent/received using HTTP POST, encoded as a json dictionary.
+
+
 Current iteration goals
 ----------------------------------------
 
-* Implemente the server and a python client
-
+* Simplest implementation of the server and a python client
+  - TODO: show messages details
 
 
 Functional use cases
@@ -10,10 +17,10 @@ Functional use cases
 
 1. Save log messages
 
-2. Search messages
-  - a. Search by application
-  - b. Search by host
-  - c. Search by severity
+2. Show messages
+  - a. Show by application
+  - b. Show by host
+  - c. Show by severity
 
 
 
