@@ -23,7 +23,7 @@ import json
 
 from django.http import HttpResponse
 
-from hgdeoro.daedalus import storage
+from hgdeoro.daedalus.storage import get_service_cm
 
 
 def home(request):
@@ -42,5 +42,6 @@ def save_log(request):
     #
     json_encoded_payload = request.POST['payload']
     message = json.loads(json_encoded_payload)
-    storage.get_service().save_log(message)
+    with get_service_cm() as storage_service:
+        storage_service.save_log(message)
     return HttpResponse(json.dumps({'status': 'ok'}), status=201)
