@@ -29,7 +29,7 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from pycassa.util import convert_uuid_to_time
 
-from hgdeoro.daedalus import storage
+from hgdeoro.daedalus.storage import get_service_cm
 
 
 def _ctx(**kwargs):
@@ -38,40 +38,40 @@ def _ctx(**kwargs):
     """
     ctx = dict(kwargs)
     ctx['render_messages'] = []
-    service = storage.get_service()
-    try:
-        ctx['app_list'] = service.list_applications()
-    except:
-        ctx['render_messages'].append("Error detected while trying to get application list")
-
-    try:
-        ctx['host_list'] = service.list_hosts()
-    except:
-        ctx['render_messages'].append("Error detected while trying to get host list")
-
-    try:
-        ctx['error_count'] = service.get_error_count()
-    except:
-        ctx['error_count'] = '?'
-        ctx['render_messages'].append("Error detected while trying to get the count of ERRORs")
-
-    try:
-        ctx['warn_count'] = service.get_warn_count()
-    except:
-        ctx['warn_count'] = '?'
-        ctx['render_messages'].append("Error detected while trying to get the count of WARNs")
-
-    try:
-        ctx['info_count'] = service.get_info_count()
-    except:
-        ctx['info_count'] = '?'
-        ctx['render_messages'].append("Error detected while trying to get the count of INFOs")
-
-    try:
-        ctx['debug_count'] = service.get_debug_count()
-    except:
-        ctx['debug_count'] = '?'
-        ctx['render_messages'].append("Error detected while trying to get the count of DEBUGs")
+    with get_service_cm() as service:
+        try:
+            ctx['app_list'] = service.list_applications()
+        except:
+            ctx['render_messages'].append("Error detected while trying to get application list")
+    
+        try:
+            ctx['host_list'] = service.list_hosts()
+        except:
+            ctx['render_messages'].append("Error detected while trying to get host list")
+    
+        try:
+            ctx['error_count'] = service.get_error_count()
+        except:
+            ctx['error_count'] = '?'
+            ctx['render_messages'].append("Error detected while trying to get the count of ERRORs")
+    
+        try:
+            ctx['warn_count'] = service.get_warn_count()
+        except:
+            ctx['warn_count'] = '?'
+            ctx['render_messages'].append("Error detected while trying to get the count of WARNs")
+    
+        try:
+            ctx['info_count'] = service.get_info_count()
+        except:
+            ctx['info_count'] = '?'
+            ctx['render_messages'].append("Error detected while trying to get the count of INFOs")
+    
+        try:
+            ctx['debug_count'] = service.get_debug_count()
+        except:
+            ctx['debug_count'] = '?'
+            ctx['render_messages'].append("Error detected while trying to get the count of DEBUGs")
 
     return ctx
 
@@ -89,29 +89,35 @@ def str_to_column_key(str_key):
 def home(request):
     result = []
     ctx = _ctx(result=result)
-    try:
-        cassandra_result = storage.get_service().query()
-        for _, columns in cassandra_result:
-            for col_key, col_val in columns.iteritems():
-                message = json.loads(col_val)
-                message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
-                result.append(message)
-    except:
-        ctx['render_messages'].append("Error detected while executing query()")
+    with get_service_cm() as service:
+        try:
+            cassandra_result = service.query()
+            for _, columns in cassandra_result:
+                for col_key, col_val in columns.iteritems():
+                    message = json.loads(col_val)
+                    message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
+                    result.append(message)
+        except:
+            ctx['render_messages'].append("Error detected while executing query()")
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 
 
 def search_by_severity(request, severity):
     from_col = str_to_column_key(request.GET.get('from', None))
-    cassandra_result = storage.get_service().query_by_severity(severity, from_col=from_col)
+    with get_service_cm() as service:
+        cassandra_result = service.query_by_severity(severity, from_col=from_col)
     result = []
+    last_message_timestamp = None
     for col_key, col_val in cassandra_result.iteritems():
         message = json.loads(col_val)
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
+        message['msg_id'] = column_key_to_str(col_key)
         result.append(message)
     # col_key -> last column
-    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key),
+    if result:
+        last_message_timestamp = result[-1]['msg_id']
+    ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only '{0}' messages.".format(severity))
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
@@ -119,13 +125,18 @@ def search_by_severity(request, severity):
 
 def search_by_application(request, application):
     from_col = str_to_column_key(request.GET.get('from', None))
-    cassandra_result = storage.get_service().query_by_application(application, from_col=from_col)
+    with get_service_cm() as service:
+        cassandra_result = service.query_by_application(application, from_col=from_col)
     result = []
+    last_message_timestamp = None
     for col_key, col_val in cassandra_result.iteritems():
         message = json.loads(col_val)
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
+        message['msg_id'] = column_key_to_str(col_key)
         result.append(message)
-    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key),
+    if result:
+        last_message_timestamp = result[-1]['msg_id']
+    ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only messages of application '{0}'.".format(application))
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
@@ -133,13 +144,18 @@ def search_by_application(request, application):
 
 def search_by_host(request, host):
     from_col = str_to_column_key(request.GET.get('from', None))
-    cassandra_result = storage.get_service().query_by_host(host, from_col=from_col)
+    with get_service_cm() as service:
+        cassandra_result = service.query_by_host(host, from_col=from_col)
     result = []
+    last_message_timestamp = None
     for col_key, col_val in cassandra_result.iteritems():
         message = json.loads(col_val)
         message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
+        message['msg_id'] = column_key_to_str(col_key)
         result.append(message)
-    ctx = _ctx(result=result, last_message_timestamp=column_key_to_str(col_key),
+    if result:
+        last_message_timestamp = result[-1]['msg_id']
+    ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only messages from host '{0}'.".format(host))
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
@@ -148,8 +164,15 @@ def search_by_host(request, host):
 def status(request):
     status_list = []
     ctx = _ctx(status_list=status_list)
-    storage_status = storage.get_service(cache_enabled=False).get_status()
+    with get_service_cm(cache_enabled=False) as service:
+        storage_status = service.get_status()
     for key in sorted(storage_status.keys()):
         status_list.append((key, storage_status[key]))
     return HttpResponse(render_to_response('status.html',
         context_instance=RequestContext(request, ctx)))
+
+
+def get_message_detail(request, message_id):
+    with get_service_cm() as service:
+        obj = service.get_by_id(message_id)
+    return HttpResponse(json.dumps(obj), mimetype='application/json')
