@@ -183,6 +183,8 @@ class StorageTest(TestCase):
         Saves messages on REAL keyspace until canceled.
         """
         logging.basicConfig(level=logging.INFO)
+        settings.CASSANDRA_CONNECT_RETRY_WAIT = 1
+        print "Patched value of CASSANDRA_CONNECT_RETRY_WAIT to 1"
         _bulk_save_random_messages_to_real_keyspace(0)
 
 
