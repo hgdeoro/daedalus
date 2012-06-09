@@ -192,7 +192,17 @@ class StorageService(object):
         pool = _get_connection()
         cf_logs = ColumnFamily(pool, CF_LOGS)
         return cf_logs.get_range(column_reversed=True)
-    
+
+    def get_by_id(self, message_id):
+        # FIXME: add documentation
+        # FIXME: add tests
+        # FIXME: return None if doesn't exists
+        pool = _get_connection()
+        cf_logs = ColumnFamily(pool, CF_LOGS)
+        msg_uuid = uuid.UUID(hex=message_id)
+        row_key = ymd_from_uuid1(msg_uuid)
+        return cf_logs.get(row_key, columns=[msg_uuid])[msg_uuid]
+
     def query_by_severity(self, severity, from_col=None):
         """
         Returns OrderedDict.
