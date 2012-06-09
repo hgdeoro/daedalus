@@ -22,7 +22,7 @@
 from django.conf.urls import patterns, url
 
 from hgdeoro.daedalus.web.frontend.views import home, search_by_severity,\
-    search_by_application, search_by_host, status
+    search_by_application, search_by_host, status, get_message_detail
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -38,6 +38,7 @@ urlpatterns = patterns('',
     url(r'^search/severity/(.*)/', search_by_severity),
     url(r'^search/host/(.*)/', search_by_host),
     url(r'^search/application/(.*)/', search_by_application),
+    url(r'^message/get/(.*)/', get_message_detail),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
