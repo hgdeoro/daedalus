@@ -19,6 +19,7 @@
 ##    along with daedalus; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import contextlib
 import json
 import logging
 import re
@@ -97,44 +98,107 @@ def _get_connection(retry=None, wait_between_retry=None):
             time.sleep(wait_between_retry)
 
 
+#@contextlib.contextmanager
+#def _get_connection_cm(*args, **kwargs):
+#    pool = None
+#    try:
+#        pool = _get_connection(*args, **kwargs)
+#        yield pool
+#    finally:
+#        if pool is not None:
+#            pool.dispose()
+
+
 def get_service(*args, **kwargs):
     return StorageService(*args, **kwargs)
 
 
+@contextlib.contextmanager
+def get_service_cm(*args, **kwargs):
+    """
+    Generates context manager for a service instance.
+
+    Use:
+        with get_service_cm() as service:
+            pass
+    """
+    service = StorageService(*args, **kwargs)
+    try:
+        yield service
+    finally:
+        service.close()
+
+
 class StorageService(object):
+    # FIXME: ensure close() is called on every instance created elsewhere
 
     def __init__(self, cache_enabled=True):
         self.cache_enabled = cache_enabled
+        self._pool = None
+        self._cf_logs = None
+        self._cf_logs_by_app = None
+        self._cf_logs_by_host = None
+        self._cf_logs_by_severity = None
+
+    def _get_pool(self):
+        if self._pool is None:
+            self._pool = _get_connection()
+        return self._pool
+
+    def _get_cf_logs(self):
+        if self._cf_logs is None:
+            self._cf_logs = ColumnFamily(self._get_pool(), CF_LOGS)
+        return self._cf_logs
+
+    def _get_cf_logs_by_app(self):
+        if self._cf_logs_by_app is None:
+            self._cf_logs_by_app = ColumnFamily(self._get_pool(), CF_LOGS_BY_APP)
+        return self._cf_logs_by_app
+
+    def _get_cf_logs_by_host(self):
+        if self._cf_logs_by_host is None:
+            self._cf_logs_by_host = ColumnFamily(self._get_pool(), CF_LOGS_BY_HOST)
+        return self._cf_logs_by_host
+
+    def _get_cf_logs_by_severity(self):
+        if self._cf_logs_by_severity is None:
+            self._cf_logs_by_severity = ColumnFamily(self._get_pool(), CF_LOGS_BY_SEVERITY)
+        return self._cf_logs_by_severity
+
+    def close(self):
+        if self._pool is not None:
+            self._pool.dispose()
+            self._pool = None
 
     def create_keyspace_and_cfs(self):
         """
         Creates the KEYSPACE and CF
         """
-        sys_mgr = SystemManager()
         try:
-            sys_mgr.describe_ring(settings.KEYSPACE)
-        except:
-            logger.info("create_keyspace_and_cfs(): Creating keyspace %s", settings.KEYSPACE)
-            sys_mgr.create_keyspace(settings.KEYSPACE, SIMPLE_STRATEGY, {'replication_factor': '1'})
-    
-        pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
-        for cf_name in [CF_LOGS, CF_LOGS_BY_APP, CF_LOGS_BY_HOST, CF_LOGS_BY_SEVERITY]:
+            sys_mgr = SystemManager()
             try:
-                cf = ColumnFamily(pool, cf_name)
+                sys_mgr.describe_ring(settings.KEYSPACE)
             except:
-                logger.info("create_keyspace_and_cfs(): Creating column family %s", cf_name)
-                sys_mgr.create_column_family(settings.KEYSPACE, cf_name, comparator_type=TimeUUIDType())
-                cf = ColumnFamily(pool, cf_name)
-                cf.get_count(str(uuid.uuid4()))
+                logger.info("create_keyspace_and_cfs(): Creating keyspace %s", settings.KEYSPACE)
+                sys_mgr.create_keyspace(settings.KEYSPACE, SIMPLE_STRATEGY, {'replication_factor': '1'})
     
-        sys_mgr.close()
+            try:
+                pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
+                for cf_name in [CF_LOGS, CF_LOGS_BY_APP, CF_LOGS_BY_HOST, CF_LOGS_BY_SEVERITY]:
+                    try:
+                        cf = ColumnFamily(pool, cf_name)
+                    except:
+                        logger.info("create_keyspace_and_cfs(): Creating column family %s", cf_name)
+                        sys_mgr.create_column_family(settings.KEYSPACE, cf_name, comparator_type=TimeUUIDType())
+                        cf = ColumnFamily(pool, cf_name)
+                        cf.get_count(str(uuid.uuid4()))
+            finally:
+                pool.dispose()
+        finally:
+            sys_mgr.close()
 
     def save_log(self, message):
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS)
-        cf_logs_by_app = ColumnFamily(pool, CF_LOGS_BY_APP)
-        cf_logs_by_host = ColumnFamily(pool, CF_LOGS_BY_HOST)
-        cf_logs_by_severity = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
+        pool = self._get_pool()
     
         application = message['application']
         host = message['host']
@@ -151,28 +215,28 @@ class StorageService(object):
             # Save on <CF> CF_LOGS
             row_key = ymd_from_uuid1(event_uuid)
             batch.insert(
-                cf_logs,
+                self._get_cf_logs(),
                 str(row_key), {
                     event_uuid: json_message,
             })
     
             # Save on <CF> CF_LOGS_BY_APP
             batch.insert(
-                cf_logs_by_app,
+                self._get_cf_logs_by_app(),
                 application, {
                     event_uuid: json_message,
             })
     
             # Save on <CF> CF_LOGS_BY_HOST
             batch.insert(
-                cf_logs_by_host,
+                self._get_cf_logs_by_host(),
                 host, {
                     event_uuid: json_message,
             })
     
             # Save on <CF> CF_LOGS_BY_SEVERITY
             batch.insert(
-                cf_logs_by_severity,
+                self._get_cf_logs_by_severity(),
                 severity, {
                     event_uuid: json_message,
             })
@@ -189,19 +253,15 @@ class StorageService(object):
                     message = json.loads(col)
                     result.append(message)
         """
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS)
-        return cf_logs.get_range(column_reversed=True)
+        return self._get_cf_logs().get_range(column_reversed=True)
 
     def get_by_id(self, message_id):
         # FIXME: add documentation
         # FIXME: add tests
         # FIXME: return None if doesn't exists
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS)
         msg_uuid = uuid.UUID(hex=message_id)
         row_key = ymd_from_uuid1(msg_uuid)
-        return cf_logs.get(row_key, columns=[msg_uuid])[msg_uuid]
+        return self._get_cf_logs().get(row_key, columns=[msg_uuid])[msg_uuid]
 
     def query_by_severity(self, severity, from_col=None):
         """
@@ -215,12 +275,10 @@ class StorageService(object):
                 result.append(message)
         """
         _check_severity(severity)
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
         if from_col is None:
-            return cf_logs.get(severity, column_reversed=True)
+            return self._get_cf_logs_by_severity().get(severity, column_reversed=True)
         else:
-            return cf_logs.get(severity, column_reversed=True, column_start=from_col)
+            return self._get_cf_logs_by_severity().get(severity, column_reversed=True, column_start=from_col)
 
     def query_by_application(self, application, from_col=None):
         """
@@ -234,12 +292,10 @@ class StorageService(object):
                 result.append(message)
         """
         _check_application(application)
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
         if from_col is None:
-            return cf_logs.get(application, column_reversed=True)
+            return self._get_cf_logs_by_app().get(application, column_reversed=True)
         else:
-            return cf_logs.get(application, column_reversed=True, column_start=from_col)
+            return self._get_cf_logs_by_app().get(application, column_reversed=True, column_start=from_col)
     
     def query_by_host(self, host, from_col=None):
         """
@@ -253,21 +309,17 @@ class StorageService(object):
                 result.append(message)
         """
         _check_host(host)
-        pool = _get_connection()
-        cf_logs = ColumnFamily(pool, CF_LOGS_BY_HOST)
         if from_col is None:
-            return cf_logs.get(host, column_reversed=True)
+            return self._get_cf_logs_by_host().get(host, column_reversed=True)
         else:
-            return cf_logs.get(host, column_reversed=True, column_start=from_col)
+            return self._get_cf_logs_by_host().get(host, column_reversed=True, column_start=from_col)
     
     def list_applications(self):
         """
         Returns a list of valid applications.
         """
         def _callback():
-            pool = _get_connection()
-            cf_logs = ColumnFamily(pool, CF_LOGS_BY_APP)
-            return [item[0] for item in cf_logs.get_range(column_count=1)]
+            return [item[0] for item in self._get_cf_logs_by_app().get_range(column_count=1)]
 
         if self.cache_enabled:
             return _json_cache('daedalus:application_list', settings.DAEDALUS_CACHE_APP_LIST, _callback)
@@ -279,9 +331,7 @@ class StorageService(object):
         Returns a list of valid hosts.
         """
         def _callback():
-            pool = _get_connection()
-            cf_logs = ColumnFamily(pool, CF_LOGS_BY_HOST)
-            return [item[0] for item in cf_logs.get_range(column_count=1)]
+            return [item[0] for item in self._get_cf_logs_by_host().get_range(column_count=1)]
 
         if self.cache_enabled:
             return _json_cache('daedalus:host_list', settings.DAEDALUS_CACHE_APP_LIST, _callback)
@@ -290,9 +340,7 @@ class StorageService(object):
 
     def _get_severity_count(self, severity):
         def _callback():
-            pool = _get_connection()
-            cf_logs = ColumnFamily(pool, CF_LOGS_BY_SEVERITY)
-            count = cf_logs.get_count(severity)
+            count = self._get_cf_logs_by_severity().get_count(severity)
             return count
 
         if self.cache_enabled:
@@ -386,12 +434,14 @@ class StorageService(object):
             status['list_hosts'] = "error"
             _logger.exception("list_hosts() failed")
 
-        sys_mgr = SystemManager()
         try:
+            sys_mgr = SystemManager()
             sys_mgr.describe_ring(settings.KEYSPACE)
             status['SystemManager.describe_ring(%s)' % settings.KEYSPACE] = 'ok'
         except:
             status['SystemManager.describe_ring(%s)' % settings.KEYSPACE] = 'error'
             _logger.exception("SystemManager.describe_ring() failed")
+        finally:
+            sys_mgr.close()
 
         return status
