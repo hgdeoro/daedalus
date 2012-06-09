@@ -87,7 +87,8 @@ def _get_connection(retry=None, wait_between_retry=None):
         wait_between_retry = settings.CASSANDRA_CONNECT_RETRY_WAIT
     while True:
         try:
-            pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
+            pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS,
+                timeout=settings.CASSANDRA_CONNECTION_POOL_TIMEOUT)
             return pool
         except AllServersUnavailable:
             num += 1
@@ -100,6 +101,11 @@ def _get_connection(retry=None, wait_between_retry=None):
 
 #@contextlib.contextmanager
 #def _get_connection_cm(*args, **kwargs):
+#    """
+#    Use:
+#        with _get_connection_cm() as pool:
+#            pass
+#    """
 #    pool = None
 #    try:
 #        pool = _get_connection(*args, **kwargs)
