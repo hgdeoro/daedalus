@@ -33,6 +33,7 @@ from pycassa.pool import ConnectionPool
 from hgdeoro.daedalus import storage
 from hgdeoro.daedalus.proto.random_log_generator import log_generator
 from hgdeoro.daedalus.utils import ymd_from_epoch
+from hgdeoro.daedalus.storage import get_service_cm
 
 logger = logging.getLogger(__name__)
 
@@ -65,27 +66,28 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None):
     storage.get_service().create_keyspace_and_cfs()
     start = time.time()
     count = 0
-    try:
-        for item in log_generator(1):
-            msg = item[0]
-            app = item[1]
-            host = item[2]
-            severity = item[3]
-            message = {
-                'application': app,
-                'host': host,
-                'severity': severity,
-                'message': msg,
-            }
-            storage.get_service().save_log(message)
-            count += 1
-            if count % 100 == 0:
-                avg = float(count) / (time.time() - start)
-                logging.info("Inserted %d messages, %f insert/sec", count, avg)
-                if max_count > 0 and count > max_count:
-                    break
-    except KeyboardInterrupt:
-        logging.info("Stopping...")
+    with get_service_cm() as storage_service:
+        try:
+            for item in log_generator(1):
+                msg = item[0]
+                app = item[1]
+                host = item[2]
+                severity = item[3]
+                message = {
+                    'application': app,
+                    'host': host,
+                    'severity': severity,
+                    'message': msg,
+                }
+                storage_service.save_log(message)
+                count += 1
+                if count % 100 == 0:
+                    avg = float(count) / (time.time() - start)
+                    logging.info("Inserted %d messages, %f insert/sec", count, avg)
+                    if max_count > 0 and count > max_count:
+                        break
+        except KeyboardInterrupt:
+            logging.info("Stopping...")
     end = time.time()
     avg = float(count) / (end - start)
     logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
