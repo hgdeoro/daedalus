@@ -30,10 +30,9 @@ from pycassa.system_manager import SystemManager
 from pycassa.columnfamily import ColumnFamily
 from pycassa.pool import ConnectionPool
 
-from hgdeoro.daedalus import storage
 from hgdeoro.daedalus.proto.random_log_generator import log_generator
 from hgdeoro.daedalus.utils import ymd_from_epoch
-from hgdeoro.daedalus.storage import get_service_cm
+from hgdeoro.daedalus.storage import get_service_cm, get_service
 
 logger = logging.getLogger(__name__)
 
@@ -43,11 +42,13 @@ def _truncate_all_column_families():
     Truncates all the existing CF on the configured keyspace (settings.KEYSPACE)
     """
     sys_mgr = SystemManager()
+    pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
     for cf_name, _ in sys_mgr.get_keyspace_column_families(settings.KEYSPACE).iteritems():
-        pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
         logger.info("Truncating CF: '%s'...", cf_name)
-        ColumnFamily(pool, cf_name).truncate()
+        cf = ColumnFamily(pool, cf_name)
+        cf.truncate()
     sys_mgr.close()
+    pool.dispose()
 
 
 def _bulk_save_random_messages_to_real_keyspace(max_count):
@@ -63,10 +64,10 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None):
     """
     Saves messages to the configured keyspace (settings.KEYSPACE)
     """
-    storage.get_service().create_keyspace_and_cfs()
     start = time.time()
     count = 0
     with get_service_cm() as storage_service:
+        storage_service.create_keyspace_and_cfs()
         try:
             for item in log_generator(1):
                 msg = item[0]
@@ -95,6 +96,18 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None):
 
 class StorageTest(TestCase):
 
+    def setUp(self):
+        self._storage_service = None
+
+    def tearDown(self):
+        if self._storage_service is not None:
+            self._storage_service.close()
+
+    def get_service(self):
+        if self._storage_service is None:
+            self._storage_service = get_service()
+        return self._storage_service
+
     def test_save_and_queries(self):
         _truncate_all_column_families()
 
@@ -105,10 +118,10 @@ class StorageTest(TestCase):
             'severity': u"INFO",
             'message': u"Successfully activated service 'org.kde.powerdevil.backlighthelper'",
         }
-        storage.get_service().save_log(message)
+        self.get_service().save_log(message)
 
         # Test storage.query()
-        result = storage.get_service().query()
+        result = self.get_service().query()
         a_row = result.next()
         self.assertEqual(a_row[0], ymd_from_epoch())
         columns_iterator = a_row[1].iteritems()
@@ -124,7 +137,7 @@ class StorageTest(TestCase):
         self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.query_by_severity()
-        result = storage.get_service().query_by_severity("INFO")
+        result = self.get_service().query_by_severity("INFO")
         columns_iterator = result.iteritems()
         col_k, col_v = columns_iterator.next()
         retrieved_message = json.loads(col_v)
@@ -136,7 +149,7 @@ class StorageTest(TestCase):
         self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.query_by_application()
-        result = storage.get_service().query_by_application("dbus")
+        result = self.get_service().query_by_application("dbus")
         columns_iterator = result.iteritems()
         col_k, col_v = columns_iterator.next()
         retrieved_message = json.loads(col_v)
@@ -148,7 +161,7 @@ class StorageTest(TestCase):
         self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.query_by_host()
-        result = storage.get_service().query_by_host("localhost")
+        result = self.get_service().query_by_host("localhost")
         columns_iterator = result.iteritems()
         col_k, col_v = columns_iterator.next()
         retrieved_message = json.loads(col_v)
@@ -160,11 +173,11 @@ class StorageTest(TestCase):
         self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.list_applications()
-        apps = storage.get_service().list_applications()
+        apps = self.get_service().list_applications()
         self.assertListEqual(apps, ['dbus'])
 
         # Test storage.list_hosts()
-        hosts = storage.get_service().list_hosts()
+        hosts = self.get_service().list_hosts()
         self.assertListEqual(hosts, ['localhost'])
 
     def test_save_500_log(self):
@@ -173,14 +186,17 @@ class StorageTest(TestCase):
         """
         _bulk_save_random_messages_to_default_keyspace(500)
 
-    def bulk_save_500_messages_to_real_keyspace(self):
+
+class BulkSaveToRealKeyspace(StorageTest):
+
+    def bulk_save_500(self):
         """
         Saves 500 messages on REAL keyspace.
         """
         logging.basicConfig(level=logging.INFO)
         _bulk_save_random_messages_to_real_keyspace(500)
 
-    def bulk_save_messages_to_real_keyspace(self):
+    def bulk_save_until_stop(self):
         """
         Saves messages on REAL keyspace until canceled.
         """
@@ -212,7 +228,7 @@ class ResetRealKeyspace(StorageTest):
         except:
             pass
         sys_mgr.close()
-        storage.get_service()._create_keyspace_and_cfs()
+        self.get_service()._create_keyspace_and_cfs()
         _bulk_save_random_messages_to_real_keyspace(1000)
 
 
