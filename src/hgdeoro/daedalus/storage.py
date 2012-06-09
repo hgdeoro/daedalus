@@ -139,7 +139,7 @@ class StorageService(object):
     # FIXME: ensure close() is called on every instance created elsewhere
 
     def __init__(self, cache_enabled=True):
-        self.cache_enabled = cache_enabled
+        self._cache_enabled = cache_enabled
         self._pool = None
         self._cf_logs = None
         self._cf_logs_by_app = None
@@ -327,7 +327,7 @@ class StorageService(object):
         def _callback():
             return [item[0] for item in self._get_cf_logs_by_app().get_range(column_count=1)]
 
-        if self.cache_enabled:
+        if self._cache_enabled:
             return _json_cache('daedalus:application_list', settings.DAEDALUS_CACHE_APP_LIST, _callback)
         else:
             return _callback()
@@ -339,7 +339,7 @@ class StorageService(object):
         def _callback():
             return [item[0] for item in self._get_cf_logs_by_host().get_range(column_count=1)]
 
-        if self.cache_enabled:
+        if self._cache_enabled:
             return _json_cache('daedalus:host_list', settings.DAEDALUS_CACHE_APP_LIST, _callback)
         else:
             return _callback()
@@ -349,7 +349,7 @@ class StorageService(object):
             count = self._get_cf_logs_by_severity().get_count(severity)
             return count
 
-        if self.cache_enabled:
+        if self._cache_enabled:
             cached_count = cache.get('daedalus:severity_count:' + severity)
             if cached_count:
                 return int(cached_count)

@@ -105,7 +105,7 @@ class StorageTest(TestCase):
 
     def get_service(self):
         if self._storage_service is None:
-            self._storage_service = get_service()
+            self._storage_service = get_service(cache_enabled=False)
         return self._storage_service
 
     def test_save_and_queries(self):
