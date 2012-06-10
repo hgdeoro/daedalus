@@ -82,7 +82,7 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None):
                 }
                 storage_service.save_log(message)
                 count += 1
-                if count % 100 == 0:
+                if count % 1000 == 0:
                     avg = float(count) / (time.time() - start)
                     logging.info("Inserted %d messages, %f insert/sec", count, avg)
                     if max_count > 0 and count > max_count:
