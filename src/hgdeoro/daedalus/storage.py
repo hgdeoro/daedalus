@@ -267,7 +267,8 @@ class StorageService(object):
         # FIXME: return None if doesn't exists
         msg_uuid = uuid.UUID(hex=message_id)
         row_key = ymd_from_uuid1(msg_uuid)
-        return self._get_cf_logs().get(row_key, columns=[msg_uuid])[msg_uuid]
+        json_str = self._get_cf_logs().get(row_key, columns=[msg_uuid])[msg_uuid]
+        return json.loads(json_str)
 
     def query_by_severity(self, severity, from_col=None):
         """
