@@ -38,6 +38,21 @@ EXAMPLE_LOG_MESSAGES = [
     'DEBUG [main] 2012-05-28 21:11:09,407 StorageService.java (line 414) CQL supported versions: 2.0.0,3.0.0-beta1 (default: 2.0.0)', #@IgnorePep8
     'INFO [main] 2012-05-28 21:11:09,535 StorageService.java (line 444) Loading persisted ring state',
     'INFO [main] 2012-05-28 21:11:09,563 StorageService.java (line 525) Starting up server gossip',
+    "ERROR [MutationStage:1] 2012-06-02 20:37:41,115 AbstractCassandraDaemon.java (line 139) Fatal exception in thread Thread[MutationStage:1,5,main]\n" #@IgnorePep8
+    "java.io.IOError: java.io.IOException: unable to mkdirs /var/lib/cassandra/data/daedalus_tests/snapshots/1338680261112-Logs_by_app\n" #@IgnorePep8
+    "        at org.apache.cassandra.db.ColumnFamilyStore.snapshotWithoutFlush(ColumnFamilyStore.java:1433)\n"
+    "        at org.apache.cassandra.db.ColumnFamilyStore.snapshot(ColumnFamilyStore.java:1462)\n"
+    "        at org.apache.cassandra.db.ColumnFamilyStore.truncate(ColumnFamilyStore.java:1657)\n"
+    "        at org.apache.cassandra.db.TruncateVerbHandler.doVerb(TruncateVerbHandler.java:50)\n"
+    "        at org.apache.cassandra.net.MessageDeliveryTask.run(MessageDeliveryTask.java:59)\n"
+    "        at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)\n"
+    "        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)\n"
+    "        at java.lang.Thread.run(Thread.java:662)\n"
+    "Caused by: java.io.IOException: unable to mkdirs /var/lib/cassandra/data/daedalus_tests/snapshots/1338680261112-Logs_by_app\n" #@IgnorePep8
+    "        at org.apache.cassandra.io.util.FileUtils.createDirectory(FileUtils.java:140)\n"
+    "        at org.apache.cassandra.io.util.FileUtils.createDirectory(FileUtils.java:131)\n"
+    "        at org.apache.cassandra.db.ColumnFamilyStore.snapshotWithoutFlush(ColumnFamilyStore.java:1409)\n"
+    "        ... 7 more",
     'WARN [main] 2012-05-28 21:11:09,615 ColumnFamilyStore.java (line 634) Enqueuing flush of Memtable-LocationInfo@919099148(121/151 serialized/live bytes, 3 ops)', #@IgnorePep8
     'INFO [FlushWriter:1] 2012-05-28 21:11:09,623 Memtable.java (line 266) Writing Memtable-LocationInfo@919099148(121/151 serialized/live bytes, 3 ops)', #@IgnorePep8
     'INFO [FlushWriter:1] 2012-05-28 21:11:09,878 Memtable.java (line 307) Completed flushing /var/opt/cassandra/data/system/LocationInfo/system-LocationInfo-hc-1-Data.db (229 bytes)', #@IgnorePep8
@@ -83,8 +98,12 @@ def log_generator(seed):
     while True:
         app = rnd_inst.choice(EXAMPLE_APPS)
         full_msg = rnd_inst.choice(EXAMPLE_LOG_MESSAGES)
-        splitted = [item for item in full_msg.split() if item]
+        lines = full_msg.splitlines()
+        splitted = [item for item in lines[0].split() if item]
         host = rnd_inst.choice(EXAMPLE_HOSTS)
         severity = splitted[0]
-        msg = "{0}|{1}|{2}|{3}".format(severity, host, app, ' '.join(splitted[5:]))
+        if len(lines) > 1:
+            msg = "{0}|{1}|{2}|{3}".format(severity, host, app, ' '.join(splitted[5:]) + '\n' + '\n'.join(lines[1:]))
+        else:
+            msg = "{0}|{1}|{2}|{3}".format(severity, host, app, ' '.join(splitted[5:]))
         yield (msg, app, host, severity, )

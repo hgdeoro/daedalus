@@ -7,10 +7,19 @@
 	function load_message_details(msg_id) {
 		$.getJSON('/message/get/' + msg_id + '/', function(json) {
 			$('#message_detail').html(json.message);
+			$('#message_application').html(json.application);
+			$('#message_host').html(json.host);
+			$('#message_severity').html(json.severity);
 			$('#message_detail_modal').modal();
 		});
 	};
 	{% endblock extra_js %}
+	{% block extra_css %}
+	.bigModal {
+	   width:940px;
+	   margin-left:-470px;
+	}
+	{% endblock extra_css %}
 </head>
 <body>
 
@@ -73,13 +82,31 @@
 		</tbody>
 	</table>
 
-	<div class="modal hide" id="message_detail_modal">
+	<div class="modal hide bigModal" id="message_detail_modal">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal">×</button>
 			<h3>Message details</h3>
 		</div>
 		<div class="modal-body">
-			<p id="message_detail">&nbsp;</p>
+			 <table class="table table-condensed">
+				<tbody>
+					<tr>
+						<th width="20%" style="text-align: right;">Severity</th>
+						<td width="80%"><div id="message_severity">&nbsp;</div></td>
+					</tr>
+					<tr>
+						<th style="text-align: right;">Host</th>
+						<td><div id="message_host">&nbsp;</div></td>
+					</tr>
+					<tr>
+						<th style="text-align: right;">Application</th>
+						<td><div id="message_application">&nbsp;</div></td>
+					</tr>
+					<tr>
+						<td colspan="2"><div><pre id="message_detail" class="pre-scrollable">&nbsp;</pre></div></td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<div class="modal-footer">
 			<a href="#" class="btn" data-dismiss="modal">Close</a>
