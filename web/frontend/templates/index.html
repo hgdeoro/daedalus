@@ -3,6 +3,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+	{% block extra_js %}
+	function load_message_details(msg_id) {
+		$.getJSON('/message/get/' + msg_id + '/', function(json) {
+			$('#message_detail').html(json.message);
+			$('#message_detail_modal').modal();
+		});
+	};
+	{% endblock extra_js %}
 </head>
 <body>
 
@@ -41,7 +49,8 @@
 		<tbody>
 			{% for item in result %}
 			<tr>
-				<td style="white-space: nowrap;">{{ item.timestamp_|date:'SHORT_DATETIME_FORMAT' }}</td>
+				<td style="white-space: nowrap;"><a
+					href="javascript:load_message_details('{{ item.msg_id }}');">{{ item.timestamp_|date:'SHORT_DATETIME_FORMAT' }}</a></td>
 				<td style="white-space: nowrap;">{{ item.application }}</td>
 				<td style="white-space: nowrap;">
 					{% if item.severity == 'ERROR' %}
@@ -63,6 +72,19 @@
 			{% endfor %}
 		</tbody>
 	</table>
+
+	<div class="modal hide" id="message_detail_modal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">×</button>
+			<h3>Message details</h3>
+		</div>
+		<div class="modal-body">
+			<p id="message_detail">&nbsp;</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="btn" data-dismiss="modal">Close</a>
+		</div>
+	</div>
 
 	{% endblock container %}
 

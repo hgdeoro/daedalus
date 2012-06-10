@@ -18,6 +18,10 @@
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <link rel="shortcut icon" href="{{ STATIC_URL }}bootstrap-2.0.4/ico/favicon.ico">
+	<script type="text/javascript">
+	{% block extra_js %}
+	{% endblock extra_js %}
+	</script>
   </head>
   <body>
 
@@ -87,8 +91,6 @@
       All you get is this message and a barebones HTML document.</p>
 	{% endblock container %}
     </div> <!-- /container -->
-    <script src="{{ STATIC_URL }}bootstrap-2.0.4/js/jquery.js"></script>
-    <script src="{{ STATIC_URL }}bootstrap-2.0.4/js/bootstrap.js"></script>
     <div style="text-align: center;">
     	<a href="http://www.python.org" target="_blank"><img
     		src="http://www.python.org/community/logos/python-powered-w-70x28.png"
@@ -99,5 +101,7 @@
     		src="https://www.djangoproject.com/m/img/badges/djangoproject120x25.gif"
     		border="0" alt="A Django project" title="A Django project" /></a>
     </div>
+    <script src="{{ STATIC_URL }}bootstrap-2.0.4/js/jquery.js"></script>
+    <script src="{{ STATIC_URL }}bootstrap-2.0.4/js/bootstrap.js"></script>
   </body>
 </html>
