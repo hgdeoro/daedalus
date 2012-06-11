@@ -12,6 +12,7 @@ Current iteration goals
 
 * Simplest implementation of the server and a python client
   - TODO: Python client.
+  - TODO: Paginate home page.
 
 
 Next iteration
@@ -22,7 +23,7 @@ Next iteration
 * Make installable via virtualenv
 
 
-Functional use cases
+Implemented (finished or WIP) functional use cases
 ----------------------------------------
 
 1. Save log messages
@@ -32,9 +33,10 @@ Functional use cases
   - b. Show by host
   - c. Show by severity
 
+3. Simplest form of pagination
 
 
-Non-functional use cases
+Implemented (finished or WIP) Non-functional use cases
 ----------------------------------------
 
 
@@ -60,8 +62,13 @@ General architecture
 ----------------------------------------
 
 * Client + server app.
+
+* Server:
   - Backend: Django app that receives the messages.
   - Frontend: Django app for viewing the messages.
+
+* Client:
+  - Thin layer over a http client to send the messages
 
 * Messages sent over HTTP
 
@@ -69,26 +76,18 @@ General architecture
 
 
 
-Server architecture
+Cassandra
 ----------------------------------------
 
-* Cassandra for storing the messages:
-  - CF: Logs - Cols[]: { timestamp: JSON encodded message }
-  - CF: Logs\_by\_app - Cols[]: { timestamp: JSON encodded message }
-  - CF: Logs\_by\_host - Cols[]: { timestamp: JSON encodded message }
-  - CF: Logs\_by\_severity - Cols[]: { timestamp: JSON encodded message }
+* A single keyspace holds all the column families.
 
-* Django server for receiving the messages
+* Messages are stored using 4 column families:
+  - CF: Logs - Cols[]: { uuid1/timestamp: JSON encodded message }
+  - CF: Logs\_by\_app - Cols[]: { uuid1/timestamp: JSON encodded message }
+  - CF: Logs\_by\_host - Cols[]: { uuid1/timestamp: JSON encodded message }
+  - CF: Logs\_by\_severity - Cols[]: { uuid1/timestamp: JSON encodded message }
 
-* Message encoding
-
-
-
-Client architecture
-----------------------------------------
-
-* Http client to save messages
-
+* No SuperColumn nor secondary indexes by now.
 
 
 Glosary
