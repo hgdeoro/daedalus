@@ -30,7 +30,7 @@ from pycassa.system_manager import SystemManager
 from pycassa.columnfamily import ColumnFamily
 from pycassa.pool import ConnectionPool
 
-from hgdeoro.daedalus.proto.random_log_generator import log_generator
+from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.utils import ymd_from_epoch
 from hgdeoro.daedalus.storage import get_service_cm, get_service
 
@@ -69,17 +69,7 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None):
     with get_service_cm() as storage_service:
         storage_service.create_keyspace_and_cfs()
         try:
-            for item in log_generator(1):
-                msg = item[0]
-                app = item[1]
-                host = item[2]
-                severity = item[3]
-                message = {
-                    'application': app,
-                    'host': host,
-                    'severity': severity,
-                    'message': msg,
-                }
+            for message in log_dict_generator(1):
                 storage_service.save_log(message)
                 count += 1
                 if count % 1000 == 0:
@@ -112,11 +102,13 @@ class StorageTest(TestCase):
         _truncate_all_column_families()
 
         # Test storage.save_log()
+        timestamp = time.time()
         message = {
             'application': u'dbus',
             'host': u'localhost',
             'severity': u"INFO",
             'message': u"Successfully activated service 'org.kde.powerdevil.backlighthelper'",
+            'timestamp': "{0:0.25f}".format(timestamp),
         }
         self.get_service().save_log(message)
 
@@ -236,12 +228,8 @@ class WebBackendTest(TestCase):
 
     def test_insert_via_web(self):
         _truncate_all_column_families()
-        json_message = json.dumps({
-            'application': u'dbus',
-            'host': u'localhost',
-            'severity': u"INFO",
-            'message': u"Successfully activated service 'org.kde.powerdevil.backlighthelper'",
-        })
+        msg_dict = log_dict_generator(1).next()
+        json_message = json.dumps(msg_dict)
         respose = self.client.post('/save/', {'payload': json_message})
         self.assertEqual(respose.status_code, 201)
         content = json.loads(respose.content)
@@ -258,18 +246,7 @@ class WebBackendTest(TestCase):
         start = time.time()
         count = 0
         try:
-            for item in log_generator(1):
-                msg = item[0]
-                app = item[1]
-                host = item[2]
-                severity = item[3]
-                message = {
-                    'application': app,
-                    'host': host,
-                    'severity': severity,
-                    'message': msg,
-                }
-
+            for message in log_dict_generator(1):
                 json_message = json.dumps(message)
                 respose = self.client.post('/save/', {'payload': json_message})
                 self.assertEqual(respose.status_code, 201)

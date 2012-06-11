@@ -33,6 +33,7 @@ from pycassa.system_manager import SystemManager, SIMPLE_STRATEGY
 from pycassa.types import TimeUUIDType
 from pycassa.batch import Mutator
 from pycassa.pool import AllServersUnavailable
+from pycassa.util import convert_time_to_uuid
 
 from hgdeoro.daedalus.utils import ymd_from_uuid1
 
@@ -205,18 +206,20 @@ class StorageService(object):
 
     def save_log(self, message):
         pool = self._get_pool()
-    
+
         application = message['application']
         host = message['host']
         severity = message['severity']
-        # timestamp = message['timestamp']
-    
+        timestamp = message['timestamp']
+
         _check_application(application)
         _check_severity(severity)
-    
+
+        # event_uuid = uuid.uuid1()
+        event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
+        message['_uuid'] = event_uuid.get_hex()
         json_message = json.dumps(message)
-        event_uuid = uuid.uuid1()
-    
+
         with Mutator(pool) as batch:
             # Save on <CF> CF_LOGS
             row_key = ymd_from_uuid1(event_uuid)
@@ -225,28 +228,28 @@ class StorageService(object):
                 str(row_key), {
                     event_uuid: json_message,
             })
-    
+
             # Save on <CF> CF_LOGS_BY_APP
             batch.insert(
                 self._get_cf_logs_by_app(),
                 application, {
                     event_uuid: json_message,
             })
-    
+
             # Save on <CF> CF_LOGS_BY_HOST
             batch.insert(
                 self._get_cf_logs_by_host(),
                 host, {
                     event_uuid: json_message,
             })
-    
+
             # Save on <CF> CF_LOGS_BY_SEVERITY
             batch.insert(
                 self._get_cf_logs_by_severity(),
                 severity, {
                     event_uuid: json_message,
             })
-    
+
     def query(self):
         """
         Returns list of OrderedDict.
