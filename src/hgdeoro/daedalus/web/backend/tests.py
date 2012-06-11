@@ -22,7 +22,6 @@
 import json
 import logging
 import time
-import uuid
 
 from django.test.testcases import TestCase
 from django.conf import settings
@@ -31,7 +30,6 @@ from pycassa.columnfamily import ColumnFamily
 from pycassa.pool import ConnectionPool
 
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
-from hgdeoro.daedalus.utils import ymd_from_epoch
 from hgdeoro.daedalus.storage import get_service_cm, get_service
 
 logger = logging.getLogger(__name__)
@@ -114,55 +112,39 @@ class StorageTest(TestCase):
 
         # Test storage.query()
         result = self.get_service().query()
-        a_row = result.next()
-        self.assertEqual(a_row[0], ymd_from_epoch())
-        columns_iterator = a_row[1].iteritems()
-        col_k, col_v = columns_iterator.next()
-        self.assertEqual(type(col_k), uuid.UUID)
-        retrieved_message = json.loads(col_v)
+        self.assertEqual(len(result), 1)
+        retrieved_message = result[0]
         self.assertEquals(retrieved_message['severity'], message['severity'])
         self.assertEquals(retrieved_message['host'], message['host'])
         self.assertEquals(retrieved_message['application'], message['application'])
         self.assertEquals(retrieved_message['message'], message['message'])
-
-        self.assertRaises(StopIteration, result.next)
-        self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.query_by_severity()
         result = self.get_service().query_by_severity("INFO")
-        columns_iterator = result.iteritems()
-        col_k, col_v = columns_iterator.next()
-        retrieved_message = json.loads(col_v)
+        self.assertEqual(len(result), 1)
+        retrieved_message = result[0]
         self.assertEquals(retrieved_message['severity'], message['severity'])
         self.assertEquals(retrieved_message['host'], message['host'])
         self.assertEquals(retrieved_message['application'], message['application'])
         self.assertEquals(retrieved_message['message'], message['message'])
-
-        self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.query_by_application()
         result = self.get_service().query_by_application("dbus")
-        columns_iterator = result.iteritems()
-        col_k, col_v = columns_iterator.next()
-        retrieved_message = json.loads(col_v)
+        self.assertEqual(len(result), 1)
+        retrieved_message = result[0]
         self.assertEquals(retrieved_message['severity'], message['severity'])
         self.assertEquals(retrieved_message['host'], message['host'])
         self.assertEquals(retrieved_message['application'], message['application'])
         self.assertEquals(retrieved_message['message'], message['message'])
-
-        self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.query_by_host()
         result = self.get_service().query_by_host("localhost")
-        columns_iterator = result.iteritems()
-        col_k, col_v = columns_iterator.next()
-        retrieved_message = json.loads(col_v)
+        self.assertEqual(len(result), 1)
+        retrieved_message = result[0]
         self.assertEquals(retrieved_message['severity'], message['severity'])
         self.assertEquals(retrieved_message['host'], message['host'])
         self.assertEquals(retrieved_message['application'], message['application'])
         self.assertEquals(retrieved_message['message'], message['message'])
-
-        self.assertRaises(StopIteration, columns_iterator.next)
 
         # Test storage.list_applications()
         apps = self.get_service().list_applications()

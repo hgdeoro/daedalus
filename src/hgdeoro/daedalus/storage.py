@@ -215,7 +215,6 @@ class StorageService(object):
         _check_application(application)
         _check_severity(severity)
 
-        # event_uuid = uuid.uuid1()
         event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
         message['_uuid'] = event_uuid.get_hex()
         json_message = json.dumps(message)
@@ -252,17 +251,14 @@ class StorageService(object):
 
     def query(self):
         """
-        Returns list of OrderedDict.
-    
-        Use:
-            cassandra_result = query()
-            result = []
-            for _, columns in cassandra_result:
-                for _, col in columns.iteritems():
-                    message = json.loads(col)
-                    result.append(message)
+        Returns list of dicts.
         """
-        return self._get_cf_logs().get_range(column_reversed=True)
+        result = []
+        cassandra_result = self._get_cf_logs().get_range(column_reversed=True)
+        for _, columns in cassandra_result:
+            for _, col_val in columns.iteritems():
+                result.append(json.loads(col_val))
+        return result
 
     def get_by_id(self, message_id):
         # FIXME: add documentation
@@ -275,20 +271,14 @@ class StorageService(object):
 
     def query_by_severity(self, severity, from_col=None):
         """
-        Returns OrderedDict.
-    
-        Use:
-            cassandra_result = query_by_severity(severity)
-            result = []
-            for _, col in cassandra_result.iteritems():
-                message = json.loads(col)
-                result.append(message)
+        Returns list of dicts.
         """
         _check_severity(severity)
         if from_col is None:
-            return self._get_cf_logs_by_severity().get(severity, column_reversed=True)
+            cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True)
         else:
-            return self._get_cf_logs_by_severity().get(severity, column_reversed=True, column_start=from_col)
+            cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True, column_start=from_col)
+        return [json.loads(col_val) for _, col_val in cass_result.iteritems()]
 
     def query_by_application(self, application, from_col=None):
         """
@@ -303,9 +293,10 @@ class StorageService(object):
         """
         _check_application(application)
         if from_col is None:
-            return self._get_cf_logs_by_app().get(application, column_reversed=True)
+            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True)
         else:
-            return self._get_cf_logs_by_app().get(application, column_reversed=True, column_start=from_col)
+            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True, column_start=from_col)
+        return [json.loads(col_val) for _, col_val in cass_result.iteritems()]
     
     def query_by_host(self, host, from_col=None):
         """
@@ -320,10 +311,11 @@ class StorageService(object):
         """
         _check_host(host)
         if from_col is None:
-            return self._get_cf_logs_by_host().get(host, column_reversed=True)
+            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True)
         else:
-            return self._get_cf_logs_by_host().get(host, column_reversed=True, column_start=from_col)
-    
+            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True, column_start=from_col)
+        return [json.loads(col_val) for _, col_val in cass_result.iteritems()]
+
     def list_applications(self):
         """
         Returns a list of valid applications.
@@ -423,7 +415,7 @@ class StorageService(object):
             status['list_applications'] = ", ".join(apps)
             for app in apps:
                 try:
-                    status['query_by_application_' + app] = len(self.query_by_application(app).keys())
+                    status['query_by_application_' + app] = len(self.query_by_application(app))
                 except:
                     status['query_by_application_' + app] = "error"
                     _logger.exception("query_by_application() failed for app {0}".format(app))
@@ -436,7 +428,7 @@ class StorageService(object):
             status['list_hosts'] = ", ".join(hosts)
             for a_host in hosts:
                 try:
-                    status['query_by_host_' + a_host] = len(self.query_by_host(a_host).keys())
+                    status['query_by_host_' + a_host] = len(self.query_by_host(a_host))
                 except:
                     status['query_by_host_' + a_host] = "error"
                     _logger.exception("query_by_host() failed for host {0}".format(a_host))

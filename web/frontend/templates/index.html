@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load frontend_helpers %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,7 +59,7 @@
 			{% for item in result %}
 			<tr>
 				<td style="white-space: nowrap;"><a
-					href="javascript:load_message_details('{{ item.msg_id }}');">{{ item.timestamp_|date:'SHORT_DATETIME_FORMAT' }}</a></td>
+					href="javascript:load_message_details('{{ item|msg_2_id }}');">{{ item|msg_2_datetime|date:'SHORT_DATETIME_FORMAT' }}</a></td>
 				<td style="white-space: nowrap;">{{ item.application }}</td>
 				<td style="white-space: nowrap;">
 					{% if item.severity == 'ERROR' %}

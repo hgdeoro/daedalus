@@ -21,15 +21,12 @@
 
 import json
 
-from datetime import datetime
-
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
-from pycassa.util import convert_uuid_to_time
 
 from hgdeoro.daedalus.storage import get_service_cm
-from hgdeoro.daedalus.utils import str_to_column_key, column_key_to_str
+from hgdeoro.daedalus.utils import str_to_column_key
 
 
 def _ctx(**kwargs):
@@ -77,16 +74,10 @@ def _ctx(**kwargs):
 
 
 def home(request):
-    result = []
-    ctx = _ctx(result=result)
+    ctx = _ctx()
     with get_service_cm() as service:
         try:
-            cassandra_result = service.query()
-            for _, columns in cassandra_result:
-                for col_key, col_val in columns.iteritems():
-                    message = json.loads(col_val)
-                    message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
-                    result.append(message)
+            ctx['result'] = service.query()
         except:
             ctx['render_messages'].append("Error detected while executing query()")
     return HttpResponse(render_to_response('index.html',
@@ -96,17 +87,11 @@ def home(request):
 def search_by_severity(request, severity):
     from_col = str_to_column_key(request.GET.get('from', None))
     with get_service_cm() as service:
-        cassandra_result = service.query_by_severity(severity, from_col=from_col)
-    result = []
-    last_message_timestamp = None
-    for col_key, col_val in cassandra_result.iteritems():
-        message = json.loads(col_val)
-        message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
-        message['msg_id'] = column_key_to_str(col_key)
-        result.append(message)
-    # col_key -> last column
+        result = service.query_by_severity(severity, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['msg_id']
+        last_message_timestamp = result[-1]['_uuid']
+    else:
+        last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only '{0}' messages.".format(severity))
     return HttpResponse(render_to_response('index.html',
@@ -116,16 +101,11 @@ def search_by_severity(request, severity):
 def search_by_application(request, application):
     from_col = str_to_column_key(request.GET.get('from', None))
     with get_service_cm() as service:
-        cassandra_result = service.query_by_application(application, from_col=from_col)
-    result = []
-    last_message_timestamp = None
-    for col_key, col_val in cassandra_result.iteritems():
-        message = json.loads(col_val)
-        message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
-        message['msg_id'] = column_key_to_str(col_key)
-        result.append(message)
+        result = service.query_by_application(application, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['msg_id']
+        last_message_timestamp = result[-1]['_uuid']
+    else:
+        last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only messages of application '{0}'.".format(application))
     return HttpResponse(render_to_response('index.html',
@@ -135,16 +115,11 @@ def search_by_application(request, application):
 def search_by_host(request, host):
     from_col = str_to_column_key(request.GET.get('from', None))
     with get_service_cm() as service:
-        cassandra_result = service.query_by_host(host, from_col=from_col)
-    result = []
-    last_message_timestamp = None
-    for col_key, col_val in cassandra_result.iteritems():
-        message = json.loads(col_val)
-        message['timestamp_'] = datetime.fromtimestamp(convert_uuid_to_time(col_key))
-        message['msg_id'] = column_key_to_str(col_key)
-        result.append(message)
+        result = service.query_by_host(host, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['msg_id']
+        last_message_timestamp = result[-1]['_uuid']
+    else:
+        last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only messages from host '{0}'.".format(host))
     return HttpResponse(render_to_response('index.html',
