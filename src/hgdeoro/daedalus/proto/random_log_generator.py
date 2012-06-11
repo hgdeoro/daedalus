@@ -20,6 +20,7 @@
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import random
+import time
 
 EXAMPLE_APPS = ['intranet', 'extranet', 'gunicorn', 'nginx-dmz']
 
@@ -107,3 +108,36 @@ def log_generator(seed):
         else:
             msg = "{0}|{1}|{2}|{3}".format(severity, host, app, ' '.join(splitted[5:]))
         yield (msg, app, host, severity, )
+
+
+def log_dict_generator(seed):
+    """
+    Generator. In each iteration returns a dict with:
+    - message
+    - application
+    - host
+    - severity
+    - timestamp
+
+    Use:
+        for item in log_generator(1):
+            item['application']
+            item['host']
+            item['severity']
+            item['timestamp']
+            item['message']
+    """
+    rnd_inst = random.Random()
+    rnd_inst.seed(seed)
+    while True:
+        message = {}
+        message['application'] = rnd_inst.choice(EXAMPLE_APPS)
+        message['host'] = rnd_inst.choice(EXAMPLE_HOSTS)
+        msg = rnd_inst.choice(EXAMPLE_LOG_MESSAGES)
+        lines = msg.splitlines()
+        splitted = [item for item in lines[0].split() if item]
+        message['severity'] = splitted[0]
+        message['timestamp'] = "{0:0.25f}".format(time.time())
+        message['message'] = "{0} {1} {2} {3}".format(msg, message['severity'], message['host'],
+            message['application'],)
+        yield message
