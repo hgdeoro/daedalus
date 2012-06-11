@@ -89,21 +89,21 @@
 		</div>
 		<div class="modal-body">
 			 <table class="table table-condensed">
+			 	<thead>
+					<tr>
+						<th>Severity</th>
+						<th>Host</th>
+						<th>Application</th>
+					</tr>
+			 	</thead>
 				<tbody>
 					<tr>
-						<th width="20%" style="text-align: right;">Severity</th>
-						<td width="80%"><div id="message_severity">&nbsp;</div></td>
-					</tr>
-					<tr>
-						<th style="text-align: right;">Host</th>
+						<td><div id="message_severity">&nbsp;</div></td>
 						<td><div id="message_host">&nbsp;</div></td>
-					</tr>
-					<tr>
-						<th style="text-align: right;">Application</th>
 						<td><div id="message_application">&nbsp;</div></td>
 					</tr>
 					<tr>
-						<td colspan="2"><div><pre id="message_detail" class="pre-scrollable">&nbsp;</pre></div></td>
+						<td colspan="3"><div><pre id="message_detail" class="pre-scrollable">&nbsp;</pre></div></td>
 					</tr>
 				</tbody>
 			</table>
