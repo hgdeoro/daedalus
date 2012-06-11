@@ -20,7 +20,6 @@
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import json
-import uuid
 
 from datetime import datetime
 
@@ -30,6 +29,7 @@ from django.template.context import RequestContext
 from pycassa.util import convert_uuid_to_time
 
 from hgdeoro.daedalus.storage import get_service_cm
+from hgdeoro.daedalus.utils import str_to_column_key, column_key_to_str
 
 
 def _ctx(**kwargs):
@@ -74,16 +74,6 @@ def _ctx(**kwargs):
             ctx['render_messages'].append("Error detected while trying to get the count of DEBUGs")
 
     return ctx
-
-
-def column_key_to_str(col_key):
-    return col_key.get_hex()
-
-
-def str_to_column_key(str_key):
-    if str_key is None:
-        return None
-    return uuid.UUID(hex=str_key)
 
 
 def home(request):
