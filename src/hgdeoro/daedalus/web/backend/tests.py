@@ -19,8 +19,10 @@
 ##    along with daedalus; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import datetime
 import json
 import logging
+import random
 import time
 
 from django.test.testcases import TestCase
@@ -49,16 +51,24 @@ def _truncate_all_column_families():
     pool.dispose()
 
 
-def _bulk_save_random_messages_to_real_keyspace(max_count):
+def sparse_time_generator(random_seed):
+    curr_time = time.time()
+    four_months = float(60 * 60 * 24 * 120)
+    random_gen = random.Random(random_seed)
+    while True:
+        yield curr_time - (four_months * random_gen.random())
+
+
+def _bulk_save_random_messages_to_real_keyspace(max_count, time_generator=None):
     """
     Saves messages on REAL keyspace.
     """
     settings.KEYSPACE = settings.KEYSPACE_REAL
     print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
-    _bulk_save_random_messages_to_default_keyspace(max_count)
+    _bulk_save_random_messages_to_default_keyspace(max_count, time_generator=time_generator)
 
 
-def _bulk_save_random_messages_to_default_keyspace(max_count=None):
+def _bulk_save_random_messages_to_default_keyspace(max_count=None, time_generator=None):
     """
     Saves messages to the configured keyspace (settings.KEYSPACE)
     """
@@ -67,14 +77,17 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None):
     with get_service_cm() as storage_service:
         storage_service.create_keyspace_and_cfs()
         try:
-            for message in log_dict_generator(1):
+            logging.info("Starting insertions...")
+            for message in log_dict_generator(1, time_generator=time_generator):
                 storage_service.save_log(message)
                 count += 1
+                if max_count > 0 and count > max_count:
+                    break
                 if count % 1000 == 0:
                     avg = float(count) / (time.time() - start)
-                    logging.info("Inserted %d messages, %f insert/sec", count, avg)
-                    if max_count > 0 and count > max_count:
-                        break
+                    last_message_date = str(datetime.datetime.fromtimestamp(float(message['timestamp'])))
+                    logging.info("Inserted %d messages, %f insert/sec - Last message date: %s",
+                        count, avg, last_message_date)
         except KeyboardInterrupt:
             logging.info("Stopping...")
     end = time.time()
@@ -178,6 +191,21 @@ class BulkSaveToRealKeyspace(StorageTest):
         settings.CASSANDRA_CONNECT_RETRY_WAIT = 1
         print "Patched value of CASSANDRA_CONNECT_RETRY_WAIT to 1"
         _bulk_save_random_messages_to_real_keyspace(0)
+
+    def bulk_sparse_save_until_stop(self, max_count=0):
+        """
+        Saves messages on REAL keyspace, with dates from a month ago to today.
+        """
+        logging.basicConfig(level=logging.INFO)
+        settings.CASSANDRA_CONNECT_RETRY_WAIT = 1
+        print "Patched value of CASSANDRA_CONNECT_RETRY_WAIT to 1"
+        _bulk_save_random_messages_to_real_keyspace(max_count, time_generator=sparse_time_generator(0))
+
+    def bulk_sparse_save_500(self):
+        """
+        Saves messages on REAL keyspace, with dates from a month ago to today.
+        """
+        self.bulk_sparse_save_until_stop(max_count=500)
 
 
 class ResetRealKeyspace(StorageTest):

@@ -110,7 +110,12 @@ def log_generator(seed):
         yield (msg, app, host, severity, )
 
 
-def log_dict_generator(seed):
+def current_time_generator():
+    while True:
+        yield time.time()
+
+
+def log_dict_generator(seed, time_generator=None):
     """
     Generator. In each iteration returns a dict with:
     - message
@@ -129,7 +134,9 @@ def log_dict_generator(seed):
     """
     rnd_inst = random.Random()
     rnd_inst.seed(seed)
-    while True:
+    if time_generator is None:
+        time_generator = current_time_generator()
+    for msg_time in time_generator:
         message = {}
         message['application'] = rnd_inst.choice(EXAMPLE_APPS)
         message['host'] = rnd_inst.choice(EXAMPLE_HOSTS)
@@ -137,7 +144,7 @@ def log_dict_generator(seed):
         lines = msg.splitlines()
         splitted = [item for item in lines[0].split() if item]
         message['severity'] = splitted[0]
-        message['timestamp'] = "{0:0.25f}".format(time.time())
+        message['timestamp'] = "{0:0.25f}".format(msg_time)
         message['message'] = "{0} {1} {2} {3}".format(msg, message['severity'], message['host'],
             message['application'],)
         yield message
