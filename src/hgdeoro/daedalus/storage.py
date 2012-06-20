@@ -249,14 +249,32 @@ class StorageService(object):
                     event_uuid: json_message,
             })
 
+    def _get_rows_keys(self, cf):
+        """
+        Return all the existing keys of a cf.
+        """
+        # FIXME: check current implementation's performance
+        # BUT row-cache of Cassandra should make this query pretty fast
+        return [item[0] for item in cf.get_range(column_count=1, row_count=999)]
+
     def query(self):
         """
         Returns list of dicts.
         """
         result = []
-        row_keys = [item[0] for item in self._get_cf_logs().get_range(column_count=1, row_count=999)]
-        # FIXME: this is SO NASTY! Avoid getting the full list of rows every time!
-        row_keys = sorted(row_keys, reverse=True)
+
+        # As of https://issues.apache.org/jira/browse/CASSANDRA-295, I think Daedalus should
+        # not depend on the type of partitioner configured, since it's configured cluster-wide
+        # and since RandomPartitioner is the default and sugested, we should work with it.
+
+        def _callback():
+            _row_keys = self._get_rows_keys(self._get_cf_logs())
+            return sorted(_row_keys, reverse=True)
+
+        if self._cache_enabled:
+            row_keys = _json_cache('daedalus:cf_logs_keys', settings.DAEDALUS_CACHE_CF_LOGS_KEYS, _callback)
+        else:
+            row_keys = _callback()
 
         for row_key in row_keys:
             cass_result = self._get_cf_logs().get(row_key, column_reversed=True)

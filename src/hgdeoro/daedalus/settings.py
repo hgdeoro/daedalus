@@ -44,6 +44,9 @@ DAEDALUS_CACHE_SEVERITY_COUNT = 30
 
 DAEDALUS_CACHE_APP_LIST = 180
 
+# DAEDALUS_CACHE_CF_LOGS_KEYS: how many time to cache found keys of 'CF_LOGS'
+DAEDALUS_CACHE_CF_LOGS_KEYS = 20
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Django settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
