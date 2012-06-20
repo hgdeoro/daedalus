@@ -20,6 +20,7 @@
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import json
+import logging
 
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
@@ -27,6 +28,8 @@ from django.template.context import RequestContext
 
 from hgdeoro.daedalus.storage import get_service_cm
 from hgdeoro.daedalus.utils import str_to_column_key
+
+logger = logging.getLogger(__name__)
 
 
 def _ctx(**kwargs):
@@ -40,35 +43,41 @@ def _ctx(**kwargs):
             ctx['app_list'] = service.list_applications()
         except:
             ctx['render_messages'].append("Error detected while trying to get application list")
+            logger.exception(ctx['render_messages'][-1])
     
         try:
             ctx['host_list'] = service.list_hosts()
         except:
             ctx['render_messages'].append("Error detected while trying to get host list")
+            logger.exception(ctx['render_messages'][-1])
     
         try:
             ctx['error_count'] = service.get_error_count()
         except:
             ctx['error_count'] = '?'
             ctx['render_messages'].append("Error detected while trying to get the count of ERRORs")
+            logger.exception(ctx['render_messages'][-1])
     
         try:
             ctx['warn_count'] = service.get_warn_count()
         except:
             ctx['warn_count'] = '?'
             ctx['render_messages'].append("Error detected while trying to get the count of WARNs")
+            logger.exception(ctx['render_messages'][-1])
     
         try:
             ctx['info_count'] = service.get_info_count()
         except:
             ctx['info_count'] = '?'
             ctx['render_messages'].append("Error detected while trying to get the count of INFOs")
+            logger.exception(ctx['render_messages'][-1])
     
         try:
             ctx['debug_count'] = service.get_debug_count()
         except:
             ctx['debug_count'] = '?'
             ctx['render_messages'].append("Error detected while trying to get the count of DEBUGs")
+            logger.exception(ctx['render_messages'][-1])
 
     return ctx
 
@@ -80,6 +89,7 @@ def home(request):
             ctx['result'] = service.query()
         except:
             ctx['render_messages'].append("Error detected while executing query()")
+            logger.exception(ctx['render_messages'][-1])
     return HttpResponse(render_to_response('index.html',
         context_instance=RequestContext(request, ctx)))
 
