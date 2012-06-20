@@ -172,6 +172,28 @@ class StorageTest(TestCase):
         Saves 500 messages on the configured keyspace (settings.KEYSPACE)
         """
         _bulk_save_random_messages_to_default_keyspace(500)
+        result = self.get_service().query()
+        self.assertEqual(len(result), 100)
+
+    def test_sparse_save_200_log_and_query(self):
+        """
+        Saves 200 messages on the configured keyspace (settings.KEYSPACE)
+        """
+        _bulk_save_random_messages_to_default_keyspace(200, time_generator=sparse_time_generator(0))
+        result = self.get_service().query()
+        self.assertEqual(len(result), 100)
+
+    def print_rows(self):
+        settings.KEYSPACE = settings.KEYSPACE_REAL
+        print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
+        try:
+            cf = ColumnFamily()
+        except:
+            cf = self.get_service()._get_cf_logs()
+        range_resp = cf.get_range(column_count=1, row_count=999)
+        row_keys = [item[0] for item in range_resp]
+        print row_keys
+        print "Cant:", len(row_keys)
 
 
 class BulkSaveToRealKeyspace(StorageTest):

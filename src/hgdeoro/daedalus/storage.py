@@ -254,10 +254,18 @@ class StorageService(object):
         Returns list of dicts.
         """
         result = []
-        cassandra_result = self._get_cf_logs().get_range(column_reversed=True)
-        for _, columns in cassandra_result:
-            for _, col_val in columns.iteritems():
-                result.append(json.loads(col_val))
+        row_keys = [item[0] for item in self._get_cf_logs().get_range(column_count=1, row_count=999)]
+        # FIXME: this is SO NASTY! Avoid getting the full list of rows every time!
+        row_keys = sorted(row_keys, reverse=True)
+
+        for row_key in row_keys:
+            cass_result = self._get_cf_logs().get(row_key, column_reversed=True)
+            for _, col_val in cass_result.iteritems():
+                if len(result) < 100:
+                    result.append(json.loads(col_val))
+                else:
+                    return result
+
         return result
 
     def get_by_id(self, message_id):
