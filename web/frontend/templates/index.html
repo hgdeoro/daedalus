@@ -75,7 +75,7 @@
 					{% endif %}
 				</td>
 				<td height="20px;">
-					<div style="overflow: hidden; height: 20px;">{{ item.message }}</div>
+					<div style="overflow: hidden; height: 20px;">{{ item.message|firstline }}</div>
 				</td>
 			</tr>
 			{% endfor %}
@@ -112,6 +112,8 @@
 			<a href="#" class="btn" data-dismiss="modal">Close</a>
 		</div>
 	</div>
+
+	<!-- {{ result|length }} items found. -->
 
 	{% endblock container %}
 

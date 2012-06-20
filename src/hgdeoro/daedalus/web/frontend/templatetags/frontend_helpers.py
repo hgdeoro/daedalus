@@ -34,3 +34,8 @@ def msg_2_datetime(msg):
 @register.filter(name='msg_2_id')
 def msg_2_id(msg):
     return msg['_uuid']
+
+
+@register.filter(name='firstline')
+def firstline(full_text):
+    return full_text.splitlines()[0]
