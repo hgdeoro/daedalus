@@ -560,10 +560,14 @@ class StorageService2(StorageService):
         _check_severity(severity)
         if from_col is None:
             cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True)
+            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
         else:
-            cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True, column_start=from_col)
+            cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True,
+                column_start=from_col, column_count=101)
+            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+            if cols_keys:
+                cols_keys = cols_keys[1:]
 
-        cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
         return self._get_from_logs_cf(cols_keys)
 
     def query_by_application(self, application, from_col=None):
@@ -580,9 +584,13 @@ class StorageService2(StorageService):
         _check_application(application)
         if from_col is None:
             cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True)
+            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
         else:
-            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True, column_start=from_col)
-        cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True,
+                column_start=from_col, column_count=101)
+            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+            if cols_keys:
+                cols_keys = cols_keys[1:]
         return self._get_from_logs_cf(cols_keys)
 
     def query_by_host(self, host, from_col=None):
@@ -599,7 +607,11 @@ class StorageService2(StorageService):
         _check_host(host)
         if from_col is None:
             cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True)
+            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
         else:
-            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True, column_start=from_col)
-        cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True,
+                column_start=from_col, column_count=101)
+            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+            if cols_keys:
+                cols_keys = cols_keys[1:]
         return self._get_from_logs_cf(cols_keys)
