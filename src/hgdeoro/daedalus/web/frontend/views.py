@@ -83,10 +83,13 @@ def _ctx(**kwargs):
 
 
 def home(request):
+    from_col = str_to_column_key(request.GET.get('from', None))
     ctx = _ctx()
     with get_service_cm() as service:
         try:
-            ctx['result'] = service.query()
+            ctx['result'] = service.query(from_col=from_col)
+            if ctx['result']:
+                ctx['last_message_timestamp'] = ctx['result'][-1]['_uuid']
         except:
             ctx['render_messages'].append("Error detected while executing query()")
             logger.exception(ctx['render_messages'][-1])

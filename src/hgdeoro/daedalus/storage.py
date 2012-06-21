@@ -257,7 +257,7 @@ class StorageService(object):
         # BUT row-cache of Cassandra should make this query pretty fast
         return [item[0] for item in cf.get_range(column_count=1, row_count=999)]
 
-    def query(self):
+    def query(self, from_col=None):
         """
         Returns list of dicts.
         """
@@ -277,8 +277,18 @@ class StorageService(object):
             row_keys = _callback()
 
         for row_key in row_keys:
-            cass_result = self._get_cf_logs().get(row_key, column_reversed=True)
+            ignore_first = False
+            if from_col is None:
+                cass_result = self._get_cf_logs().get(row_key, column_reversed=True)
+            else:
+                cass_result = self._get_cf_logs().get(row_key, column_reversed=True,
+                    column_start=from_col, column_count=101)
+                ignore_first = True
+
             for _, col_val in cass_result.iteritems():
+                if ignore_first:
+                    ignore_first = False
+                    continue
                 if len(result) < 100:
                     result.append(json.loads(col_val))
                 else:
