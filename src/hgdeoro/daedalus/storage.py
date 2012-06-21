@@ -117,7 +117,7 @@ def _get_connection(retry=None, wait_between_retry=None):
 
 
 def get_service(*args, **kwargs):
-    return StorageService(*args, **kwargs)
+    return StorageService2(*args, **kwargs)
 
 
 @contextlib.contextmanager
@@ -129,7 +129,7 @@ def get_service_cm(*args, **kwargs):
         with get_service_cm() as service:
             pass
     """
-    service = StorageService(*args, **kwargs)
+    service = get_service(*args, **kwargs)
     try:
         yield service
     finally:
@@ -473,3 +473,130 @@ class StorageService(object):
             sys_mgr.close()
 
         return status
+
+
+class StorageService2(StorageService):
+    """
+    A second implementation of Storage Service.
+    With this implementation, the logs are saved only once,
+    on CF_LOGS. In the other CFs, an empty column value is inserted.
+    """
+    # FIXME: ensure close() is called on every instance created elsewhere
+
+    def __init__(self, *args, **kwargs):
+        StorageService.__init__(self, *args, **kwargs)
+
+    def save_log(self, message):
+        EMPTY_VALUE = ''
+        pool = self._get_pool()
+
+        application = message['application']
+        host = message['host']
+        severity = message['severity']
+        timestamp = message['timestamp']
+
+        _check_application(application)
+        _check_severity(severity)
+
+        event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
+        message['_uuid'] = event_uuid.get_hex()
+        json_message = json.dumps(message)
+
+        with Mutator(pool) as batch:
+            # Save on <CF> CF_LOGS
+            row_key = ymd_from_uuid1(event_uuid)
+            batch.insert(
+                self._get_cf_logs(),
+                str(row_key), {
+                    event_uuid: json_message,
+            })
+
+            # Save on <CF> CF_LOGS_BY_APP
+            batch.insert(
+                self._get_cf_logs_by_app(),
+                application, {
+                    event_uuid: EMPTY_VALUE,
+            })
+
+            # Save on <CF> CF_LOGS_BY_HOST
+            batch.insert(
+                self._get_cf_logs_by_host(),
+                host, {
+                    event_uuid: EMPTY_VALUE,
+            })
+
+            # Save on <CF> CF_LOGS_BY_SEVERITY
+            batch.insert(
+                self._get_cf_logs_by_severity(),
+                severity, {
+                    event_uuid: EMPTY_VALUE,
+            })
+
+    def _get_from_logs_cf(self, columns_keys):
+        if not columns_keys:
+            return []
+        result = []
+        mapped_row_keys = {}
+        for a_column_key in columns_keys:
+            row_key = ymd_from_uuid1(a_column_key)
+            if row_key in mapped_row_keys:
+                mapped_row_keys[row_key].append(a_column_key)
+            else:
+                mapped_row_keys[row_key] = [a_column_key]
+
+        # FIXME: implement support for getting messages from multiple rows
+        for a_key in sorted(mapped_row_keys.keys(), reverse=True):
+            cass_result_from_logs = self._get_cf_logs().get(a_key, columns=mapped_row_keys[a_key])
+            result = result + [json.loads(col_val) for _, col_val in cass_result_from_logs.iteritems()]
+        return result
+
+    def query_by_severity(self, severity, from_col=None):
+        """
+        Returns list of dicts.
+        """
+        _check_severity(severity)
+        if from_col is None:
+            cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True)
+        else:
+            cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True, column_start=from_col)
+
+        cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        return self._get_from_logs_cf(cols_keys)
+
+    def query_by_application(self, application, from_col=None):
+        """
+        Returns OrderedDict.
+
+        Use:
+            cassandra_result = query_by_application(severity)
+            result = []
+            for _, col in cassandra_result.iteritems():
+                message = json.loads(col)
+                result.append(message)
+        """
+        _check_application(application)
+        if from_col is None:
+            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True)
+        else:
+            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True, column_start=from_col)
+        cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        return self._get_from_logs_cf(cols_keys)
+
+    def query_by_host(self, host, from_col=None):
+        """
+        Returns OrderedDict.
+
+        Use:
+            cassandra_result = query_by_host(severity)
+            result = []
+            for _, col in cassandra_result.iteritems():
+                message = json.loads(col)
+                result.append(message)
+        """
+        _check_host(host)
+        if from_col is None:
+            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True)
+        else:
+            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True, column_start=from_col)
+        cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        return self._get_from_logs_cf(cols_keys)
