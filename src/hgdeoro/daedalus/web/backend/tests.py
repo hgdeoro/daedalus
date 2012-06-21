@@ -23,6 +23,7 @@ import datetime
 import json
 import logging
 import multiprocessing
+import os
 import random
 import time
 
@@ -200,7 +201,13 @@ class StorageTest(TestCase):
         print "Cant:", len(row_keys)
 
 
-class BulkSaveToRealKeyspace(StorageTest):
+class BulkSave(StorageTest):
+    """
+    Varios method to run bulk-saves on REAL keyspace (the keyspace used by the application)
+    or the DEFAULT keyspace (the used for running the tests).
+    
+    This class souldn't have methos named 'test_*'!
+    """
 
     def bulk_save_500(self):
         """
@@ -233,7 +240,7 @@ class BulkSaveToRealKeyspace(StorageTest):
         """
         self.bulk_sparse_save_until_stop(max_count=500)
 
-    def _multiproc_bulk_save(self, insert_function):
+    def _multiproc_bulk_save(self, insert_function, max_count=50000, concurrent_num=2):
         """
         Saves messages on REAL keyspace until canceled.
         """
@@ -246,35 +253,47 @@ class BulkSaveToRealKeyspace(StorageTest):
             ret = insert_function(count)
             queue.put(ret)
 
-        q1 = multiprocessing.Queue()
-        q2 = multiprocessing.Queue()
-        proc1 = multiprocessing.Process(target=callback, args=[q1, 25000])
-        proc2 = multiprocessing.Process(target=callback, args=[q2, 25000])
-        proc1.start()
-        proc2.start()
-        proc1.join()
-        proc2.join()
-        ret1 = q1.get()
-        ret2 = q2.get()
-        count = ret1[0] + ret2[0]
-        elapsed_time = ret1[1] + ret2[1]
+        queues = [multiprocessing.Queue() for _ in range(0, concurrent_num)]
+        procs = [multiprocessing.Process(target=callback, args=[q, int(max_count / concurrent_num)])
+            for q in queues]
+        
+        start = time.time()
+        
+        for p in procs:
+            p.start()
+        for p in procs:
+            p.join()
+
+        end = time.time()
+
+        rets = [q.get() for q in queues]
+        count = sum(ret[0] for ret in rets)
+        elapsed_time = sum(ret[1] for ret in rets)
         avg = float(count) / (elapsed_time)
+        avg2 = float(count) / (end - start)
 
         print ""
-        print "Inserting {0} msg took {1:f} secs. - Avg: {2:f} msg/sec".format(count, elapsed_time, avg)
+        print "Inserting {0} msg took {1:f} secs. - Avg: {2:f} msg/sec - Avg2: {3:f} msg/sec - ".format(
+            count, elapsed_time, avg, avg2)
         print ""
 
     def bulk_save_multiproc_50000_to_real_keyspace(self):
         """
         Saves 50000 messages on REAL keyspace.
         """
-        self._multiproc_bulk_save(_bulk_save_random_messages_to_real_keyspace)
+        max_count = int(os.environ.get('INSERT_COUNT', '50000'))
+        concurrent_procs = int(os.environ.get('CONCURRENT_PROCS', '2'))
+        self._multiproc_bulk_save(_bulk_save_random_messages_to_real_keyspace,
+            max_count=max_count, concurrent_num=concurrent_procs)
 
     def bulk_save_multiproc_50000_to_default_keyspace(self):
         """
         Saves 50000 messages on default keyspace (normally the 'test' keyspace).
         """
-        self._multiproc_bulk_save(_bulk_save_random_messages_to_default_keyspace)
+        max_count = int(os.environ.get('INSERT_COUNT', '50000'))
+        concurrent_procs = int(os.environ.get('CONCURRENT_PROCS', '2'))
+        self._multiproc_bulk_save(_bulk_save_random_messages_to_default_keyspace,
+            max_count=max_count, concurrent_num=concurrent_procs)
 
 
 class ResetRealKeyspace(StorageTest):
