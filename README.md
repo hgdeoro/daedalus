@@ -12,7 +12,6 @@ Current iteration goals (towards v0.0.1)
 
 * Simplest implementation of the server and a python client
   - TODO: Python client.
-  - TODO: Paginate home page.
 
 
 Implemented (finished or WIP) functional use cases
@@ -20,16 +19,19 @@ Implemented (finished or WIP) functional use cases
 
 1. Save log messages using HTTP
 
-2. Show messages
-  - a. Show by application
-  - b. Show by host
-  - c. Show by severity
+2. UI: Show messages
+  - a. Filter by application
+  - b. Filter by host
+  - c. Filter by severity
+  - d. Show all messages (default for home page)
 
 3. Simplest form of pagination
 
 
 Not implemented right now / Ideas
 ----------------------------------------
+
+* Filter by date
 
 * Proper timezone handling
 
