@@ -7,7 +7,7 @@ The messages are sent/received using HTTP POST, encoded as a json dictionary.
 There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
 
 
-Current iteration goals
+Current iteration goals (towards v0.0.1)
 ----------------------------------------
 
 * Simplest implementation of the server and a python client
@@ -15,18 +15,10 @@ Current iteration goals
   - TODO: Paginate home page.
 
 
-Next iteration
-----------------------------------------
-
-* TTL of messages
-
-* Make installable via virtualenv
-
-
 Implemented (finished or WIP) functional use cases
 ----------------------------------------
 
-1. Save log messages
+1. Save log messages using HTTP
 
 2. Show messages
   - a. Show by application
@@ -36,12 +28,12 @@ Implemented (finished or WIP) functional use cases
 3. Simplest form of pagination
 
 
-Implemented (finished or WIP) Non-functional use cases
+Not implemented right now / Ideas
 ----------------------------------------
 
+* TTL of messages / automatic disposal of old messages
 
-Not implemented right now
-----------------------------------------
+* Make installable via virtualenv
 
 * Live update of search results
   - a. Update the search results while new messages arrives
@@ -50,12 +42,11 @@ Not implemented right now
 
 * Search by message text
 
-* No autentication to save messages
+* Autentication to save messages
 
-* No autentication to see messages
+* Autentication to see messages
 
 * Client provided timestamps (for supporting bulk-upload of messages)
-
 
 
 General architecture
@@ -63,17 +54,16 @@ General architecture
 
 * Client + server app.
 
+* Client:
+  - Thin layer over a http client to send the messages
+
 * Server:
   - Backend: Django app that receives the messages.
   - Frontend: Django app for viewing the messages.
 
-* Client:
-  - Thin layer over a http client to send the messages
-
 * Messages sent over HTTP
 
 * Messages encoded using JSON
-
 
 
 Cassandra
@@ -86,6 +76,12 @@ Cassandra
   - CF: Logs\_by\_app - Cols[]: { uuid1/timestamp: JSON encodded message }
   - CF: Logs\_by\_host - Cols[]: { uuid1/timestamp: JSON encodded message }
   - CF: Logs\_by\_severity - Cols[]: { uuid1/timestamp: JSON encodded message }
+
+* Alternative format (implemented by StorageService2):
+  - CF: Logs - Cols[]: { uuid1/timestamp: JSON encodded message }
+  - CF: Logs\_by\_app - Cols[]: { uuid1/timestamp: '' }
+  - CF: Logs\_by\_host - Cols[]: { uuid1/timestamp: '' }
+  - CF: Logs\_by\_severity - Cols[]: { uuid1/timestamp: '' }
 
 * No SuperColumn nor secondary indexes by now.
 
@@ -100,20 +96,6 @@ Glosary
   - host
   - severity
   - timestamp (Cassandra)
-
-
-
-Examples
-----------------------------------------
-
-* Log message
-  - **Message**: Exception when invoking service
-  - **Detail**: (stacktrace)
-  - **Application**: intranet
-  - **Host**: 192.168.91.77
-  - **Severity**: FATAL
-  - **Timestamp**: 1338569478
-
 
 
 License
