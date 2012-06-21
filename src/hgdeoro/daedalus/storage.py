@@ -544,11 +544,14 @@ class StorageService2(StorageService):
             else:
                 mapped_row_keys[row_key] = [a_column_key]
 
-        # FIXME: implement support for getting messages from multiple rows
-        for a_key in sorted(mapped_row_keys.keys(), reverse=True):
-            cass_result_from_logs = self._get_cf_logs().get(a_key, columns=mapped_row_keys[a_key])
+        for a_row_key in sorted(mapped_row_keys.keys(), reverse=True):
+            cass_result_from_logs = self._get_cf_logs().get(a_row_key, columns=mapped_row_keys[a_row_key])
+            #ordered_result = [(val[1], key, val[0], ) for key, val in cass_result_from_logs.iteritems()]
+            #ordered_result = sorted(ordered_result, reverse=True)
+            #result = result + [json.loads(col_val) for _, _, col_val in ordered_result]
             result = result + [json.loads(col_val) for _, col_val in cass_result_from_logs.iteritems()]
-        return result
+
+        return sorted(result, key=lambda msg: float(msg['timestamp']), reverse=True)
 
     def query_by_severity(self, severity, from_col=None):
         """

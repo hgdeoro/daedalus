@@ -31,6 +31,8 @@ Implemented (finished or WIP) functional use cases
 Not implemented right now / Ideas
 ----------------------------------------
 
+* Proper timezone handling
+
 * TTL of messages / automatic disposal of old messages
 
 * Make installable via virtualenv
