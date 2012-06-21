@@ -22,6 +22,7 @@
 import datetime
 import json
 import logging
+import multiprocessing
 import random
 import time
 
@@ -62,15 +63,17 @@ def sparse_time_generator(random_seed):
 def _bulk_save_random_messages_to_real_keyspace(max_count, time_generator=None):
     """
     Saves messages on REAL keyspace.
+    Returns a tuple (item inserted, elapsed time).
     """
     settings.KEYSPACE = settings.KEYSPACE_REAL
     print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
-    _bulk_save_random_messages_to_default_keyspace(max_count, time_generator=time_generator)
+    return _bulk_save_random_messages_to_default_keyspace(max_count, time_generator=time_generator)
 
 
 def _bulk_save_random_messages_to_default_keyspace(max_count=None, time_generator=None):
     """
-    Saves messages to the configured keyspace (settings.KEYSPACE)
+    Saves messages to the configured keyspace (settings.KEYSPACE).
+    Returns a tuple (item inserted, elapsed time).
     """
     start = time.time()
     count = 0
@@ -93,6 +96,7 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None, time_generato
     end = time.time()
     avg = float(count) / (end - start)
     logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
+    return count, end - start
 
 
 class StorageTest(TestCase):
@@ -228,6 +232,49 @@ class BulkSaveToRealKeyspace(StorageTest):
         Saves messages on REAL keyspace, with dates from a month ago to today.
         """
         self.bulk_sparse_save_until_stop(max_count=500)
+
+    def _multiproc_bulk_save(self, insert_function):
+        """
+        Saves messages on REAL keyspace until canceled.
+        """
+        logging.basicConfig(level=logging.INFO)
+        settings.CASSANDRA_CONNECT_RETRY_WAIT = 1
+        print "Patched value of CASSANDRA_CONNECT_RETRY_WAIT to 1"
+
+        def callback(queue, count):
+            # ret = _bulk_save_random_messages_to_real_keyspace(count)
+            ret = insert_function(count)
+            queue.put(ret)
+
+        q1 = multiprocessing.Queue()
+        q2 = multiprocessing.Queue()
+        proc1 = multiprocessing.Process(target=callback, args=[q1, 25000])
+        proc2 = multiprocessing.Process(target=callback, args=[q2, 25000])
+        proc1.start()
+        proc2.start()
+        proc1.join()
+        proc2.join()
+        ret1 = q1.get()
+        ret2 = q2.get()
+        count = ret1[0] + ret2[0]
+        elapsed_time = ret1[1] + ret2[1]
+        avg = float(count) / (elapsed_time)
+
+        print ""
+        print "Inserting {0} msg took {1:f} secs. - Avg: {2:f} msg/sec".format(count, elapsed_time, avg)
+        print ""
+
+    def bulk_save_multiproc_50000_to_real_keyspace(self):
+        """
+        Saves 50000 messages on REAL keyspace.
+        """
+        self._multiproc_bulk_save(_bulk_save_random_messages_to_real_keyspace)
+
+    def bulk_save_multiproc_50000_to_default_keyspace(self):
+        """
+        Saves 50000 messages on default keyspace (normally the 'test' keyspace).
+        """
+        self._multiproc_bulk_save(_bulk_save_random_messages_to_default_keyspace)
 
 
 class ResetRealKeyspace(StorageTest):
