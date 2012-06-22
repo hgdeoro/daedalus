@@ -33,8 +33,6 @@ Current iteration goals (towards v0.0.2)
 
 * Add tests with Selenium / WebDriver Plus
 
-* Remove from requirements.txt requeriments for development (or split requirements.txt)
-
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
 
