@@ -46,13 +46,15 @@ Start development server
 By now you'll have the Django development server running.
 Both the Daedalus __backend__ (the Django app that receives the logs via HTTP)
 and the __frontend__ (the application used to see the logs) are started.
-To use it, go to [http://127.0.0.1:8084/].
+To use it, go to [http://127.0.0.1:8084/](http://127.0.0.1:8084/).
 
 To create some random log messages, you could run:
 
     $ ./dev-scripts/bulk_save_random_messages.sh
 
 (and press Ctrl+C twice to stop it).
+
+The project could be imported from within Eclipse PyDev.
 
 Current iteration goals (towards v0.0.3)
 ----------------------------------------
