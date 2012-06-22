@@ -19,29 +19,16 @@
 ##    along with daedalus; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-from django.conf.urls import patterns, url
+"""
+Reference this settings to start ONLY the BACKEND.
 
-from hgdeoro.daedalus.web.backend.views import save_log, home
+Ex:
+    export DJANGO_SETTINGS_MODULE="hgdeoro.daedalus.web.settings_backend_only"
+    django-admin.py runserver
+"""
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+import os
 
-urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'web_backend.views.home', name='home'),
-    # url(r'^web_backend/', include('web_backend.foo.urls')),
+os.environ['DAEDALUS_ENABLED_SUBSYSTEMS'] = 'backend'
 
-    url(r'^save/', save_log),
-    url(r'^$', home),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
-)
-
-handler403 = 'hgdeoro.daedalus.web.backend.views.error_403'
-handler404 = 'hgdeoro.daedalus.web.backend.views.error_404'
-handler500 = 'hgdeoro.daedalus.web.backend.views.error_500'
+from hgdeoro.daedalus.settings import * #@UnusedWildImport

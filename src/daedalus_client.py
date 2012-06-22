@@ -88,7 +88,7 @@ class DaedalusClient(object):
         conn = None
         try:
             conn = httplib.HTTPConnection(host=self.server_host, port=self.server_port)
-            conn.request("POST", "/save/", params, {})
+            conn.request("POST", "/backend/save/", params, {})
             response = conn.getresponse()
             if response.status == 201:
                 try:

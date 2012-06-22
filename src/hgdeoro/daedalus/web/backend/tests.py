@@ -330,7 +330,7 @@ class WebBackendTest(TestCase):
         _truncate_all_column_families()
         msg_dict = log_dict_generator(1).next()
         json_message = json.dumps(msg_dict)
-        respose = self.client.post('/save/', {'payload': json_message})
+        respose = self.client.post('/backend/save/', {'payload': json_message})
         self.assertEqual(respose.status_code, 201)
         content = json.loads(respose.content)
         self.assertEquals(content['status'], 'ok')
@@ -348,7 +348,7 @@ class WebBackendTest(TestCase):
         try:
             for message in log_dict_generator(1):
                 json_message = json.dumps(message)
-                respose = self.client.post('/save/', {'payload': json_message})
+                respose = self.client.post('/backend/save/', {'payload': json_message})
                 self.assertEqual(respose.status_code, 201)
                 content = json.loads(respose.content)
                 self.assertEquals(content['status'], 'ok')
