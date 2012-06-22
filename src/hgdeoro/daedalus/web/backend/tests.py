@@ -24,6 +24,7 @@ import json
 import logging
 import multiprocessing
 import os
+import pprint
 import random
 import time
 
@@ -35,9 +36,7 @@ from pycassa.pool import ConnectionPool
 
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.storage import get_service_cm, get_service
-from hgdeoro.daedalus.web.backend.daedalus_client import DaedalusClient,\
-    DaedalusException, ERROR
-import pprint
+from daedalus_client import DaedalusClient, DaedalusException, ERROR
 
 logger = logging.getLogger(__name__)
 
