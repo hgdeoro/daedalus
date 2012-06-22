@@ -11,6 +11,7 @@ from setuptools import find_packages
 #  + remove '-dev' from version of setup.py
 #  + git commit setup.py -m "Updated setup: version=v$(./virtualenv/bin/python setup.py --version)"
 #  + git tag -a -m "Version $(./virtualenv/bin/python setup.py --version)" "v$(./virtualenv/bin/python setup.py --version)"
+#  + git tag -f stable
 #  + increment version number and add '-dev' on version of setup.py
 #  + git commit setup.py -m "Updated setup: version=v$(./virtualenv/bin/python setup.py --version)"
 #  + git push --tags

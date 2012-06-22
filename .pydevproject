@@ -8,4 +8,10 @@
 <path>/daedalus/src</path>
 <path>/daedalus/virtualenv/lib/python2.7/site-packages</path>
 </pydev_pathproperty>
+<pydev_variables_property name="org.python.pydev.PROJECT_VARIABLE_SUBSTITUTION">
+<key>DJANGO_MANAGE_LOCATION</key>
+<value>pydev_manage.py</value>
+<key>DJANGO_SETTINGS_MODULE</key>
+<value>hgdeoro.daedalus.settings</value>
+</pydev_variables_property>
 </pydev_project>

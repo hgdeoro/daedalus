@@ -7,7 +7,7 @@ The messages are sent/received using HTTP POST, encoded as a JSON dictionary.
 There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
 
 
-Implemented functional use cases (as of v0.0.1)
+Implemented functional use cases (as of v0.0.2)
 ----------------------------------------
 
 1. Backend: Receive log messages using HTTP (POST with JSON encoded message)
@@ -21,11 +21,45 @@ Implemented functional use cases (as of v0.0.1)
 
 3. Client: Python client to send messages using HTTP (POST with JSON encoded message)
 
-
-Current iteration goals (towards v0.0.2)
+How to download and hack
 ----------------------------------------
 
-* Make installable via virtualenv
+Download from GitHub
+
+    $ git clone http://github.com/hgdeoro/daedalus
+    $ cd daedalus
+    
+Create virtualenv and install requeriments
+
+    $ virtualenv virtualenv
+    $ ./virtualenv/bin/pip install -r requirements.txt
+
+Run syncdb and syncdb_cassandra
+
+    $ ./dev-scripts/manage.sh syncdb
+    $ ./dev-scripts/manage.sh syncdb_cassandra
+
+Start development server
+
+    $ ./dev-scripts/runserver.sh
+
+By now you'll have the Django development server running.
+Both the Daedalus __backend__ (the Django app that receives the logs via HTTP)
+and the __frontend__ (the application used to see the logs) are started.
+To use it, go to [http://127.0.0.1:8084/].
+
+To create some random log messages, you could run:
+
+    $ ./dev-scripts/bulk_save_random_messages.sh
+
+(and press Ctrl+C twice to stop it).
+
+Current iteration goals (towards v0.0.3)
+----------------------------------------
+
+* Make proyect runnable from Eclipse+PyDev
+
+* Create management commands to create keyspaces and CF on Cassandra.
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
