@@ -1,6 +1,12 @@
+#
+# Requeriments
+#   (remember to update setup.py if you modify this file!)
+#
+
 pycassa==1.6.0
 Django==1.4
 pylibmc==1.2.3
+ 
 # thrift==0.8.0
 # argparse==1.2.1
 # -e git+https://github.com/hgdeoro/fabric@21ec21d0ed27f99428c8bd0c6162cf99173f8a9f#egg=fabric

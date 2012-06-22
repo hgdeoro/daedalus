@@ -7,7 +7,7 @@ from setuptools import find_packages
 #----------------------------------------------------------------------
 # Release instructions
 #----------------------------------------------------------------------
-#
+# + run tests
 #  + remove '-dev' from version of setup.py
 #  + git commit setup.py -m "Updated setup: version=v$(./virtualenv/bin/python setup.py --version)"
 #  + git tag -a -m "Version $(./virtualenv/bin/python setup.py --version)" "v$(./virtualenv/bin/python setup.py --version)"
@@ -63,7 +63,7 @@ for scheme in INSTALL_SCHEMES.values():
 
 setup(
     name="Daedalus",
-    version="0.0.2-dev",
+    version="0.0.2",
     description='Django application to store log messages on Cassandra',
     author="Horacio G. de Oro",
     author_email="hgdeoror@gmail.com",
@@ -71,9 +71,9 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     install_requires=[
-        'pycassa', #'pycassa==1.6.0',
-        'django', #'Django==1.4',
-        'pylibmc', #'pylibmc==1.2.3',
+        'pycassa==1.6.0',
+        'django==1.4',
+        'pylibmc==1.2.3',
     ],
     classifiers=classifiers, 
     data_files=gen_data_files(), 

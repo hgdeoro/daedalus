@@ -25,16 +25,18 @@ Implemented functional use cases (as of v0.0.1)
 Current iteration goals (towards v0.0.2)
 ----------------------------------------
 
-* Document installation procedure
-
 * Make installable via virtualenv
-
-* Move Daedalus client to separate project
-
-* Add tests with Selenium / WebDriver Plus
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
+
+* Document installation procedure
+
+* Easy deploy using Gunicorn
+
+* Add tests with Selenium / WebDriver Plus
+
+* Move Daedalus client to separate project
 
 * Add check of memcache on status page
 
