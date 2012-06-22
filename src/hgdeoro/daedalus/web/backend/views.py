@@ -22,6 +22,7 @@
 import json
 
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from hgdeoro.daedalus.storage import get_service_cm
 
@@ -30,6 +31,7 @@ def home(request):
     return HttpResponse("ok")
 
 
+@csrf_exempt
 def save_log(request):
     #
     #* Log message
