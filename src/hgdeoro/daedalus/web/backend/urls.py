@@ -33,7 +33,7 @@ urlpatterns = patterns('',
     # url(r'^web_backend/', include('web_backend.foo.urls')),
 
     url(r'^save/', save_log),
-    url(r'^.*', home),
+    url(r'^$', home),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
@@ -41,3 +41,7 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
 )
+
+handler403 = 'hgdeoro.daedalus.web.backend.views.error_403'
+handler404 = 'hgdeoro.daedalus.web.backend.views.error_404'
+handler500 = 'hgdeoro.daedalus.web.backend.views.error_500'

@@ -28,7 +28,19 @@ from hgdeoro.daedalus.storage import get_service_cm
 
 
 def home(request):
-    return HttpResponse("ok")
+    return HttpResponse("Daedalus here :-D")
+
+
+def error_403(request):
+    return HttpResponse("Error 403 detected")
+
+
+def error_404(request):
+    return HttpResponse("404: the requested resource doesn't exists")
+
+
+def error_500(request):
+    return HttpResponse("500: internal error")
 
 
 @csrf_exempt
