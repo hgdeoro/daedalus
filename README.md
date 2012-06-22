@@ -13,7 +13,6 @@ Current iteration goals (towards v0.0.1)
 * Simplest implementation of the server and a python client
   - TODO: Python client.
 
-
 Implemented (finished or WIP) functional use cases
 ----------------------------------------
 
@@ -31,6 +30,10 @@ Implemented (finished or WIP) functional use cases
 Not implemented right now / Ideas
 ----------------------------------------
 
+* Accept messages even when lack some field(s)
+
+* Accept messages sent with POST even if the message is not JSON encoded
+
 * Filter by date
 
 * Proper timezone handling
@@ -46,9 +49,7 @@ Not implemented right now / Ideas
 
 * Search by message text
 
-* Autentication to save messages
-
-* Autentication to see messages
+* Autentication to save messages (backend) and/or to see the messages (frontend)
 
 * Client provided timestamps (for supporting bulk-upload of messages)
 
