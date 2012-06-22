@@ -28,6 +28,12 @@ import json
 logger = logging.getLogger(__name__)
 
 
+ERROR = 'ERROR'
+WARN = 'WARN'
+INFO = 'INFO'
+DEBUG = 'DEBUG'
+
+
 class DaedalusException(Exception):
     pass
 
@@ -35,13 +41,28 @@ class DaedalusException(Exception):
 class DaedalusClient(object):
 
     def __init__(self, server_host="127.0.0.1", server_port=8000,
-        default_message_host=None, default_message_application=None):
+        default_message_host=None, default_message_application=None,
+        log_client_errors=True, raise_client_exceptions=False):
         self.server_host = server_host
         self.server_port = server_port
         self.default_message_host = default_message_host
         self.default_message_application = default_message_application
+        self.log_client_errors = log_client_errors
+        self.raise_client_exceptions = raise_client_exceptions
 
     def send_message(self, message, severity=None, host=None, application=None, timestamp=None):
+        """
+        Sends a message to the server.
+        """
+        try:
+            self._send_message(message, severity, host, application, timestamp)
+        except DaedalusException:
+            raise
+        except:
+            if self.log_client_errors:
+                logger.exception("Couldn't send message to the server")
+
+    def _send_message(self, message, severity, host, application, timestamp):
         if timestamp is None:
             timestamp = "{0:0.25f}".format(time.time())
         if severity is None:
@@ -50,7 +71,7 @@ class DaedalusClient(object):
             host = self.default_message_host
         if application is None:
             application = self.default_message_application
-        # respose = self.client.post('/save/', {'payload': json_message})
+
         msg_dict = {
             'application': application,
             'host': host,
@@ -67,27 +88,37 @@ class DaedalusClient(object):
             conn = httplib.HTTPConnection(host=self.server_host, port=self.server_port)
             conn.request("POST", "/save/", params, {})
             response = conn.getresponse()
-            # print response.status, response.reason
             if response.status == 201:
-                pass
-            else:
-                # FIXME: log this error
-                # FIXME: raise better exception
-                msg = "Invalid response from server. - status: {0} - reason: {1}".format(
-                    response.status, response.reason)
                 try:
                     response_data = response.read()
+                    response_dict = json.loads(response_data)
+                    if response_dict['status'] == 'ok':
+                        logger.debug("Log message sent OK.")
+                        return
                 except:
-                    # FIXME: maybe we should log this error too
-                    response_data = ''
-                logger.error(msg + "\n" + response_data)
-                raise(DaedalusException(msg))
-            response_data = response.read()
-            response_dict = json.loads(response_data)
-            if not 'status' in response_dict or response_dict['status'] != 'ok':
-                # FIXME: log this error
-                # FIXME: raise better exception
-                raise(DaedalusException("Invalid response from server"))
+                    pass
+                msg = "Even when http status was 201, something happened " \
+                    "when trying to process the server response"
+                if self.log_client_errors:
+                    logger.error(msg)
+                if self.raise_client_exceptions:
+                    raise(DaedalusException(msg))
+                return
+            else:
+                msg = "Invalid response from server. - status: {0} - reason: {1}".format(
+                    response.status, response.reason)
+                if self.log_client_errors:
+                    # Try to read the content of the response
+                    try:
+                        response_data = response.read()
+                    except:
+                        logger.exception("Couldn't read the server response")
+                        response_data = ''
+                    logger.error(msg + "\n" + response_data)
+                if self.raise_client_exceptions:
+                    raise(DaedalusException(msg))
+                else:
+                    return
         finally:
             if conn is not None:
                 try:
