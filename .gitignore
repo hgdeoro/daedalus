@@ -5,3 +5,5 @@
 /daedalus_web_backend.sqlite
 /daedalus_web_frontend.sqlite
 /web/frontend/static/twitter-bootstrap-ebc6935
+/.settings
+/daedalus.sqlite
