@@ -27,7 +27,7 @@ import os
 import random
 import time
 
-from django.test.testcases import TestCase
+from django.test.testcases import TestCase, LiveServerTestCase
 from django.conf import settings
 from pycassa.system_manager import SystemManager
 from pycassa.columnfamily import ColumnFamily
@@ -35,6 +35,7 @@ from pycassa.pool import ConnectionPool
 
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.storage import get_service_cm, get_service
+from hgdeoro.daedalus.web.backend.daedalus_client import DaedalusClient
 
 logger = logging.getLogger(__name__)
 
@@ -362,3 +363,41 @@ class WebBackendTest(TestCase):
         end = time.time()
         avg = float(count) / (end - start)
         logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
+
+
+class DaedalusClientTest(LiveServerTestCase):
+
+    def test_client(self):
+        storage_service = get_service(cache_enabled=False)
+        msg_host = "somehost{0}".format(random.randint(1, 999999))
+        msg_app = "someapp{0}".format(random.randint(1, 999999))
+        msg_message = "this is a random message %s".format(random.randint(1, 999999))
+        self.assertEquals(len(storage_service.query()), 0)
+
+        # Create a client
+        daedalus_client = DaedalusClient(self.server_thread.host, int(self.server_thread.port),
+            msg_host, msg_app)
+
+        # Send a message
+        daedalus_client.send_message(msg_message, 'ERROR', msg_host, msg_app)
+
+        def _check_message(the_msg):
+            # Check the message
+            self.assertEquals(the_msg['host'], msg_host)
+            self.assertEquals(the_msg['application'], msg_app)
+            self.assertEquals(the_msg['message'], msg_message)
+            self.assertEquals(the_msg['severity'], 'ERROR')
+
+        all_the_msg = storage_service.query()
+        self.assertEquals(len(all_the_msg), 1)
+        _check_message(all_the_msg[0])
+
+        # Check filters
+        all_the_msg = storage_service.query_by_application(msg_app)
+        self.assertEquals(len(all_the_msg), 1)
+        _check_message(all_the_msg[0])
+
+        # Check filters
+        all_the_msg = storage_service.query_by_host(msg_host)
+        self.assertEquals(len(all_the_msg), 1)
+        _check_message(all_the_msg[0])
