@@ -21,9 +21,11 @@
 
 import httplib
 import logging
+import os
 import time
 import urllib
 import json
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +42,7 @@ class DaedalusException(Exception):
 
 class DaedalusClient(object):
 
-    def __init__(self, server_host="127.0.0.1", server_port=8000,
+    def __init__(self, server_host="127.0.0.1", server_port=8085,
         default_message_host=None, default_message_application=None,
         log_client_errors=True, raise_client_exceptions=False):
         self.server_host = server_host
@@ -125,3 +127,24 @@ class DaedalusClient(object):
                     conn.close()
                 except:
                     logger.exception("Error detected when trying to close http connection")
+
+
+if __name__ == '__main__':
+    """
+    Examples:
+        $ sudo tail -f /var/log/syslog | env daedalus_app_name=syslog python -u daedalus_client.py
+    """
+    daedalus_host = os.environ.get('daedalus_host', 'localhost')
+    daedalus_port = os.environ.get('daedalus_port', '8085')
+    # FIXME: sanitize hostname, or at least check that it's valid
+    daedalus_hostname = os.environ.get('daedalus_hostname', os.uname()[1])
+    daedalus_app_name = os.environ.get('daedalus_app_name', 'os')
+    client = DaedalusClient(daedalus_host, int(daedalus_port), daedalus_hostname,
+        daedalus_app_name, log_client_errors=False, raise_client_exceptions=False)
+    while True:
+        try:
+            for line in sys.stdin:
+                msg = line.strip()
+                client.send_message(msg, INFO)
+        except KeyboardInterrupt:
+            break
