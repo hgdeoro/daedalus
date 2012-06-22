@@ -16,6 +16,8 @@ from setuptools import find_packages
 #  + git push --tags
 #
 
+VERSION = "0.0.3-dev"
+
 def gen_data_files():
     """
     Generates a list of items suitables to be used as 'data_files' parameter of setup().
@@ -63,7 +65,7 @@ for scheme in INSTALL_SCHEMES.values():
 
 setup(
     name="Daedalus",
-    version="0.0.2",
+    version=VERSION,
     description='Django application to store log messages on Cassandra',
     author="Horacio G. de Oro",
     author_email="hgdeoror@gmail.com",
