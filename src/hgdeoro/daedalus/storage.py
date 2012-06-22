@@ -34,6 +34,7 @@ from pycassa.types import TimeUUIDType
 from pycassa.batch import Mutator
 from pycassa.pool import AllServersUnavailable
 from pycassa.util import convert_time_to_uuid
+from pycassa.cassandra.c10.ttypes import NotFoundException
 
 from hgdeoro.daedalus.utils import ymd_from_uuid1
 
@@ -278,22 +279,27 @@ class StorageService(object):
             row_keys = _callback()
 
         for row_key in row_keys:
-            ignore_first = False
-            if from_col is None:
-                cass_result = self._get_cf_logs().get(row_key, column_reversed=True)
-            else:
-                cass_result = self._get_cf_logs().get(row_key, column_reversed=True,
-                    column_start=from_col, column_count=101)
-                ignore_first = True
-
-            for _, col_val in cass_result.iteritems():
-                if ignore_first:
-                    ignore_first = False
-                    continue
-                if len(result) < 100:
-                    result.append(json.loads(col_val))
+            try:
+                ignore_first = False
+                if from_col is None:
+                    cass_result = self._get_cf_logs().get(row_key, column_reversed=True)
                 else:
-                    return result
+                    cass_result = self._get_cf_logs().get(row_key, column_reversed=True,
+                        column_start=from_col, column_count=101)
+                    ignore_first = True
+
+                for _, col_val in cass_result.iteritems():
+                    if ignore_first:
+                        ignore_first = False
+                        continue
+                    if len(result) < 100:
+                        result.append(json.loads(col_val))
+                    else:
+                        return result
+            except NotFoundException:
+                # FIXME: try to avoid this kind of exception starting the search in the right row
+                # logger.exception("---------- NotFoundException {0} ----------".format(row_key))
+                pass
 
         return result
 
