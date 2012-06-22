@@ -214,6 +214,7 @@ class StorageService(object):
 
         _check_application(application)
         _check_severity(severity)
+        _check_host(host)
 
         event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
         message['_uuid'] = event_uuid.get_hex()
@@ -507,6 +508,7 @@ class StorageService2(StorageService):
 
         _check_application(application)
         _check_severity(severity)
+        _check_host(host)
 
         event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
         message['_uuid'] = event_uuid.get_hex()
