@@ -35,7 +35,9 @@ from pycassa.pool import ConnectionPool
 
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.storage import get_service_cm, get_service
-from hgdeoro.daedalus.web.backend.daedalus_client import DaedalusClient
+from hgdeoro.daedalus.web.backend.daedalus_client import DaedalusClient,\
+    DaedalusException, ERROR
+import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -368,6 +370,7 @@ class WebBackendTest(TestCase):
 class DaedalusClientTest(LiveServerTestCase):
 
     def test_client(self):
+        _truncate_all_column_families()
         storage_service = get_service(cache_enabled=False)
         msg_host = "somehost{0}".format(random.randint(1, 999999))
         msg_app = "someapp{0}".format(random.randint(1, 999999))
@@ -376,7 +379,7 @@ class DaedalusClientTest(LiveServerTestCase):
 
         # Create a client
         daedalus_client = DaedalusClient(self.server_thread.host, int(self.server_thread.port),
-            msg_host, msg_app)
+            msg_host, msg_app, raise_client_exceptions=True)
 
         # Send a message
         daedalus_client.send_message(msg_message, 'ERROR', msg_host, msg_app)
@@ -401,3 +404,91 @@ class DaedalusClientTest(LiveServerTestCase):
         all_the_msg = storage_service.query_by_host(msg_host)
         self.assertEquals(len(all_the_msg), 1)
         _check_message(all_the_msg[0])
+
+        # Insert many
+        for _ in xrange(0, 30):
+            daedalus_client.send_message(msg_message, 'ERROR', msg_host, msg_app)
+
+        all_the_msg = storage_service.query()
+        self.assertEquals(len(all_the_msg), 31)
+
+    def test_clients_default_host_and_app(self):
+        _truncate_all_column_families()
+        storage_service = get_service(cache_enabled=False)
+        msg_host = "somehost{0}".format(random.randint(1, 999999))
+        msg_app = "someapp{0}".format(random.randint(1, 999999))
+        msg_message = "this is a random message %s".format(random.randint(1, 999999))
+        self.assertEquals(len(storage_service.query()), 0)
+
+        # Create a client
+        daedalus_client = DaedalusClient(self.server_thread.host, int(self.server_thread.port),
+            msg_host, msg_app, raise_client_exceptions=True)
+
+        # Send a message
+        daedalus_client.send_message(msg_message, 'ERROR')
+
+        def _check_message(the_msg):
+            # Check the message
+            self.assertEquals(the_msg['host'], msg_host)
+            self.assertEquals(the_msg['application'], msg_app)
+            self.assertEquals(the_msg['message'], msg_message)
+            self.assertEquals(the_msg['severity'], 'ERROR')
+
+        all_the_msg = storage_service.query()
+        self.assertEquals(len(all_the_msg), 1)
+        _check_message(all_the_msg[0])
+
+    def test_invalid_severity(self):
+        """
+        Test that no message is sent with invalid severity
+        """
+        _truncate_all_column_families()
+        storage_service = get_service(cache_enabled=False)
+        self.assertEquals(len(storage_service.query()), 0)
+
+        # Test with -> raise_client_exceptions=True
+
+        daedalus_client = DaedalusClient(self.server_thread.host, int(self.server_thread.port),
+            'host', 'app', log_client_errors=False, raise_client_exceptions=True)
+
+        def _send_invalid_msg():
+            daedalus_client.send_message("some message", 'INVALID_SEVERITY')
+            pprint.pprint(get_service(cache_enabled=False).query())
+            self.assertEquals(len(storage_service.query()), 0)
+
+        self.assertRaises(DaedalusException, _send_invalid_msg)
+
+        # Test with -> raise_client_exceptions=False
+
+        daedalus_client2 = DaedalusClient(self.server_thread.host, int(self.server_thread.port),
+            'host', 'app', log_client_errors=False, raise_client_exceptions=False)
+
+        daedalus_client2.send_message("some message", 'INVALID_SEVERITY')
+        pprint.pprint(get_service(cache_enabled=False).query())
+        self.assertEquals(len(storage_service.query()), 0)
+
+    def test_invalid_host(self):
+        _truncate_all_column_families()
+        storage_service = get_service(cache_enabled=False)
+        self.assertEquals(len(storage_service.query()), 0)
+
+        # Test with -> raise_client_exceptions=True
+
+        daedalus_client = DaedalusClient(self.server_thread.host, int(self.server_thread.port),
+            'some invalid host', 'app', log_client_errors=False, raise_client_exceptions=True)
+
+        def _send_invalid_msg():
+            daedalus_client.send_message("some message", ERROR)
+            pprint.pprint(get_service(cache_enabled=False).query())
+            self.assertEquals(len(storage_service.query()), 0)
+
+        self.assertRaises(DaedalusException, _send_invalid_msg)
+
+        # Test with -> raise_client_exceptions=False
+
+        daedalus_client2 = DaedalusClient(self.server_thread.host, int(self.server_thread.port),
+            'some invalid host', 'app', log_client_errors=False, raise_client_exceptions=False)
+
+        daedalus_client2.send_message("some message", ERROR)
+        pprint.pprint(get_service(cache_enabled=False).query())
+        self.assertEquals(len(storage_service.query()), 0)
