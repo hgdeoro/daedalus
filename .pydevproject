@@ -7,6 +7,5 @@
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/daedalus/src</path>
 <path>/daedalus/virtualenv/lib/python2.7/site-packages</path>
-<path>/daedalus/virtualenv/src/fabric</path>
 </pydev_pathproperty>
 </pydev_project>
