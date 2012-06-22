@@ -29,9 +29,18 @@ Current iteration goals (towards v0.0.2)
 
 * Make installable via virtualenv
 
+* Move Daedalus client to separate project
 
-Not implemented right now / Ideas
+* Add tests with Selenium / WebDriver Plus
+
+* Unify backend/frontend (to make easier development and installation)
+
+* Remove from requirements.txt requeriments for development (or split requirements.txt)
+
+Not implemented right now / Ideas / TODOs
 ----------------------------------------
+
+* Add check of memcache on status page
 
 * Accept messages even when lack some field(s)
 
