@@ -7,7 +7,7 @@ from setuptools import find_packages
 #----------------------------------------------------------------------
 # Release instructions
 #----------------------------------------------------------------------
-# + run tests
+#  + run tests
 #  + remove '-dev' from version of setup.py
 #  + git commit setup.py -m "Updated setup: version=v$(./virtualenv/bin/python setup.py --version)"
 #  + git tag -a -m "Version $(./virtualenv/bin/python setup.py --version)" "v$(./virtualenv/bin/python setup.py --version)"
@@ -17,7 +17,7 @@ from setuptools import find_packages
 #  + git push --tags
 #
 
-VERSION = "0.0.3-dev"
+VERSION = "0.0.3"
 
 def gen_data_files():
     """
