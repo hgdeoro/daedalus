@@ -25,6 +25,24 @@ import calendar
 import time
 
 
+def utc_str_timestamp():
+    """
+    Returns a string representing the current time in UTC
+    """
+    utcnow = datetime.datetime.utcnow()
+    timestamp = "{0}.{1:06}".format(calendar.timegm(utcnow.timetuple()), utcnow.microsecond)
+    return timestamp
+
+
+def utc_timestamp2datetime(timestamp):
+    """
+    Converts a timestamp generated with `utc_str_timestamp()`
+    to a datetime.
+    """
+    the_date = datetime.datetime.utcfromtimestamp(float(timestamp))
+    return the_date.replace(tzinfo=pytz.utc)
+
+
 def main():
     d_now = datetime.datetime.now()
     d_utcnow = datetime.datetime.utcnow()
@@ -57,6 +75,10 @@ def main():
         print "{0:>30}: {1}".format("datetime.utcfromtimestamp()",
             datetime.datetime.utcfromtimestamp(float(timestamp)))
         print ""
+
+    current_utc_str_timestamp = utc_str_timestamp()
+    print "utc_str_timestamp():", current_utc_str_timestamp
+    print " + de-serialized:", utc_timestamp2datetime(current_utc_str_timestamp)
 
 if __name__ == '__main__':
     main()
