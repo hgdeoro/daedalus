@@ -34,6 +34,15 @@ logger = logging.getLogger(__name__)
 
 class WebFrontendTest(TestCase):
 
+    def test_views_with_empty_db(self):
+        _truncate_all_column_families()
+        self.client.get(reverse(views.home))
+        self.client.get(reverse(views.status))
+        self.client.get(reverse(views.charts))
+
+        for severity in ('ERROR', 'WARN', 'INFO', 'DEBUG'):
+            self.client.get(reverse(views.search_by_severity, args=[severity]))
+
     def test(self, max_count=1000, truncate=True):
         if truncate:
             _truncate_all_column_families()

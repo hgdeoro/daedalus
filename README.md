@@ -64,6 +64,8 @@ The project could be imported from within Eclipse PyDev.
 Current iteration goals (towards v0.0.4)
 ----------------------------------------
 
+* FIX: NotFoundException() is raised when filtering by severity and no data exists
+
 * Initial implementation of graphing counters of errors
 
 * Proper timezone handling
@@ -72,7 +74,7 @@ Current iteration goals (towards v0.0.4)
     - https://docs.djangoproject.com/en/1.4/topics/i18n/timezones/
     - http://lucumr.pocoo.org/2011/7/15/eppur-si-muove/
 
-* Client provided timestamps (for supporting bulk-upload of messages)
+* Client provided timestamps (to facilitate future implementantion of bulk-upload of messages)
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
