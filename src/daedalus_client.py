@@ -22,10 +22,11 @@
 import httplib
 import logging
 import os
-import time
 import urllib
 import json
 import sys
+
+from hgdeoro.daedalus.utils import utc_str_timestamp
 
 logger = logging.getLogger(__name__)
 
@@ -52,27 +53,32 @@ class DaedalusClient(object):
         self.log_client_errors = log_client_errors
         self.raise_client_exceptions = raise_client_exceptions
 
-    def send_message(self, message, severity=None, host=None, application=None, timestamp=None):
+    def send_message(self, message, severity=None, host=None, application=None):
         """
-        Sends a message to the server.
+        Sends a message to the server using the current time.
         """
         try:
-            self._send_message(message, severity, host, application, timestamp)
+            self._send_message(message, severity, host, application)
         except DaedalusException:
+            # If we get a DaedalusException, always re-raise them, since
+            # they're raised only if 'self.raise_client_exceptions' is True
             raise
         except:
+            # All other exceptions are ignored (are not re-raised,
+            # even if 'self.raise_client_exceptions' is True
+            # FIXME: should we re-raise this exception if 'self.raise_client_exceptions' is True?
             if self.log_client_errors:
                 logger.exception("Couldn't send message to the server")
 
-    def _send_message(self, message, severity, host, application, timestamp):
-        if timestamp is None:
-            timestamp = "{0:0.25f}".format(time.time())
+    def _send_message(self, message, severity, host, application):
         if severity is None:
             severity = 'INFO'
         if host is None:
             host = self.default_message_host
         if application is None:
             application = self.default_message_application
+
+        timestamp = utc_str_timestamp()
 
         msg_dict = {
             'application': application,
@@ -91,6 +97,7 @@ class DaedalusClient(object):
             conn.request("POST", "/backend/save/", params, {})
             response = conn.getresponse()
             if response.status == 201:
+                # response.status == 201
                 try:
                     response_data = response.read()
                     response_dict = json.loads(response_data)
@@ -107,6 +114,8 @@ class DaedalusClient(object):
                     raise(DaedalusException(msg))
                 return
             else:
+                # response.status != 201
+                # We should log a message, raise an exception, or both
                 msg = "Invalid response from server. - status: {0} - reason: {1}".format(
                     response.status, response.reason)
                 if self.log_client_errors:
@@ -126,7 +135,8 @@ class DaedalusClient(object):
                 try:
                     conn.close()
                 except:
-                    logger.exception("Error detected when trying to close http connection")
+                    if self.log_client_errors:
+                        logger.exception("Error detected when trying to close http connection")
 
 
 if __name__ == '__main__':

@@ -20,7 +20,6 @@
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import contextlib
-import datetime
 import json
 import logging
 import re
@@ -104,23 +103,10 @@ def _get_connection(retry=None, wait_between_retry=None):
             time.sleep(wait_between_retry)
 
 
-#@contextlib.contextmanager
-#def _get_connection_cm(*args, **kwargs):
-#    """
-#    Use:
-#        with _get_connection_cm() as pool:
-#            pass
-#    """
-#    pool = None
-#    try:
-#        pool = _get_connection(*args, **kwargs)
-#        yield pool
-#    finally:
-#        if pool is not None:
-#            pool.dispose()
-
-
 def get_service(*args, **kwargs):
+    """
+    Returns an instance of  StorageService.
+    """
     return StorageService2(*args, **kwargs)
 
 
@@ -498,6 +484,8 @@ class StorageService(object):
         """
         Returns the data to create a chart
         """
+        # FIXME: TZ: move this to UTC
+        import datetime
         day_to_graph = int(time.time()) + (day_diff * SECONDS_IN_DAY)
         # now = int(time.time()) # timestamp for 'now'
         day_start = day_to_graph - (day_to_graph % SECONDS_IN_DAY) # timestamp of start of today

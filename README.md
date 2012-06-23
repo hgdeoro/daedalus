@@ -70,6 +70,7 @@ Current iteration goals (towards v0.0.4)
     - http://stackoverflow.com/questions/2532729/daylight-saving-time-and-timezone-best-practices
     - http://pytz.sourceforge.net/
     - https://docs.djangoproject.com/en/1.4/topics/i18n/timezones/
+    - http://lucumr.pocoo.org/2011/7/15/eppur-si-muove/
 
 * Client provided timestamps (for supporting bulk-upload of messages)
 

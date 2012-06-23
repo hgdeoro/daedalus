@@ -49,6 +49,7 @@ def utc_str_timestamp():
     current_time_from_epoch = time.time()
     utc_timetuple = time.gmtime(current_time_from_epoch)
     timestamp = calendar.timegm(utc_timetuple) + math.modf(current_time_from_epoch)[0]
+    # FIXME: change hardcoded '30' with the real precision of time.time()
     return "{0:0.30f}".format(timestamp)
 
 

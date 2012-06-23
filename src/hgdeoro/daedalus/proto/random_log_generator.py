@@ -111,6 +111,9 @@ def log_generator(seed):
 
 
 def current_time_generator():
+    """
+    ATTENTION: this methos DOES NOT guarantees that the time is UTC!
+    """
     while True:
         yield time.time()
 
