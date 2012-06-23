@@ -204,9 +204,12 @@ class StorageTest(TestCase):
         print "Cant:", len(row_keys)
 
     def test_charts(self):
-        settings.KEYSPACE = settings.KEYSPACE_REAL
-        print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
-        pprint.pprint(self.get_service().get_charts_data())
+        _bulk_save_random_messages_to_default_keyspace(50)
+        charts_data = self.get_service().get_charts_data()
+        self.assertEqual(len(charts_data), 24)
+        self.assertEqual(type(charts_data[0][0]), datetime.datetime)
+        self.assertEqual(type(charts_data[0][1]), datetime.datetime)
+        self.assertEqual(type(charts_data[0][2]), int)
 
 
 class BulkSave(StorageTest):
