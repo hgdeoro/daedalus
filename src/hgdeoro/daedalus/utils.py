@@ -19,12 +19,41 @@
 ##    along with daedalus; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import calendar
+import datetime
 import time
 import uuid
 
-from datetime import date
+import pytz
 
 from pycassa.util import convert_uuid_to_time
+
+#def now():
+#    """
+#    Returns the current time in UTC.
+#    See:
+#        - http://pytz.sourceforge.net/#problems-with-localtime
+#            (...) The best and simplest solution is to stick with using UTC (...)
+#    """
+#    return datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+
+
+def utc_str_timestamp():
+    """
+    Returns a string representing the current time in UTC
+    """
+    utcnow = datetime.datetime.utcnow()
+    timestamp = "{0}.{1:06}".format(calendar.timegm(utcnow.timetuple()), utcnow.microsecond)
+    return timestamp
+
+
+def utc_timestamp2datetime(timestamp):
+    """
+    Converts a timestamp generated with `utc_str_timestamp()`
+    to a datetime.
+    """
+    the_date = datetime.datetime.utcfromtimestamp(float(timestamp))
+    return the_date.replace(tzinfo=pytz.utc)
 
 
 def ymd_from_epoch(a_time=None):
@@ -34,7 +63,7 @@ def ymd_from_epoch(a_time=None):
     """
     if a_time is None:
         a_time = time.time()
-    a_date = date.fromtimestamp(a_time)
+    a_date = datetime.date.fromtimestamp(a_time)
     return "{0:04d}{1:02d}{2:02d}".format(
         a_date.year, a_date.month, a_date.day)
 
@@ -43,7 +72,7 @@ def ymd_from_uuid1(uuid1_value):
     """
     Returns a string with the format YEAR+MONTH+DAY
     """
-    a_date = date.fromtimestamp(convert_uuid_to_time(uuid1_value))
+    a_date = datetime.date.fromtimestamp(convert_uuid_to_time(uuid1_value))
     return "{0:04d}{1:02d}{2:02d}".format(
         a_date.year, a_date.month, a_date.day)
 
