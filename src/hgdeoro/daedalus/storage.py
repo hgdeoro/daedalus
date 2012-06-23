@@ -20,6 +20,7 @@
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import contextlib
+import datetime
 import json
 import logging
 import re
@@ -36,7 +37,7 @@ from pycassa.pool import AllServersUnavailable
 from pycassa.util import convert_time_to_uuid
 from pycassa.cassandra.c10.ttypes import NotFoundException
 
-from hgdeoro.daedalus.utils import ymd_from_uuid1
+from hgdeoro.daedalus.utils import ymd_from_uuid1, ymd_from_epoch, get_posixtime
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,8 @@ CF_LOGS = 'Logs'
 CF_LOGS_BY_APP = 'Logs_by_app'
 CF_LOGS_BY_HOST = 'Logs_by_host'
 CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
+
+SECONDS_IN_DAY = 60 * 60 * 24
 
 
 def _json_cache(key, ttl, callback, *args, **kwargs):
@@ -490,6 +493,29 @@ class StorageService(object):
             sys_mgr.close()
 
         return status
+
+    def get_charts_data(self, day_diff=0):
+        """
+        Returns the data to create a chart
+        """
+        day_to_graph = int(time.time()) + (day_diff * SECONDS_IN_DAY)
+        # now = int(time.time()) # timestamp for 'now'
+        day_start = day_to_graph - (day_to_graph % SECONDS_IN_DAY) # timestamp of start of today
+        row_key = ymd_from_epoch(float(day_to_graph)) # row for today
+
+        ranges = [(day_start + (i * 60 * 60), day_start + ((i + 1) * 60 * 60)) for i in range(0, 24)]
+        counts = []
+        for a_range in ranges:
+            column_start = convert_time_to_uuid(a_range[0], True)
+            start_datetime = datetime.datetime.fromtimestamp(a_range[0])
+            column_finish = convert_time_to_uuid(a_range[1], False)
+            end_datetime = datetime.datetime.fromtimestamp(a_range[1])
+            count = self._get_cf_logs().get_count(
+                row_key,
+                column_start=column_start,
+                column_finish=column_finish)
+            counts.append((start_datetime, end_datetime, count,))
+        return counts
 
 
 class StorageService2(StorageService):

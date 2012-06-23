@@ -1,0 +1,49 @@
+{% extends "base.html" %}{% load frontend_helpers %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+
+	{% block extra_js_bottom %}
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	    <script type="text/javascript">
+	      google.load("visualization", "1", {packages:["corechart"]});
+	      google.setOnLoadCallback(drawChart);
+	      function drawChart() {
+	        var data = google.visualization.arrayToDataTable([
+	          ['Hora', 'Cantidad'],
+	          {% for data_item in charts_data %}
+	          	['{{data_item.0}}', {{data_item.2}}]{% if not forloop.last %},{%endif %}
+	          {% endfor %}
+	        ]);
+
+	        var options = {
+	          title: 'Cantidad de logs',
+	          hAxis: {title: 'Year',  titleTextStyle: {color: 'red'}}
+	        };
+
+	        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+	        chart.draw(data, options);
+	      }
+	    </script>
+	{% endblock extra_js_bottom %}
+
+	{% block extra_js %}
+	{% endblock extra_js %}
+
+	{% block extra_css %}
+	{% endblock extra_css %}
+</head>
+<body>
+
+	{% block extra_navbar %}
+	{% endblock extra_navbar %}
+
+	{% block container %}
+
+		<div id="chart_div" style="width: 900px; height: 500px;"></div>
+
+	{% endblock container %}
+
+</body>
+</html>

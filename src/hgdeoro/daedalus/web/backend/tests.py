@@ -34,9 +34,10 @@ from pycassa.system_manager import SystemManager
 from pycassa.columnfamily import ColumnFamily
 from pycassa.pool import ConnectionPool
 
+from daedalus_client import DaedalusClient, DaedalusException, ERROR
+
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.storage import get_service_cm, get_service
-from daedalus_client import DaedalusClient, DaedalusException, ERROR
 
 logger = logging.getLogger(__name__)
 
@@ -201,6 +202,11 @@ class StorageTest(TestCase):
         row_keys = [item[0] for item in range_resp]
         print row_keys
         print "Cant:", len(row_keys)
+
+    def test_charts(self):
+        settings.KEYSPACE = settings.KEYSPACE_REAL
+        print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
+        pprint.pprint(self.get_service().get_charts_data())
 
 
 class BulkSave(StorageTest):

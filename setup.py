@@ -13,11 +13,10 @@ from setuptools import find_packages
 #  + git tag -a -m "Version $(./virtualenv/bin/python setup.py --version)" "v$(./virtualenv/bin/python setup.py --version)"
 #  + git tag -f stable
 #  + increment version number and add '-dev' on version of setup.py
-#  + git commit setup.py -m "Updated setup: version=v$(./virtualenv/bin/python setup.py --version)"
-#  + git push --tags
+#  + git push ; git push --tags
 #
 
-VERSION = "0.0.3"
+VERSION = "0.0.4-dev"
 
 def gen_data_files():
     """
