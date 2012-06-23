@@ -24,24 +24,7 @@ import pytz
 import calendar
 import time
 import os
-
-
-def utc_str_timestamp():
-    """
-    Returns a string representing the current time in UTC
-    """
-    utcnow = datetime.datetime.utcnow()
-    timestamp = "{0}.{1:06}".format(calendar.timegm(utcnow.timetuple()), utcnow.microsecond)
-    return timestamp
-
-
-def utc_timestamp2datetime(timestamp):
-    """
-    Converts a timestamp generated with `utc_str_timestamp()`
-    to a datetime.
-    """
-    the_date = datetime.datetime.utcfromtimestamp(float(timestamp))
-    return the_date.replace(tzinfo=pytz.utc)
+from hgdeoro.daedalus.utils import utc_str_timestamp, utc_timestamp2datetime
 
 
 def main():

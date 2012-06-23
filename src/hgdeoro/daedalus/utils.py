@@ -21,6 +21,7 @@
 
 import calendar
 import datetime
+import math
 import time
 import uuid
 
@@ -42,9 +43,13 @@ def utc_str_timestamp():
     """
     Returns a string representing the current time in UTC
     """
-    utcnow = datetime.datetime.utcnow()
-    timestamp = "{0}.{1:06}".format(calendar.timegm(utcnow.timetuple()), utcnow.microsecond)
-    return timestamp
+    #    utcnow = datetime.datetime.utcnow()
+    #    timestamp = "{0}.{1:06}".format(calendar.timegm(utcnow.timetuple()), utcnow.microsecond)
+    #    return timestamp
+    current_time_from_epoch = time.time()
+    utc_timetuple = time.gmtime(current_time_from_epoch)
+    timestamp = calendar.timegm(utc_timetuple) + math.modf(current_time_from_epoch)[0]
+    return "{0:0.30f}".format(timestamp)
 
 
 def utc_timestamp2datetime(timestamp):
