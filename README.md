@@ -40,6 +40,10 @@ Run syncdb and syncdb_cassandra
     $ ./dev-scripts/manage.sh syncdb
     $ ./dev-scripts/manage.sh syncdb_cassandra
 
+Start memchaed
+
+    $ sudo service memcached start
+
 Start development server
 
     $ ./dev-scripts/runserver.sh
@@ -62,6 +66,13 @@ Current iteration goals (towards v0.0.4)
 
 * Initial implementation of graphing counters of errors
 
+* Proper timezone handling
+    - http://stackoverflow.com/questions/2532729/daylight-saving-time-and-timezone-best-practices
+    - http://pytz.sourceforge.net/
+    - https://docs.djangoproject.com/en/1.4/topics/i18n/timezones/
+
+* Client provided timestamps (for supporting bulk-upload of messages)
+
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
 
@@ -83,8 +94,6 @@ Not implemented right now / Ideas / TODOs
 
 * Filter by date
 
-* Proper timezone handling
-
 * TTL of messages / automatic disposal of old messages
 
 * Live update of search results
@@ -95,9 +104,6 @@ Not implemented right now / Ideas / TODOs
 * Search by message text
 
 * Autentication to save messages (backend) and/or to see the messages (frontend)
-
-* Client provided timestamps (for supporting bulk-upload of messages)
-
 
 General architecture
 ----------------------------------------
