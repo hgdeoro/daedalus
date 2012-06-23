@@ -58,25 +58,26 @@ def _truncate_all_column_families():
     pool.dispose()
 
 
-def sparse_time_generator(random_seed):
+def sparse_timestamp_generator(random_seed):
     curr_time = time.time()
     four_months = float(60 * 60 * 24 * 120)
     random_gen = random.Random(random_seed)
     while True:
-        yield curr_time - (four_months * random_gen.random())
+        yield "{0:0.30f}".format(curr_time - (four_months * random_gen.random()))
 
 
-def _bulk_save_random_messages_to_real_keyspace(max_count, time_generator=None):
+def _bulk_save_random_messages_to_real_keyspace(max_count, timestamp_generator=None):
     """
     Saves messages on REAL keyspace.
     Returns a tuple (item inserted, elapsed time).
     """
     settings.KEYSPACE = settings.KEYSPACE_REAL
     print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
-    return _bulk_save_random_messages_to_default_keyspace(max_count, time_generator=time_generator)
+    return _bulk_save_random_messages_to_default_keyspace(max_count,
+        timestamp_generator=timestamp_generator)
 
 
-def _bulk_save_random_messages_to_default_keyspace(max_count=None, time_generator=None):
+def _bulk_save_random_messages_to_default_keyspace(max_count=None, timestamp_generator=None):
     """
     Saves messages to the configured keyspace (settings.KEYSPACE).
     Returns a tuple (item inserted, elapsed time).
@@ -87,7 +88,7 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None, time_generato
         storage_service.create_keyspace_and_cfs()
         try:
             logging.info("Starting insertions...")
-            for message in log_dict_generator(1, time_generator=time_generator):
+            for message in log_dict_generator(1, timestamp_generator=timestamp_generator):
                 storage_service.save_log(message)
                 count += 1
                 if max_count > 0 and count > max_count:
@@ -189,7 +190,8 @@ class StorageTest(TestCase):
         """
         Saves 200 messages on the configured keyspace (settings.KEYSPACE)
         """
-        _bulk_save_random_messages_to_default_keyspace(200, time_generator=sparse_time_generator(0))
+        _bulk_save_random_messages_to_default_keyspace(200,
+            timestamp_generator=sparse_timestamp_generator(0))
         result = self.get_service().query()
         self.assertEqual(len(result), 100)
 
@@ -245,7 +247,8 @@ class BulkSave(StorageTest):
         logging.basicConfig(level=logging.INFO)
         settings.CASSANDRA_CONNECT_RETRY_WAIT = 1
         print "Patched value of CASSANDRA_CONNECT_RETRY_WAIT to 1"
-        _bulk_save_random_messages_to_real_keyspace(max_count, time_generator=sparse_time_generator(0))
+        _bulk_save_random_messages_to_real_keyspace(max_count,
+            timestamp_generator=sparse_timestamp_generator(0))
 
     def bulk_sparse_save_500(self):
         """

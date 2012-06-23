@@ -20,7 +20,8 @@
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import random
-import time
+
+from hgdeoro.daedalus.utils import utc_str_timestamp
 
 EXAMPLE_APPS = ['intranet', 'extranet', 'gunicorn', 'nginx-dmz']
 
@@ -110,15 +111,15 @@ def log_generator(seed):
         yield (msg, app, host, severity, )
 
 
-def current_time_generator():
+def current_timestamp_generator():
     """
     ATTENTION: this methos DOES NOT guarantees that the time is UTC!
     """
     while True:
-        yield time.time()
+        yield utc_str_timestamp()
 
 
-def log_dict_generator(seed, time_generator=None):
+def log_dict_generator(seed, timestamp_generator=None):
     """
     Generator. In each iteration returns a dict with:
     - message
@@ -137,9 +138,9 @@ def log_dict_generator(seed, time_generator=None):
     """
     rnd_inst = random.Random()
     rnd_inst.seed(seed)
-    if time_generator is None:
-        time_generator = current_time_generator()
-    for msg_time in time_generator:
+    if timestamp_generator is None:
+        timestamp_generator = current_timestamp_generator()
+    for msg_timestamp in timestamp_generator:
         message = {}
         message['application'] = rnd_inst.choice(EXAMPLE_APPS)
         message['host'] = rnd_inst.choice(EXAMPLE_HOSTS)
@@ -147,7 +148,7 @@ def log_dict_generator(seed, time_generator=None):
         lines = msg.splitlines()
         splitted = [item for item in lines[0].split() if item]
         message['severity'] = splitted[0]
-        message['timestamp'] = "{0:0.25f}".format(msg_time)
+        message['timestamp'] = msg_timestamp
         message['message'] = "{0} {1} {2} {3}".format(msg, message['severity'], message['host'],
             message['application'],)
         yield message
