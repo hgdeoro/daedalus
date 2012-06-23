@@ -23,6 +23,7 @@ import datetime
 import pytz
 import calendar
 import time
+import os
 
 
 def utc_str_timestamp():
@@ -57,6 +58,7 @@ def main():
         ("d_utcnow_tz", d_utcnow_tz),
     )
 
+    print "{0:>30}: {1}".format("TZ", os.environ.get('TZ', ''))
     print "{0:>30}: {1}".format("time.time()", time.time())
     print ""
 
