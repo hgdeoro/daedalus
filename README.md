@@ -6,6 +6,7 @@ The messages are sent/received using HTTP POST, encoded as a JSON dictionary.
 
 There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
 
+This project is al alpha-quality stage, not recommended to be used on production systems.
 
 Implemented functional use cases (as of v0.0.2)
 ----------------------------------------
@@ -56,15 +57,15 @@ To create some random log messages, you could run:
 
 The project could be imported from within Eclipse PyDev.
 
-Current iteration goals (towards v0.0.3)
+Current iteration goals (towards v0.0.4)
 ----------------------------------------
 
-* Make proyect runnable from Eclipse+PyDev
-
-* Create management commands to create keyspaces and CF on Cassandra.
+* Initial implementation of graphing counters of errors
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
+
+* Test and compare performance and disk space: StorageService vs StorageService2
 
 * Document installation procedure
 
