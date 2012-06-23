@@ -22,6 +22,7 @@
 import datetime
 import json
 import logging
+import math
 import multiprocessing
 import os
 import pprint
@@ -38,6 +39,7 @@ from daedalus_client import DaedalusClient, DaedalusException, ERROR
 
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.storage import get_service_cm, get_service
+from hgdeoro.daedalus.utils import utc_str_timestamp, utc_timestamp2datetime
 
 logger = logging.getLogger(__name__)
 
@@ -373,6 +375,49 @@ class WebBackendTest(TestCase):
         end = time.time()
         avg = float(count) / (end - start)
         logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
+
+
+class TimestampUtilsTest(TestCase):
+
+    def test_timezone(self):
+        """
+        Tests the timestamp utilities.
+        """
+        original_tz = os.environ.get('TZ', None)
+        try:
+            # --- Generate timestamp in UTC and GMT+XX ---
+            timestamps = []
+            os.environ['TZ'] = 'UTC' # start with UTC
+            start_utc_time = math.floor(time.time())
+            timestamps.append(utc_str_timestamp())
+            for delta in range(1, 11):
+                os.environ['TZ'] = 'GMT+{0}'.format(delta)
+                timestamps.append(utc_str_timestamp())
+            os.environ['TZ'] = 'UTC' # set UTC again
+            end_utc_time = math.ceil(time.time())
+
+            # --- Now check that timestamp are valid and aren't affected by GMT+X ---
+            # time_taken... to generate the 'timestamps'
+            time_taken = (end_utc_time - start_utc_time) + 1.0
+            for timestamp in timestamps:
+                self.assertGreater(time_taken, float(timestamp) - float(timestamps[0]))
+
+            for timestamp in timestamps:
+                datetimes_from_timestamps = []
+                for delta in range(1, 11):
+                    os.environ['TZ'] = 'GMT+{0}'.format(delta)
+                    datetimes_from_timestamps.append(utc_timestamp2datetime(timestamp))
+                days = [d.day for d in datetimes_from_timestamps]
+                hours = [d.hour for d in datetimes_from_timestamps]
+                minutes = [d.minute for d in datetimes_from_timestamps]
+                self.assertEqual(len(set(days)), 1)
+                self.assertEqual(len(set(hours)), 1)
+                self.assertEqual(len(set(minutes)), 1)
+        finally:
+            if original_tz is None:
+                del os.environ['TZ']
+            else:
+                os.environ['TZ'] = original_tz
 
 
 class DaedalusClientTest(LiveServerTestCase):
