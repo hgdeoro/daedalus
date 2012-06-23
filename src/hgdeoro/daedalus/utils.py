@@ -62,3 +62,20 @@ def str_to_column_key(str_key):
     if str_key is None:
         return None
     return uuid.UUID(hex=str_key)
+
+
+def get_posixtime(uuid1):
+    """
+    Convert the uuid1 timestamp to a standard posix timestamp.
+
+    # Created by Kent Tenney on Wed, 13 Aug 2008 (MIT)
+    # Taked from http://code.activestate.com/recipes/576420/ (Rev 1)
+    # Licensed under the MIT License
+    # As of http://en.wikipedia.org/wiki/MIT_License this is permited.
+    #
+    """
+    assert uuid1.version == 1, ValueError('Only applies to uuid type 1')
+    t = uuid1.time
+    t = t - 0x01b21dd213814000
+    t = t / 1e7
+    return t
