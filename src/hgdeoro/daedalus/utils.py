@@ -29,34 +29,45 @@ import pytz
 
 from pycassa.util import convert_uuid_to_time
 
-#def now():
-#    """
-#    Returns the current time in UTC.
-#    See:
-#        - http://pytz.sourceforge.net/#problems-with-localtime
-#            (...) The best and simplest solution is to stick with using UTC (...)
-#    """
-#    return datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+
+def utc_now():
+    """
+    Returns a `datetime` object representing current time in UTC.
+    See:
+        - http://pytz.sourceforge.net/#problems-with-localtime
+            (...) The best and simplest solution is to stick with using UTC (...)
+    """
+    return datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+
+
+def utc_now_from_epoch():
+    """
+    Returns a float representing the current time in seconds from epoch, as UTC.
+    """
+    current_time_from_epoch = time.time()
+    utc_timetuple = time.gmtime(current_time_from_epoch)
+    from_epoch = calendar.timegm(utc_timetuple) + math.modf(current_time_from_epoch)[0]
+    return from_epoch
 
 
 def utc_str_timestamp():
     """
-    Returns a string representing the current time in UTC
+    Returns a string representing the current time in UTC.
+    The string represents a float: the seconds from EPOCH.
     """
+    # First implementation. Worked OK, but found other method with better presission.
     #    utcnow = datetime.datetime.utcnow()
     #    timestamp = "{0}.{1:06}".format(calendar.timegm(utcnow.timetuple()), utcnow.microsecond)
     #    return timestamp
-    current_time_from_epoch = time.time()
-    utc_timetuple = time.gmtime(current_time_from_epoch)
-    timestamp = calendar.timegm(utc_timetuple) + math.modf(current_time_from_epoch)[0]
+
     # FIXME: change hardcoded '30' with the real precision of time.time()
-    return "{0:0.30f}".format(timestamp)
+    return "{0:0.30f}".format(utc_now_from_epoch())
 
 
 def utc_timestamp2datetime(timestamp):
     """
     Converts a timestamp generated with `utc_str_timestamp()`
-    to a datetime.
+    to a 'timezone aware' datetime (using 'pytz').
     """
     the_date = datetime.datetime.utcfromtimestamp(float(timestamp))
     return the_date.replace(tzinfo=pytz.utc)
