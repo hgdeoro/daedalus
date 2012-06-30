@@ -107,6 +107,9 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None, timestamp_gen
 
 
 class StorageTest(TestCase):
+    """
+    Tests of the storage service.
+    """
 
     def setUp(self):
         self._storage_service = None
@@ -194,6 +197,13 @@ class StorageTest(TestCase):
             timestamp_generator=sparse_timestamp_generator(0))
         result = self.get_service().query()
         self.assertEqual(len(result), 100)
+
+    def test_queries_on_empty_db(self):
+        _truncate_all_column_families()
+        self.get_service().query_by_severity('ERROR')
+        self.get_service().query_by_severity('WARN')
+        self.get_service().query_by_severity('INFO')
+        self.get_service().query_by_severity('DEBUG')
 
     def print_rows(self):
         settings.KEYSPACE = settings.KEYSPACE_REAL

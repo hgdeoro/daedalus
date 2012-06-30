@@ -590,15 +590,18 @@ class StorageService2(StorageService):
         Returns list of dicts.
         """
         _check_severity(severity)
-        if from_col is None:
-            cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True)
-            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
-        else:
-            cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True,
-                column_start=from_col, column_count=101)
-            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
-            if cols_keys:
-                cols_keys = cols_keys[1:]
+        try:
+            if from_col is None:
+                cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True)
+                cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+            else:
+                cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True,
+                    column_start=from_col, column_count=101)
+                cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+                if cols_keys:
+                    cols_keys = cols_keys[1:]
+        except NotFoundException:
+            return []
 
         return self._get_from_logs_cf(cols_keys)
 

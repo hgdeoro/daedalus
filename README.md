@@ -64,8 +64,6 @@ The project could be imported from within Eclipse PyDev.
 Current iteration goals (towards v0.0.4)
 ----------------------------------------
 
-* FIX: NotFoundException() is raised when filtering by severity and no data exists
-
 * Initial implementation of graphing counters of errors
 
 * Proper timezone handling
