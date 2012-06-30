@@ -107,6 +107,11 @@
     		src="https://www.djangoproject.com/m/img/badges/djangoproject120x25.gif"
     		border="0" alt="A Django project" title="A Django project" /></a>
     </div>
+    <div style="text-align: center;">
+    	Copyright &copy; 2012 Horacio G. de Oro - 
+    	<em>It is {% now "DATETIME_FORMAT" %}
+    		with timezone: '{% now "e" %}'</em>
+    </div>
     <script src="{{ STATIC_URL }}bootstrap-2.0.4/js/jquery.js"></script>
     <script src="{{ STATIC_URL }}bootstrap-2.0.4/js/bootstrap.js"></script>
 	{% block extra_js_bottom %}
