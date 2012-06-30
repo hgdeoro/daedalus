@@ -91,7 +91,7 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None, timestamp_gen
             for message in log_dict_generator(1, timestamp_generator=timestamp_generator):
                 storage_service.save_log(message)
                 count += 1
-                if max_count > 0 and count > max_count:
+                if max_count > 0 and count >= max_count:
                     break
                 if count % 1000 == 0:
                     avg = float(count) / (time.time() - start)
@@ -218,12 +218,16 @@ class StorageTest(TestCase):
         print "Cant:", len(row_keys)
 
     def test_charts(self):
+        _truncate_all_column_families()
         _bulk_save_random_messages_to_default_keyspace(50)
         charts_data = self.get_service().get_charts_data()
         self.assertEqual(len(charts_data), 24)
         self.assertEqual(type(charts_data[0][0]), datetime.datetime)
         self.assertEqual(type(charts_data[0][1]), datetime.datetime)
         self.assertEqual(type(charts_data[0][2]), int)
+        counts = [item[2] for item in charts_data]
+        self.assertEqual(sum(counts), 50)
+        pprint.pprint(charts_data)
 
 
 class BulkSave(StorageTest):
