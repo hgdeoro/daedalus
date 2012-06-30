@@ -36,7 +36,8 @@ from pycassa.pool import AllServersUnavailable
 from pycassa.util import convert_time_to_uuid
 from pycassa.cassandra.c10.ttypes import NotFoundException
 
-from hgdeoro.daedalus.utils import ymd_from_uuid1, ymd_from_epoch
+from hgdeoro.daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
+    utc_now_from_epoch, utc_timestamp2datetime
 
 logger = logging.getLogger(__name__)
 
@@ -484,10 +485,7 @@ class StorageService(object):
         """
         Returns the data to create a chart
         """
-        # FIXME: TZ: move this to UTC
-        import datetime
-        day_to_graph = int(time.time()) + (day_diff * SECONDS_IN_DAY)
-        # now = int(time.time()) # timestamp for 'now'
+        day_to_graph = int(utc_now_from_epoch()) + (day_diff * SECONDS_IN_DAY)
         day_start = day_to_graph - (day_to_graph % SECONDS_IN_DAY) # timestamp of start of today
         row_key = ymd_from_epoch(float(day_to_graph)) # row for today
 
@@ -495,9 +493,9 @@ class StorageService(object):
         counts = []
         for a_range in ranges:
             column_start = convert_time_to_uuid(a_range[0], True)
-            start_datetime = datetime.datetime.fromtimestamp(a_range[0])
+            start_datetime = utc_timestamp2datetime(a_range[0])
             column_finish = convert_time_to_uuid(a_range[1], False)
-            end_datetime = datetime.datetime.fromtimestamp(a_range[1])
+            end_datetime = utc_timestamp2datetime(a_range[1])
             count = self._get_cf_logs().get_count(
                 row_key,
                 column_start=column_start,
