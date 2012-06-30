@@ -112,9 +112,6 @@ def log_generator(seed):
 
 
 def current_timestamp_generator():
-    """
-    ATTENTION: this methos DOES NOT guarantees that the time is UTC!
-    """
     while True:
         yield utc_str_timestamp()
 
