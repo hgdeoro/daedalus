@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 	{% block extra_js %}
 	function load_message_details(msg_id) {
-		$.getJSON('/message/get/' + msg_id + '/', function(json) {
+		$.getJSON('/frontend/message/get/' + msg_id + '/', function(json) {
 			$('#message_detail').html(json.message);
 			$('#message_application').html(json.application);
 			$('#message_host').html(json.host);
