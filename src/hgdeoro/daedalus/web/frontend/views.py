@@ -159,5 +159,6 @@ def get_message_detail(request, message_id):
 def charts(request, day_diff='0'):
     with get_service_cm() as service:
         charts_data = service.get_charts_data(day_diff=int(day_diff))
+    ctx = _ctx(charts_data=charts_data)
     return HttpResponse(render_to_response('charts.html',
-        context_instance=RequestContext(request, {'charts_data': charts_data})))
+        context_instance=RequestContext(request, ctx)))
