@@ -217,7 +217,7 @@ class StorageTest(TestCase):
         print row_keys
         print "Cant:", len(row_keys)
 
-    def test_charts(self):
+    def test_basic_chart(self):
         _truncate_all_column_families()
         _bulk_save_random_messages_to_default_keyspace(50)
         charts_data = self.get_service().get_charts_data()
@@ -227,7 +227,26 @@ class StorageTest(TestCase):
         self.assertEqual(type(charts_data[0][2]), int)
         counts = [item[2] for item in charts_data]
         self.assertEqual(sum(counts), 50)
-        pprint.pprint(charts_data)
+        # pprint.pprint(charts_data)
+
+    def test_get_charts_data(self):
+
+        def _backward_timestamp_generator():
+            ONE_HOUR = float(60 * 60)
+            now = float(utc_str_timestamp())
+            while True:
+                yield "{0:0.30f}".format(now)
+                now = now - ONE_HOUR
+
+        _truncate_all_column_families()
+        # Creating 48 messages ensures that we'll have 24 messages for yesterday
+        # even if this is ran at 23:59:59
+        _bulk_save_random_messages_to_default_keyspace(24 * 2,
+            timestamp_generator=_backward_timestamp_generator())
+        charts_data = self.get_service().get_charts_data(day_diff=-1)
+        # pprint.pprint(charts_data)
+        counts = [item[2] for item in charts_data]
+        self.assertEqual(sum(counts), 24)
 
 
 class BulkSave(StorageTest):
