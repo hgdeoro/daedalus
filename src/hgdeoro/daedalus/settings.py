@@ -251,3 +251,8 @@ LOGGING = {
         },
     }
 }
+
+try:
+    from daedalus_local_settings import * #@UnusedWildImport
+except ImportError:
+    pass

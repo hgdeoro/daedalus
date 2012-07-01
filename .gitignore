@@ -7,3 +7,4 @@
 /web/frontend/static/twitter-bootstrap-ebc6935
 /.settings
 /daedalus.sqlite
+/src/daedalus_local_settings.py
