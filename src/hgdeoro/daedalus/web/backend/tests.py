@@ -22,24 +22,26 @@
 import datetime
 import json
 import logging
-import math
 import multiprocessing
 import os
 import pprint
 import random
 import time
 
+from contextlib import contextmanager
 from django.test.testcases import TestCase, LiveServerTestCase
 from django.conf import settings
 from pycassa.system_manager import SystemManager
 from pycassa.columnfamily import ColumnFamily
 from pycassa.pool import ConnectionPool
+from pycassa.util import convert_time_to_uuid, convert_uuid_to_time
 
 from daedalus_client import DaedalusClient, DaedalusException, ERROR
 
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.storage import get_service_cm, get_service
-from hgdeoro.daedalus.utils import utc_str_timestamp, utc_timestamp2datetime
+from hgdeoro.daedalus.utils import utc_str_timestamp, utc_timestamp2datetime,\
+    utc_now, utc_now_from_epoch, ymd_from_epoch, ymd_from_uuid1
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +108,78 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None, timestamp_gen
     return count, end - start
 
 
-class StorageTest(TestCase):
+@contextmanager
+def custom_tz(tz):
+    """
+    Use:
+        with custom_tz("UTC-04:00"):
+            do_something()
+    """
+    original_tz = os.environ.get('TZ', None)
+    try:
+        os.environ['TZ'] = tz
+        yield
+    finally:
+        if original_tz is None:
+            del os.environ['TZ']
+        else:
+            os.environ['TZ'] = original_tz
+
+
+def run_foreach_tz(callback, tz_list=None, *args, **kwargs):
+    """
+    Calls `callback()` using various timezones.
+    Returns the list of values returned.
+
+    http://en.wikipedia.org/wiki/List_of_time_zones_by_UTC_offset
+    """
+    UTC_OFFSET_FROM = -12
+    UTC_OFFSET_TO = 14
+    RETURN_VALUES = []
+
+    if tz_list:
+        timezones = tz_list
+    else:
+        timezones = []
+        for delta in range(UTC_OFFSET_FROM, UTC_OFFSET_TO + 1):
+            if delta < 0:
+                timezones.append('UTC-{0:02d}:30'.format(abs(delta)))
+                timezones.append('UTC-{0:02d}:00'.format(abs(delta)))
+            elif delta > 0:
+                timezones.append('UTC+{0:02d}:00'.format(abs(delta)))
+                timezones.append('UTC+{0:02d}:30'.format(abs(delta)))
+            else:
+                timezones.append('UTC')
+
+    original_tz = os.environ.get('TZ', None)
+    try:
+        for tz in timezones:
+            os.environ['TZ'] = tz
+            ret_value = callback(*args, **kwargs)
+            RETURN_VALUES.append(ret_value)
+    finally:
+        if original_tz is None:
+            del os.environ['TZ']
+        else:
+            os.environ['TZ'] = original_tz
+    return RETURN_VALUES
+
+
+class BaseTestCase(TestCase):
+    """
+    Base class for Daedalus test cases.
+    """
+
+    def assertDatetimesEquals(self, dt1, dt2):
+        self.assertEqual(dt1.year, dt2.year)
+        self.assertEqual(dt1.month, dt2.month)
+        self.assertEqual(dt1.day, dt2.day)
+        self.assertEqual(dt1.hour, dt2.hour)
+        self.assertEqual(dt1.minute, dt2.minute)
+        self.assertEqual(dt1.second, dt2.second)
+
+
+class StorageTest(BaseTestCase):
     """
     Tests of the storage service.
     """
@@ -233,7 +306,7 @@ class StorageTest(TestCase):
 
         def _backward_timestamp_generator():
             ONE_HOUR = float(60 * 60)
-            now = float(utc_str_timestamp())
+            now = utc_now_from_epoch()
             while True:
                 yield "{0:0.30f}".format(now)
                 now = now - ONE_HOUR
@@ -413,47 +486,107 @@ class WebBackendTest(TestCase):
         logging.info("%d messages inserted. Avg: %f insert/sec", count, avg)
 
 
-class TimestampUtilsTest(TestCase):
+class TimeRelatedUtilTest(TestCase):
+    """
+    Tests timezone aware functions.
+    """
 
-    def test_timezone(self):
+    def test_datetime(self):
         """
-        Tests the timestamp utilities.
+        Assert that different datetimes are generated when used with `run_foreach_tz()`
         """
-        original_tz = os.environ.get('TZ', None)
-        try:
-            # --- Generate timestamp in UTC and GMT+XX ---
-            timestamps = []
-            os.environ['TZ'] = 'UTC' # start with UTC
-            start_utc_time = math.floor(time.time())
-            timestamps.append(utc_str_timestamp())
-            for delta in range(1, 11):
-                os.environ['TZ'] = 'GMT+{0}'.format(delta)
-                timestamps.append(utc_str_timestamp())
-            os.environ['TZ'] = 'UTC' # set UTC again
-            end_utc_time = math.ceil(time.time())
+        def callback():
+            return datetime.datetime.now()
 
-            # --- Now check that timestamp are valid and aren't affected by GMT+X ---
-            # time_taken... to generate the 'timestamps'
-            time_taken = (end_utc_time - start_utc_time) + 1.0
-            for timestamp in timestamps:
-                self.assertGreater(time_taken, float(timestamp) - float(timestamps[0]))
+        datetime_list = run_foreach_tz(callback)
+        self.assertTrue(len(set([d.hour for d in datetime_list])) >= 12)
 
-            for timestamp in timestamps:
-                datetimes_from_timestamps = []
-                for delta in range(1, 11):
-                    os.environ['TZ'] = 'GMT+{0}'.format(delta)
-                    datetimes_from_timestamps.append(utc_timestamp2datetime(timestamp))
-                days = [d.day for d in datetimes_from_timestamps]
-                hours = [d.hour for d in datetimes_from_timestamps]
-                minutes = [d.minute for d in datetimes_from_timestamps]
-                self.assertEqual(len(set(days)), 1)
-                self.assertEqual(len(set(hours)), 1)
-                self.assertEqual(len(set(minutes)), 1)
-        finally:
-            if original_tz is None:
-                del os.environ['TZ']
-            else:
-                os.environ['TZ'] = original_tz
+    def test_utc_now(self):
+        """
+        Assert that utc_now() returns the same date for different timezones.
+        """
+        def callback():
+            return utc_now()
+
+        utc_now_list = run_foreach_tz(callback)
+        self.assertEqual(len(set([d.day for d in utc_now_list])), 1)
+        self.assertEqual(len(set([d.hour for d in utc_now_list])), 1)
+
+    def test_utc_now_from_epoch(self):
+        def callback():
+            return utc_now_from_epoch()
+
+        timestamps = run_foreach_tz(callback)
+        diffs = [abs(timestamps[0] - item) for item in timestamps]
+        self.assertTrue(sum(diffs) > 0.0)
+        self.assertTrue(sum(diffs) < 10.0)
+
+    def test_utc_str_timestamp(self):
+
+        def callback():
+            return utc_str_timestamp()
+
+        timestamps = run_foreach_tz(callback)
+        diffs = [abs(float(timestamps[0]) - float(item)) for item in timestamps]
+        self.assertTrue(sum(diffs) > 0.0)
+        self.assertTrue(sum(diffs) < 10.0)
+
+    def test_utc_timestamp2datetime(self):
+        timestamp = utc_str_timestamp()
+
+        def callback():
+            return utc_timestamp2datetime(timestamp)
+
+        datetimes = run_foreach_tz(callback)
+
+        self.assertEqual(len(set([d.day for d in datetimes])), 1)
+        self.assertEqual(len(set([d.hour for d in datetimes])), 1)
+
+    def test_ymd_from_epoch(self):
+        
+        def callback():
+            return ymd_from_epoch()
+
+        ymd_list = run_foreach_tz(callback, tz_list=['UTC-13:00', 'UTC+13:00'])
+
+        self.assertEqual(len(set(ymd_list)), 2)
+
+    def test_ymd_from_uuid1(self):
+        uuid1 = convert_time_to_uuid(utc_now())
+
+        def callback():
+            return ymd_from_uuid1(uuid1)
+
+        ymd_list = run_foreach_tz(callback)
+        self.assertEqual(len(set(ymd_list)), 1)
+
+
+class PycassaUtilsTest(BaseTestCase):
+
+    def test_convert_time_to_uuid_is_not_utc(self):
+        """
+        Asserts that `pycassa.util.convert_uuid_to_time()`
+        does NOT works with UTC when passing `datetime` arguments.
+        """
+        with custom_tz("UTC-04:00"):
+            now_utc_datetime = utc_now()
+            uuid_from_datetime = convert_time_to_uuid(now_utc_datetime)
+            time_from_uuid = convert_uuid_to_time(uuid_from_datetime)
+            datetime_from_uuid = utc_timestamp2datetime(time_from_uuid)
+
+        self.assertRaises(AssertionError, self.assertDatetimesEquals,
+            now_utc_datetime, datetime_from_uuid)
+
+    def test_convert_time_to_uuid_using_epoch_works(self):
+        """
+        Asserts that `pycassa.util.convert_uuid_to_time()`
+        DOES works with UTC when passing float timestamp arguments.
+        """
+        with custom_tz("UTC-04:00"):
+            now_utc_timestamp = utc_now_from_epoch()
+            uuid_from_datetime = convert_time_to_uuid(now_utc_timestamp)
+            time_from_uuid = convert_uuid_to_time(uuid_from_datetime)
+            self.assertEqual(int(now_utc_timestamp), int(time_from_uuid))
 
 
 class DaedalusClientTest(LiveServerTestCase):

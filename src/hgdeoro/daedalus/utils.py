@@ -42,12 +42,21 @@ def utc_now():
 
 def utc_now_from_epoch():
     """
-    Returns a float representing the current time in seconds from epoch, as UTC.
+    Returns a float timestamp representing the current time in seconds from epoch, as UTC.
+    This is a UTC version of time.time()
     """
     current_time_from_epoch = time.time()
     utc_timetuple = time.gmtime(current_time_from_epoch)
     from_epoch = calendar.timegm(utc_timetuple) + math.modf(current_time_from_epoch)[0]
     return from_epoch
+
+
+#def datetime_to_epoch(datetime_arg):
+#    """
+#    Converts a datetime to a timestamp, a float represeting seconds from epoch.
+#    """
+#    assert isinstance(datetime_arg, datetime.datetime)
+#    return float(calendar.timegm(datetime_arg.timetuple())) + datetime_arg.microsecond / 1e6
 
 
 def utc_str_timestamp():
@@ -66,20 +75,25 @@ def utc_str_timestamp():
 
 def utc_timestamp2datetime(timestamp):
     """
-    Converts a timestamp generated with `utc_str_timestamp()`
-    to a 'timezone aware' datetime (using 'pytz').
+    Converts a UTC timestamp generated with `utc_str_timestamp()`
+    or `utc_now_from_epoch()` to a 'timezone aware' datetime (using 'pytz').
+
+    Parameter:
+    - timestamp: the timestamp, a string or float instance.
     """
-    the_date = datetime.datetime.utcfromtimestamp(float(timestamp))
+    if not isinstance(timestamp, float):
+        timestamp = float(timestamp)
+    the_date = datetime.datetime.utcfromtimestamp(timestamp)
     return the_date.replace(tzinfo=pytz.utc)
 
 
 def ymd_from_epoch(a_time=None):
     """
     Returns a string with the format YEAR+MONTH+DAY.
-    If 'a_time' is None (default) generates YMD for now.
+    If 'a_time' is None (default) generates YMD for now (in UTC).
     """
     if a_time is None:
-        a_time = time.time()
+        a_time = utc_now_from_epoch()
     a_date = datetime.date.fromtimestamp(a_time)
     return "{0:04d}{1:02d}{2:02d}".format(
         a_date.year, a_date.month, a_date.day)
@@ -89,39 +103,42 @@ def ymd_from_uuid1(uuid1_value):
     """
     Returns a string with the format YEAR+MONTH+DAY
     """
-    a_date = datetime.date.fromtimestamp(convert_uuid_to_time(uuid1_value))
+    # Originaly this was done with `datetime.date.fromtimestamp()`, but
+    # this method works with localtime, instead of UTC.
+    timestamp = convert_uuid_to_time(uuid1_value)
+    a_date = utc_timestamp2datetime(timestamp)
     return "{0:04d}{1:02d}{2:02d}".format(
         a_date.year, a_date.month, a_date.day)
 
 
 def column_key_to_str(col_key):
     """
-    Serializes a column key to a string.
+    Serializes a Cassandra column key to a string.
     """
     return col_key.get_hex()
 
 
 def str_to_column_key(str_key):
     """
-    De-serializes a string to be used as column key.
+    De-serializes a string to be used as a Cassandra column key.
     """
     if str_key is None:
         return None
     return uuid.UUID(hex=str_key)
 
 
-def get_posixtime(uuid1):
-    """
-    Convert the uuid1 timestamp to a standard posix timestamp.
-
-    # Created by Kent Tenney on Wed, 13 Aug 2008 (MIT)
-    # Taked from http://code.activestate.com/recipes/576420/ (Rev 1)
-    # Licensed under the MIT License
-    # As of http://en.wikipedia.org/wiki/MIT_License this is permited.
-    #
-    """
-    assert uuid1.version == 1, ValueError('Only applies to uuid type 1')
-    t = uuid1.time
-    t = t - 0x01b21dd213814000
-    t = t / 1e7
-    return t
+#def get_posixtime(uuid1):
+#    """
+#    Convert the uuid1 timestamp to a standard posix timestamp.
+#
+#    # Created by Kent Tenney on Wed, 13 Aug 2008 (MIT)
+#    # Taked from http://code.activestate.com/recipes/576420/ (Rev 1)
+#    # Licensed under the MIT License
+#    # As of http://en.wikipedia.org/wiki/MIT_License this is permited.
+#    #
+#    """
+#    assert uuid1.version == 1, ValueError('Only applies to uuid type 1')
+#    t = uuid1.time
+#    t = t - 0x01b21dd213814000
+#    t = t / 1e7
+#    return t
