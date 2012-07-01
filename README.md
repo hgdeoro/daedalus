@@ -64,14 +64,6 @@ The project could be imported from within Eclipse PyDev.
 Current iteration goals (towards v0.0.4)
 ----------------------------------------
 
-* Initial implementation of graphing counters of errors
-
-* Proper timezone handling
-    - http://stackoverflow.com/questions/2532729/daylight-saving-time-and-timezone-best-practices
-    - http://pytz.sourceforge.net/
-    - https://docs.djangoproject.com/en/1.4/topics/i18n/timezones/
-    - http://lucumr.pocoo.org/2011/7/15/eppur-si-muove/
-
 * Client provided timestamps (to facilitate future implementantion of bulk-upload of messages)
 
 Not implemented right now / Ideas / TODOs
