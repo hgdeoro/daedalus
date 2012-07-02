@@ -156,10 +156,16 @@ def get_message_detail(request, message_id):
     return HttpResponse(json.dumps(obj), mimetype='application/json')
 
 
-def charts(request, day_diff='0'):
+def charts(request, chart_type=None):
+    ctx = _ctx()
     with get_service_cm() as service:
-        #charts_data = service.get_charts_data(day_diff=int(day_diff))
-        charts_data = service.generate_6hs_charts_data()
-    ctx = _ctx(charts_data=charts_data)
+        if chart_type == '24hs':
+            charts_data = service.generate_24hs_charts_data()
+            chart_id = '24hs'
+        else:
+            charts_data = service.generate_6hs_charts_data()
+            chart_id = '6hs'
+    ctx['charts_data'] = charts_data
+    ctx['chart_id'] = chart_id
     return HttpResponse(render_to_response('charts.html',
         context_instance=RequestContext(request, ctx)))

@@ -37,7 +37,7 @@ from pycassa.util import convert_time_to_uuid
 from pycassa.cassandra.c10.ttypes import NotFoundException
 
 from hgdeoro.daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
-    utc_now_from_epoch, utc_timestamp2datetime, time_series_generator
+    utc_timestamp2datetime, time_series_generator
 
 logger = logging.getLogger(__name__)
 
@@ -487,7 +487,28 @@ class StorageService(object):
         """
         Returns the data from the last 6 hours.
         """
-        time_series_limits = time_series_generator(60 * 5, 12 * 6)
+        FIVE_MIN = 60 * 5
+        time_series_limits = time_series_generator(FIVE_MIN, 12 * 6)
+        counts = []
+        for a_range in time_series_limits:
+            column_start = convert_time_to_uuid(a_range[0], lowest_val=True)
+            start_datetime = utc_timestamp2datetime(a_range[0])
+            column_finish = convert_time_to_uuid(a_range[1], lowest_val=False)
+            end_datetime = utc_timestamp2datetime(a_range[1])
+            row_key = ymd_from_epoch(float(a_range[0]))
+            count = self._get_cf_logs().get_count(
+                row_key,
+                column_start=column_start,
+                column_finish=column_finish)
+            counts.append((start_datetime, end_datetime, count,))
+        return counts
+
+    def generate_24hs_charts_data(self):
+        """
+        Returns the data from the last 24 hours.
+        """
+        TWENTY_MIN = 60 * 20
+        time_series_limits = time_series_generator(TWENTY_MIN, 3 * 24)
         counts = []
         for a_range in time_series_limits:
             column_start = convert_time_to_uuid(a_range[0], lowest_val=True)

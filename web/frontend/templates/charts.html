@@ -40,8 +40,21 @@
 	{% endblock extra_navbar %}
 
 	{% block container %}
-		<div id="chart_div" style="width: 900px; height: 500px;"></div>
-		<hr />
+
+	<div>
+		<ul class="nav nav-pills">
+			<li class="{% if chart_id == '6hs' %}active{% endif %}">
+				<a href="{% url hgdeoro.daedalus.web.frontend.views.charts '6hs' %}">6 hs</a>
+			</li>
+			<li class="{% if chart_id == '24hs' %}active{% endif %}">
+				<a href="{% url hgdeoro.daedalus.web.frontend.views.charts '24hs' %}">24 hs</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="chart_div" style="width: 900px; height: 500px;"></div>
+	<hr />
+
 	{% endblock container %}
 
 </body>
