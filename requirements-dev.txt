@@ -1,0 +1,1 @@
+-e git+https://github.com/hgdeoro/fabric@1.4#egg=fabric
