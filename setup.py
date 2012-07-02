@@ -9,14 +9,16 @@ from setuptools import find_packages
 #----------------------------------------------------------------------
 #  + run tests
 #  + remove '-dev' from version of setup.py
-#  + git commit setup.py -m "Updated setup: version=v$(./virtualenv/bin/python setup.py --version)"
-#  + git tag -a -m "Version $(./virtualenv/bin/python setup.py --version)" "v$(./virtualenv/bin/python setup.py --version)"
+#  + VER="$(./virtualenv/bin/python setup.py --version)"
+#  + git commit setup.py -m "Updated setup: version=v$VER"
+#  + git tag -a -m "Version $VER" "v$VER"
 #  + git tag -f stable
+#  + git archive --format=tar --prefix=daedalus-$VER/ stable | gzip > daedalus-$VER.tgz
 #  + increment version number and add '-dev' on version of setup.py
 #  + git push ; git push --tags
 #
 
-VERSION = "0.0.4"
+VERSION = "0.0.5-dev"
 
 def gen_data_files():
     """
