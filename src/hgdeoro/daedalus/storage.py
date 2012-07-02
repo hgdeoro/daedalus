@@ -532,6 +532,20 @@ class StorageService(object):
         TWENTY_MIN = 60 * 20
         return self._generate_chart_data(TWENTY_MIN, 3 * 24)
 
+    def generate_48hs_charts_data(self):
+        """
+        Returns the data from the last 48 hours.
+        """
+        THIRTY_MIN = 60 * 30
+        return self._generate_chart_data(THIRTY_MIN, 2 * 48)
+
+    def generate_7d_charts_data(self):
+        """
+        Returns the data from the last 7 days.
+        """
+        TWO_HOURS = 60 * 60 * 2 # 6 per day
+        return self._generate_chart_data(TWO_HOURS, 6 * 7)
+
 
 class StorageService2(StorageService):
     """

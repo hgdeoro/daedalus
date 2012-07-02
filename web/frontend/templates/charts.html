@@ -49,6 +49,12 @@
 			<li class="{% if chart_id == '24hs' %}active{% endif %}">
 				<a href="{% url hgdeoro.daedalus.web.frontend.views.charts '24hs' %}">24 hs</a>
 			</li>
+			<li class="{% if chart_id == '48hs' %}active{% endif %}">
+				<a href="{% url hgdeoro.daedalus.web.frontend.views.charts '48hs' %}">48 hs</a>
+			</li>
+			<li class="{% if chart_id == '7d' %}active{% endif %}">
+				<a href="{% url hgdeoro.daedalus.web.frontend.views.charts '7d' %}">7 days</a>
+			</li>
 		</ul>
 	</div>
 

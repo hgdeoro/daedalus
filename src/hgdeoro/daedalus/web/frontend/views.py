@@ -162,6 +162,12 @@ def charts(request, chart_type=None):
         if chart_type == '24hs':
             charts_data = service.generate_24hs_charts_data()
             chart_id = '24hs'
+        elif chart_type == '48hs':
+            charts_data = service.generate_48hs_charts_data()
+            chart_id = '48hs'
+        elif chart_type == '7d':
+            charts_data = service.generate_7d_charts_data()
+            chart_id = '7d'
         else:
             charts_data = service.generate_6hs_charts_data()
             chart_id = '6hs'
