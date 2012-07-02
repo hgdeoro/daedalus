@@ -483,12 +483,8 @@ class StorageService(object):
 
         return status
 
-    def generate_6hs_charts_data(self):
-        """
-        Returns the data from the last 6 hours.
-        """
-        FIVE_MIN = 60 * 5
-        time_series_limits = time_series_generator(FIVE_MIN, 12 * 6)
+    def _generate_chart_data(self, granularity, count):
+        time_series_limits = time_series_generator(granularity, count)
         counts = []
         for a_range in time_series_limits:
             column_start = convert_time_to_uuid(a_range[0], lowest_val=True)
@@ -503,25 +499,19 @@ class StorageService(object):
             counts.append((start_datetime, end_datetime, count,))
         return counts
 
+    def generate_6hs_charts_data(self):
+        """
+        Returns the data from the last 6 hours.
+        """
+        FIVE_MIN = 60 * 5
+        return self._generate_chart_data(FIVE_MIN, 12 * 6)
+
     def generate_24hs_charts_data(self):
         """
         Returns the data from the last 24 hours.
         """
         TWENTY_MIN = 60 * 20
-        time_series_limits = time_series_generator(TWENTY_MIN, 3 * 24)
-        counts = []
-        for a_range in time_series_limits:
-            column_start = convert_time_to_uuid(a_range[0], lowest_val=True)
-            start_datetime = utc_timestamp2datetime(a_range[0])
-            column_finish = convert_time_to_uuid(a_range[1], lowest_val=False)
-            end_datetime = utc_timestamp2datetime(a_range[1])
-            row_key = ymd_from_epoch(float(a_range[0]))
-            count = self._get_cf_logs().get_count(
-                row_key,
-                column_start=column_start,
-                column_finish=column_finish)
-            counts.append((start_datetime, end_datetime, count,))
-        return counts
+        return self._generate_chart_data(TWENTY_MIN, 3 * 24)
 
 
 class StorageService2(StorageService):
