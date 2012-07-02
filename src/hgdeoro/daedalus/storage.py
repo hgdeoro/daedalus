@@ -484,19 +484,38 @@ class StorageService(object):
         return status
 
     def _generate_chart_data(self, granularity, count):
-        time_series_limits = time_series_generator(granularity, count)
+
         counts = []
-        for a_range in time_series_limits:
+        time_series_limits = time_series_generator(granularity, count)
+
+        def _compute_count(a_range):
             column_start = convert_time_to_uuid(a_range[0], lowest_val=True)
-            start_datetime = utc_timestamp2datetime(a_range[0])
+            # start_datetime = utc_timestamp2datetime(a_range[0])
             column_finish = convert_time_to_uuid(a_range[1], lowest_val=False)
-            end_datetime = utc_timestamp2datetime(a_range[1])
+            # end_datetime = utc_timestamp2datetime(a_range[1])
             row_key = ymd_from_epoch(float(a_range[0]))
             count = self._get_cf_logs().get_count(
                 row_key,
                 column_start=column_start,
                 column_finish=column_finish)
+
+            return count # to be used by `_json_cache()`
+
+        for a_range in time_series_limits:
+            start_datetime = utc_timestamp2datetime(a_range[0])
+            end_datetime = utc_timestamp2datetime(a_range[1])
+
+            # Whe shouldn't use cache for the last period
+            if self._cache_enabled and a_range != time_series_limits[-1]:
+                cache_key = "daedalus:chart:{0}-{1}".format(a_range[0], a_range[1])
+                count = _json_cache(cache_key,
+                    60,
+                    _compute_count, a_range)
+            else:
+                count = _compute_count(a_range)
+
             counts.append((start_datetime, end_datetime, count,))
+
         return counts
 
     def generate_6hs_charts_data(self):
