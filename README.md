@@ -19,6 +19,7 @@ Implemented functional use cases (as of v0.0.2)
   - Filter by severity
   - Show all messages (default for home page)
   - Simplest form of pagination
+  - Show line chart counting messages received
 
 3. Client: Python client to send messages using HTTP (POST with JSON encoded message)
 
@@ -61,10 +62,9 @@ To create some random log messages, you could run:
 
 The project could be imported from within Eclipse PyDev.
 
-Current iteration goals (towards v0.0.4)
+Current iteration goals
 ----------------------------------------
 
-* Client provided timestamps (to facilitate future implementantion of bulk-upload of messages)
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
