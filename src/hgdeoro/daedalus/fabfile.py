@@ -162,6 +162,7 @@ def shutdown_cassandra():
 def install_all():
     execute(install_jdk)
     execute(install_cassandra)
+    execute(install_daedalus)
 
 
 @ task
@@ -175,7 +176,9 @@ def uninstall_all():
             "{ rm -rf $(cat /opt/daedalus.cassandra) ; rm /opt/daedalus.cassandra ; }")
     run("rm -rf "
         "/var/log/cassandra "
-        "/var/lib/cassandra")
+        "/var/lib/cassandra "
+        "/opt/daedalus-dev "
+        "/opt/virtualenv")
 
 
 @ task
@@ -187,10 +190,14 @@ def install_daedalus():
         run("rm -rf /opt/daedalus-dev")
     run("tar -C /opt -xzf /tmp/daedalus-dev.tgz")
     run("echo 'CACHES = {}' > /opt/daedalus-dev/src/daedalus_local_settings.py")
+    execute(setup_virtualenv)
 
 
 @ task
 def setup_virtualenv():
+    """
+    Installs virtualenv and pip requirements.
+    """
     if not exists("~/.pip/pip.conf"):
         run("echo '[install]' > ~/.pip/pip.conf")
         run("echo 'download-cache = ~/pip-cache' >> ~/.pip/pip.conf")
@@ -205,10 +212,6 @@ def setup_virtualenv():
     if not exists("/opt/daedalus-dev/virtualenv"):
         run("ln -s /opt/virtualenv /opt/daedalus-dev/virtualenv")
 
-
-@ task
-def pip_install():
-    execute(setup_virtualenv)
     run("/opt/virtualenv/bin/pip install -r /opt/daedalus-dev/requirements.txt")
 
 
