@@ -66,14 +66,14 @@ JDK_INSTALL_DIR = os.environ.get('JDK_INSTALL_DIR', "jdk1.6.0_32")
 CASSANDRA_PID = "/var/log/cassandra/cassandra.pid"
 
 
-@task
-def reset_test_vm():
-    """
-    Runs the `reset-kvm-test-vm.sh` script.
-    This scripts DESTROYS the test VM and disk images and re-creates it.
-    """
-    shell_script = os.path.join(BASE_DIRECTORY, "dev-scripts", "reset-kvm-test-vm.sh")
-    local("sudo -E {0}".format(shell_script))
+#@task
+#def reset_test_vm():
+#    """
+#    Runs the `reset-kvm-test-vm.sh` script.
+#    This scripts DESTROYS the test VM and disk images and re-creates it.
+#    """
+#    shell_script = os.path.join(BASE_DIRECTORY, "dev-scripts", "reset-kvm-test-vm.sh")
+#    local("sudo -E {0}".format(shell_script))
 
 
 @task
@@ -83,6 +83,16 @@ def start_test_vm():
     """
     shell_script = os.path.join(BASE_DIRECTORY, "dev-scripts", "start-kvm-test-vm.sh")
     local("sudo -E {0}".format(shell_script))
+
+
+@ task
+def install_packages():
+    """
+    Installs requeriments on CentOS.
+    """
+    run("yum install --assumeyes "
+        "gcc.x86_64 memcached python-devel.x86_64 zlib-devel.x86_64 "
+        "memcached memcached-devel libmemcached-devel")
 
 
 @ task
@@ -166,3 +176,42 @@ def uninstall_all():
     run("rm -rf "
         "/var/log/cassandra "
         "/var/lib/cassandra")
+
+
+@ task
+def install_daedalus():
+    local("git archive --format=tar --prefix=daedalus-dev/ HEAD | gzip "
+        "> /tmp/daedalus-dev.tgz")
+    put("/tmp/daedalus-dev.tgz", "/tmp/daedalus-dev.tgz")
+    if exists("/opt/daedalus-dev"):
+        run("rm -rf /opt/daedalus-dev")
+    run("tar -C /opt -xzf /tmp/daedalus-dev.tgz")
+    run("echo 'CACHES = {}' > /opt/daedalus-dev/src/daedalus_local_settings.py")
+
+
+@ task
+def setup_virtualenv():
+    if not exists("~/.pip/pip.conf"):
+        run("echo '[install]' > ~/.pip/pip.conf")
+        run("echo 'download-cache = ~/pip-cache' >> ~/.pip/pip.conf")
+        run("mkdir ~/pip-cache")
+
+    if not exists("/opt/virtualenv"):
+        if not exists("/tmp/virtualenv.py"):
+            run("curl -o /tmp/virtualenv.py https://raw.github.com/pypa/virtualenv/master/virtualenv.py")
+    
+        run("python /tmp/virtualenv.py /opt/virtualenv")
+        
+    if not exists("/opt/daedalus-dev/virtualenv"):
+        run("ln -s /opt/virtualenv /opt/daedalus-dev/virtualenv")
+
+
+@ task
+def pip_install():
+    execute(setup_virtualenv)
+    run("/opt/virtualenv/bin/pip install -r /opt/daedalus-dev/requirements.txt")
+
+
+@ task
+def daedalus_test():
+    run("/opt/daedalus-dev/dev-scripts/test.sh")
