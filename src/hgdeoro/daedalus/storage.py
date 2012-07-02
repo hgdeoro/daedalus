@@ -37,7 +37,7 @@ from pycassa.util import convert_time_to_uuid
 from pycassa.cassandra.c10.ttypes import NotFoundException
 
 from hgdeoro.daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
-    utc_now_from_epoch, utc_timestamp2datetime
+    utc_now_from_epoch, utc_timestamp2datetime, time_series_generator
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +172,7 @@ class StorageService(object):
         """
         Creates the KEYSPACE and CF
         """
+        sys_mgr = None
         try:
             sys_mgr = SystemManager()
             try:
@@ -193,7 +194,8 @@ class StorageService(object):
             finally:
                 pool.dispose()
         finally:
-            sys_mgr.close()
+            if sys_mgr:
+                sys_mgr.close()
 
     def save_log(self, message):
         pool = self._get_pool()
@@ -481,21 +483,18 @@ class StorageService(object):
 
         return status
 
-    def get_charts_data(self, day_diff=0):
+    def generate_6hs_charts_data(self):
         """
-        Returns the data to create a chart
+        Returns the data from the last 6 hours.
         """
-        day_to_graph = int(utc_now_from_epoch()) + (day_diff * SECONDS_IN_DAY)
-        day_start = day_to_graph - (day_to_graph % SECONDS_IN_DAY) # timestamp of start of today
-        row_key = ymd_from_epoch(float(day_to_graph)) # row for today
-
-        ranges = [(day_start + (i * 60 * 60), day_start + ((i + 1) * 60 * 60)) for i in range(0, 24)]
+        time_series_limits = time_series_generator(60 * 5, 12 * 6)
         counts = []
-        for a_range in ranges:
-            column_start = convert_time_to_uuid(a_range[0], True)
+        for a_range in time_series_limits:
+            column_start = convert_time_to_uuid(a_range[0], lowest_val=True)
             start_datetime = utc_timestamp2datetime(a_range[0])
-            column_finish = convert_time_to_uuid(a_range[1], False)
+            column_finish = convert_time_to_uuid(a_range[1], lowest_val=False)
             end_datetime = utc_timestamp2datetime(a_range[1])
+            row_key = ymd_from_epoch(float(a_range[0]))
             count = self._get_cf_logs().get_count(
                 row_key,
                 column_start=column_start,

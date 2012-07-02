@@ -11,15 +11,15 @@
 	      google.setOnLoadCallback(drawChart);
 	      function drawChart() {
 	        var data = google.visualization.arrayToDataTable([
-	          ['Hora', 'Cantidad'],
+	          ['Hour', 'Messages received'],
 	          {% for data_item in charts_data %}
-	          	['{{data_item.0}}', {{data_item.2}}]{% if not forloop.last %},{%endif %}
+	          	['{{data_item.0|date:"H:i"}}', {{data_item.2}}]{% if not forloop.last %},{%endif %}
 	          {% endfor %}
 	        ]);
 
 	        var options = {
-	          title: 'Cantidad de logs',
-	          hAxis: {title: 'Year',  titleTextStyle: {color: 'red'}}
+	          title: 'Messages received',
+	          hAxis: {title: 'Hour',  titleTextStyle: {color: 'red'}}
 	        };
 
 	        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
@@ -40,9 +40,8 @@
 	{% endblock extra_navbar %}
 
 	{% block container %}
-
 		<div id="chart_div" style="width: 900px; height: 500px;"></div>
-
+		<hr />
 	{% endblock container %}
 
 </body>

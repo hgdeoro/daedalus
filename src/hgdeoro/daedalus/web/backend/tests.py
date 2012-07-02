@@ -291,36 +291,53 @@ class StorageTest(BaseTestCase):
         print row_keys
         print "Cant:", len(row_keys)
 
-    def test_basic_chart(self):
+    def test_basic_generate_6hs_charts_data(self):
         _truncate_all_column_families()
         _bulk_save_random_messages_to_default_keyspace(50)
-        charts_data = self.get_service().get_charts_data()
-        self.assertEqual(len(charts_data), 24)
+        charts_data = self.get_service().generate_6hs_charts_data()
+        self.assertEqual(len(charts_data), 12 * 6)
         self.assertEqual(type(charts_data[0][0]), datetime.datetime)
         self.assertEqual(type(charts_data[0][1]), datetime.datetime)
         self.assertEqual(type(charts_data[0][2]), int)
         counts = [item[2] for item in charts_data]
         self.assertEqual(sum(counts), 50)
+        self.assertEqual(charts_data[-1][2], 50)
         # pprint.pprint(charts_data)
 
-    def test_get_charts_data(self):
+    def test_generate_6hs_charts_data(self):
 
         def _backward_timestamp_generator():
-            ONE_HOUR = float(60 * 60)
+            FIVE_MIN = float(60 * 5)
             now = utc_now_from_epoch()
             while True:
                 yield "{0:0.30f}".format(now)
-                now = now - ONE_HOUR
+                now = now - FIVE_MIN
 
+        # Test 1 message per time period
         _truncate_all_column_families()
-        # Creating 48 messages ensures that we'll have 24 messages for yesterday
-        # even if this is ran at 23:59:59
-        _bulk_save_random_messages_to_default_keyspace(24 * 2,
+        _bulk_save_random_messages_to_default_keyspace(12 * 6,
             timestamp_generator=_backward_timestamp_generator())
-        charts_data = self.get_service().get_charts_data(day_diff=-1)
+        charts_data = self.get_service().generate_6hs_charts_data()
         # pprint.pprint(charts_data)
         counts = [item[2] for item in charts_data]
-        self.assertEqual(sum(counts), 24)
+        self.assertEqual(sum(counts), 12 * 6)
+        self.assertEqual(len(set(counts)), 1)
+
+        # This time, generate 5 hours of messages, but
+        # nothing between 5th and 6th hour
+        _truncate_all_column_families()
+        _bulk_save_random_messages_to_default_keyspace(12 * 5,
+            timestamp_generator=_backward_timestamp_generator())
+        charts_data = self.get_service().generate_6hs_charts_data()
+        # pprint.pprint(charts_data)
+        counts = [item[2] for item in charts_data]
+        self.assertEqual(sum(counts), 12 * 5)
+        self.assertEqual(counts, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
 
 class BulkSave(StorageTest):

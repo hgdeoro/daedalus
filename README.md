@@ -69,6 +69,8 @@ Current iteration goals (towards v0.0.4)
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
 
+* Cache statics generated for charts
+
 * Test and compare performance and disk space: StorageService vs StorageService2
 
 * Document installation procedure
