@@ -41,7 +41,8 @@ from daedalus_client import DaedalusClient, DaedalusException, ERROR
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.storage import get_service_cm, get_service
 from hgdeoro.daedalus.utils import utc_str_timestamp, utc_timestamp2datetime,\
-    utc_now, utc_now_from_epoch, ymd_from_epoch, ymd_from_uuid1
+    utc_now, utc_now_from_epoch, ymd_from_epoch, ymd_from_uuid1,\
+    backward_time_series_generator, time_series_generator
 
 logger = logging.getLogger(__name__)
 
@@ -559,6 +560,31 @@ class TimeRelatedUtilTest(TestCase):
 
         ymd_list = run_foreach_tz(callback)
         self.assertEqual(len(set(ymd_list)), 1)
+
+    def test_time_series_generator(self):
+
+        def _test_granularity(granularity, now, time_series):
+            # pprint.pprint(time_series)
+            self.assertEqual(len(time_series), 10)
+            self.assertEqual(set([type(x) for x in time_series]).pop(), tuple)
+            upper_limit = time_series[0][1]
+            # time in `now` and the upper limit of the first element should be almost equals
+            self.assertTrue(abs(upper_limit - now) < granularity + 4)
+            self.assertEqual(upper_limit % granularity, 0)
+            for from_timestamp, to_timestamp in time_series:
+                self.assertEqual(from_timestamp + granularity, to_timestamp)
+                self.assertEqual(upper_limit, to_timestamp)
+                upper_limit = upper_limit - granularity
+
+        granularities = [1, 5, 10, 15, 20, 30] # seconds
+        granularities += [60, 60 * 2, 60 * 5, 60 * 10, 60 * 15, 60 * 20, 60 * 30] # minutes
+        granularities += [60 * 60 * 1, 60 * 60 * 2, 60 * 60 * 6, 60 * 60 * 12] # hours
+        for granularity in granularities:
+            now = utc_now_from_epoch()
+            backward_time_series = [x for x in backward_time_series_generator(granularity, 10)]
+            time_series = time_series_generator(granularity, 10)
+            _test_granularity(granularity, now, backward_time_series)
+            _test_granularity(granularity, now, tuple(reversed(time_series)))
 
 
 class PycassaUtilsTest(BaseTestCase):

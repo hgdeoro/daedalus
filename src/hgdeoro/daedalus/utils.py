@@ -29,6 +29,8 @@ import pytz
 
 from pycassa.util import convert_uuid_to_time
 
+SECONDS_IN_DAY = 60 * 60 * 24
+
 
 def utc_now():
     """
@@ -142,3 +144,33 @@ def str_to_column_key(str_key):
 #    t = t - 0x01b21dd213814000
 #    t = t / 1e7
 #    return t
+
+#def generate_time_serie_limits(self, count, granularity):
+#    assert SECONDS_IN_DAY % granularity == 0
+#    now = int(utc_now_from_epoch())
+#    # move `from_timestamp` to next limit
+#    # move `to_timestamp` to next limit
+#    limits = []
+#    to_timestamp = now + now % granularity
+#    for i in xrange(0, count + 1):
+#        limits.append(to_timestamp - (i * granularity))
+#    return reversed(limits)
+
+
+def backward_time_series_generator(granularity, count):
+    assert SECONDS_IN_DAY % granularity == 0
+    now = int(utc_now_from_epoch())
+    diff = now % granularity
+    # remove `diff` from `now` to make `upper_limit` multiple of `granularity`
+    upper_limit = now - diff
+    # if `diff` is > 0, add `granularity` to upper_limit
+    if diff > 0:
+        upper_limit += granularity
+    for _ in xrange(0, count):
+        lower_limit = upper_limit - granularity
+        yield (lower_limit, upper_limit)
+        upper_limit = lower_limit
+
+
+def time_series_generator(granularity, count):
+    return tuple(reversed(tuple(backward_time_series_generator(granularity, count))))
