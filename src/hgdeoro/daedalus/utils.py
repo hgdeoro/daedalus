@@ -145,18 +145,6 @@ def str_to_column_key(str_key):
 #    t = t / 1e7
 #    return t
 
-#def generate_time_serie_limits(self, count, granularity):
-#    assert SECONDS_IN_DAY % granularity == 0
-#    now = int(utc_now_from_epoch())
-#    # move `from_timestamp` to next limit
-#    # move `to_timestamp` to next limit
-#    limits = []
-#    to_timestamp = now + now % granularity
-#    for i in xrange(0, count + 1):
-#        limits.append(to_timestamp - (i * granularity))
-#    return reversed(limits)
-
-
 def backward_time_series_generator(granularity, count):
     assert SECONDS_IN_DAY % granularity == 0
     now = int(utc_now_from_epoch())
