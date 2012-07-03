@@ -193,6 +193,9 @@ def uninstall_all():
 
 @ task
 def install_daedalus():
+    """
+    Installs daedalus in the testing VM.
+    """
     local("git archive --format=tar --prefix=daedalus-dev/ HEAD | gzip "
         "> /tmp/daedalus-dev.tgz")
     put("/tmp/daedalus-dev.tgz", "/tmp/daedalus-dev.tgz")
@@ -203,6 +206,7 @@ def install_daedalus():
     run("echo 'DAEDALUS_FORCE_SERVING_STATIC_FILES = True' >> "
         "/opt/daedalus-dev/src/daedalus_local_settings.py")
     execute(setup_virtualenv)
+    execute(syncdb_cassandra)
 
 
 @ task
@@ -230,9 +234,24 @@ def setup_virtualenv():
 
 @ task
 def daedalus_test():
+    """
+    Runs the tests in the testing vm..
+    """
     run("/opt/daedalus-dev/dev-scripts/test.sh")
 
 
 @task
 def run_gunicorn():
+    """
+    Launches gunicorn
+    """
     run("/opt/daedalus-dev/dev-scripts/gunicorn.sh")
+
+
+@task
+def syncdb_cassandra():
+    """
+    Runs syncdb and syncdb_cassandra.
+    """
+    run("/opt/daedalus-dev/dev-scripts/manage.sh syncdb --noinput")
+    run("/opt/daedalus-dev/dev-scripts/manage.sh syncdb_cassandra")
