@@ -50,3 +50,7 @@ if settings.DAEDALUS_ENABLED_SUBSYSTEMS in ('frontend', 'both'):
         url(r'^frontend/charts/(.+)/', frontend_views.charts),
         url(r'^frontend/charts/', frontend_views.charts),
     )
+
+if settings.DAEDALUS_FORCE_SERVING_STATIC_FILES is True:
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+    urlpatterns += staticfiles_urlpatterns()

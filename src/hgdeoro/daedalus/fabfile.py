@@ -65,6 +65,7 @@ JDK_INSTALL_DIR = os.environ.get('JDK_INSTALL_DIR', "jdk1.6.0_32")
 
 CASSANDRA_PID = "/var/log/cassandra/cassandra.pid"
 
+EPEL_RPM = "http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm"
 
 #@task
 #def reset_test_vm():
@@ -86,13 +87,22 @@ def start_test_vm():
 
 
 @ task
+def install_epel():
+    """
+    Register EPEL repository.
+    """
+    run("curl -o /tmp/epel.rpm {0}".format(EPEL_RPM))
+    run("rpm -i /tmp/epel.rpm")
+
+
+@ task
 def install_packages():
     """
     Installs requeriments on CentOS.
     """
     run("yum install --assumeyes "
         "gcc.x86_64 memcached python-devel.x86_64 zlib-devel.x86_64 "
-        "memcached memcached-devel libmemcached-devel")
+        "memcached memcached-devel libmemcached-devel nginx")
 
 
 @ task
@@ -190,6 +200,8 @@ def install_daedalus():
         run("rm -rf /opt/daedalus-dev")
     run("tar -C /opt -xzf /tmp/daedalus-dev.tgz")
     run("echo 'CACHES = {}' > /opt/daedalus-dev/src/daedalus_local_settings.py")
+    run("echo 'DAEDALUS_FORCE_SERVING_STATIC_FILES = True' >> "
+        "/opt/daedalus-dev/src/daedalus_local_settings.py")
     execute(setup_virtualenv)
 
 
@@ -213,8 +225,14 @@ def setup_virtualenv():
         run("ln -s /opt/virtualenv /opt/daedalus-dev/virtualenv")
 
     run("/opt/virtualenv/bin/pip install -r /opt/daedalus-dev/requirements.txt")
+    run("/opt/virtualenv/bin/pip install gunicorn")
 
 
 @ task
 def daedalus_test():
     run("/opt/daedalus-dev/dev-scripts/test.sh")
+
+
+@task
+def run_gunicorn():
+    run("/opt/daedalus-dev/dev-scripts/gunicorn.sh")
