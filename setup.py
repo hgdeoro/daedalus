@@ -18,7 +18,7 @@ from setuptools import find_packages
 #  + git push ; git push --tags
 #
 
-VERSION = "0.0.5"
+VERSION = "0.0.6-dev"
 
 def gen_data_files():
     """
