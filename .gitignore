@@ -10,3 +10,5 @@
 /src/daedalus_local_settings.py
 /apache-cassandra-*.tar.gz
 /jdk-*.bin
+/daedalus-*.tgz
+
