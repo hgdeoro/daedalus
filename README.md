@@ -8,6 +8,8 @@ There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
 
 This project is al alpha-quality stage, not recommended to be used on production systems.
 
+It's developed on Ubuntu 12.04, and now tested on a CentOS 6 virtual machine (with the help of fabric).
+
 Implemented functional use cases (as of v0.0.2)
 ----------------------------------------
 
