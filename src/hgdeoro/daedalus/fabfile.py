@@ -29,45 +29,60 @@ from fabric.utils import abort
 from fabric.tasks import execute
 
 #
-# This fabric script is used to test Daedalus on a VM.
-# This must be run with something like:
-#
-# $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabfile.py -H root@vm install_all
-#
-# PLEASE, DO NOT use this script to install Daedalus / Cassandra in production systems!
-#
-
-#
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Cassandra
+# Cassandra installer
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The path to the Cassandra installer in TGZ format could be overriden using
 #   the environment variable CASSANDRA_TGZ_INSTALLER (in this case, you should
 #   set CASSANDRA_INSTALL_DIR too).
-# Having a symlink in the root of the project will work
-#   (make it with 'cd /path/to/daedalus ; ln -s /path/to/apache-cassandra-1.1.2-bin.tar.gz .'
 #
+# By default, this script looks for the file 'apache-cassandra-1.1.2-bin.tar.gz'
+#   in the 'root' of the project. You can make it with
+# $ cd /path/to/daedalus
+# $ ln -s /path/to/apache-cassandra-1.1.2-bin.tar.gz  .
+#
+# If you create this link (or copy the real file), you won't have
+# to specify CASSANDRA_TGZ_INSTALLER nor CASSANDRA_INSTALL_DIR.
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# JDK
+# JDK installer
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The path to the JDK installer could be overwriden using
 #   the environment variable JDK_BIN_INSTALLER (in this case, you
 #   should set JDK_INSTALL_DIR too).
-# Having a symlink in to the 'bin' installer (jdk-6u32-linux-x64.bin) in the root of the project will work
-#   (make it with 'cd /path/to/daedalus ; ln -s /path/to/jdk-6u32-linux-x64.bin .'
 #
+# By default, this script looks for the file 'jdk-6u32-linux-x64.bin'
+#   in the 'root' of the project. You can make it with
+# $ cd /path/to/daedalus
+# $ ln -s /path/to/jdk-6u32-linux-x64.bin  .
+#
+# If you create this link (or copy the real file), you won't have
+# to specify JDK_BIN_INSTALLER nor JDK_INSTALL_DIR.
+
 
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # EXAMPLE
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# $ export CASSANDRA_TGZ_INSTALLER=/tmp/apache-cassandra-1.1.2-bin.tar.gz
+# 1) Download 'jdk-6u32-linux-x64.bin' and 'apache-cassandra-1.1.2-bin.tar.gz'
+#   and put them on the 'root' of the project (in the same level of 'src', 'web', etc)
+#
+# 2) Run:
+#   $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabric/fabfile.py -H root@192.168.122.77 install_all
+#
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# EXAMPLE
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# To install JDK, Cassandra, and Daedalus on host 192.168.122.77, run:
+#
+# $ export CASSANDRA_TGZ_INSTALLER=/path/to/apache-cassandra-1.1.2-bin.tar.gz
 # $ export CASSANDRA_INSTALL_DIR=apache-cassandra-1.1.2
-# $ export JDK_BIN_INSTALLER=/tmp/jdk-6u21-linux-x64.bin
+# $ export JDK_BIN_INSTALLER=/path/to/jdk-6u21-linux-x64.bin
 # $ export JDK_INSTALL_DIR=jdk1.6.0_21
-# $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabric/fabfile.py -H root@vm install_all
+# $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabric/fabfile.py -H root@192.168.122.77 install_all
 #
 
 # Base directory of Daedalus
