@@ -38,13 +38,36 @@ from fabric.tasks import execute
 #
 
 #
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Cassandra
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The path to the Cassandra installer in TGZ format could be overriden using
-#   the environment variable JDK_INSTALL_DIR (in this case, you should
+#   the environment variable CASSANDRA_TGZ_INSTALLER (in this case, you should
 #   set CASSANDRA_INSTALL_DIR too).
+# Having a symlink in the root of the project will work
+#   (make it with 'cd /path/to/daedalus ; ln -s /path/to/apache-cassandra-1.1.2-bin.tar.gz .'
 #
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# JDK
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The path to the JDK installer could be overwriden using
 #   the environment variable JDK_BIN_INSTALLER (in this case, you
 #   should set JDK_INSTALL_DIR too).
+# Having a symlink in to the 'bin' installer (jdk-6u32-linux-x64.bin) in the root of the project will work
+#   (make it with 'cd /path/to/daedalus ; ln -s /path/to/jdk-6u32-linux-x64.bin .'
+#
+
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# EXAMPLE
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# $ export CASSANDRA_TGZ_INSTALLER=/tmp/apache-cassandra-1.1.2-bin.tar.gz
+# $ export CASSANDRA_INSTALL_DIR=apache-cassandra-1.1.2
+# $ export JDK_BIN_INSTALLER=/tmp/jdk-6u21-linux-x64.bin
+# $ export JDK_INSTALL_DIR=jdk1.6.0_21
+# $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabric/fabfile.py -H root@vm install_all
 #
 
 # Base directory of Daedalus
