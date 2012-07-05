@@ -144,6 +144,16 @@ def install_centos_packages():
 
 
 @ task
+def install_ubuntu_packages():
+    """
+    Installs required packages on Ubuntu.
+    """
+    run("aptitude install -y "
+        "gcc memcached python-dev nginx"
+        " libmemcached-dev zlib1g-dev")
+
+
+@ task
 def install_jdk():
     """
     Installs JDK
@@ -220,6 +230,9 @@ def install_all():
     execute(install_jdk)
     execute(install_cassandra)
     execute(install_daedalus)
+    # FIXME: before `syncdb_cassandra` we shoud make sure Cassandra is running
+    # execute(launch_cassandra)
+    execute(syncdb_cassandra)
 
 
 @ task
@@ -253,7 +266,6 @@ def install_daedalus():
     run("echo 'DAEDALUS_FORCE_SERVING_STATIC_FILES = True' >> "
         "/opt/daedalus-dev/src/daedalus_local_settings.py")
     execute(setup_virtualenv)
-    execute(syncdb_cassandra)
 
 
 #@task
@@ -267,6 +279,7 @@ def setup_virtualenv():
     Installs virtualenv and pip requirements.
     """
     if not exists("~/.pip/pip.conf"):
+        run("mkdir ~/.pip")
         run("echo '[install]' > ~/.pip/pip.conf")
         run("echo 'download-cache = ~/pip-cache' >> ~/.pip/pip.conf")
         run("mkdir ~/pip-cache")
