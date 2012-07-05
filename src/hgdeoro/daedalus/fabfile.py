@@ -96,9 +96,9 @@ def install_epel():
 
 
 @ task
-def install_packages():
+def install_centos_packages():
     """
-    Installs requeriments on CentOS.
+    Installs required packages on CentOS.
     """
     run("yum install --assumeyes "
         "gcc.x86_64 memcached python-devel.x86_64 zlib-devel.x86_64 "
@@ -143,11 +143,20 @@ def install_cassandra():
         "/var/lib/cassandra/saved_caches")
 
 
+#@task
+#def install_cassandra_init_scripts():
+#    pass
+
+
 @ task
 def launch_cassandra():
     """
     Launch Cassandra on VM
     """
+    # This gave me LOT of problems, and after some tries, couldn't make to
+    # launch cassandra in the background from fabric (using nohup and &)
+    # so, this method launchs Cassandra in foreground (and you'll see all
+    # the logs
     if not exists("/opt/daedalus.jdk"):
         abort("/opt/daedalus.jdk doesn't exists on server. Install the JDK and retry.")
     if not exists("/opt/daedalus.cassandra"):
@@ -209,6 +218,11 @@ def install_daedalus():
     execute(syncdb_cassandra)
 
 
+#@task
+#def install_daedalus_init_scripts():
+#    pass
+
+
 @ task
 def setup_virtualenv():
     """
@@ -246,6 +260,19 @@ def run_gunicorn():
     Launches gunicorn
     """
     run("/opt/daedalus-dev/dev-scripts/gunicorn.sh")
+
+
+#@task
+#def install_gunicorn_init_scripts():
+#    pass
+
+#@task
+#def nginx_init_scripts():
+#    pass
+
+#@task
+#def install_nginx_init_scripts():
+#    pass
 
 
 @task
