@@ -8,7 +8,7 @@ There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
 
 This project is al alpha-quality stage, not recommended to be used on production systems.
 
-It's developed on Ubuntu 12.04, and now tested on a CentOS 6 virtual machine (with the help of fabric).
+It's developed on Ubuntu 12.04, and now tested on a CentOS 6 and Ubuntu 12.04 LTS Server virtual machinees (with the help of fabric).
 
 Implemented functional use cases (as of v0.0.2)
 ----------------------------------------
@@ -25,7 +25,36 @@ Implemented functional use cases (as of v0.0.2)
 
 3. Client: Python client to send messages using HTTP (POST with JSON encoded message)
 
-How to download and hack
+
+For the curious: install in a virtual machine
+----------------------------------------
+
+I recommend run this in a newly created virtual machine, since the fabric script needs to
+connect to the virtual machine as root.
+
+Create a virtual machine of your choice (I use KVM+libvirt).
+
+Clone Daedalus using Git:
+
+    $ git clone http://github.com/hgdeoro/daedalus
+    $ cd daedalus
+
+Setup virtualenv and activate it:
+
+    $ virtualenv virtualenv
+    $ ./virtualenv/bin/pip install -r requirements-dev.txt
+    $ . ./virtualenv/bin/activate
+
+Install to a CentOS virtual machine:
+
+    $ fab -f src/hgdeoro/daedalus/fabfile.py -H root@192.168.122.61 install_centos_packages install_all
+
+Install to a Ubuntu virtual machine:
+
+    $ fab -f src/hgdeoro/daedalus/fabfile.py -H root@192.168.122.61 install_ubuntu_packages install_all
+
+
+For developers: how to download and hack
 ----------------------------------------
 
 Download from GitHub
@@ -65,12 +94,19 @@ To create some random log messages, you could run:
 
 The project could be imported from within Eclipse PyDev.
 
+
 Current iteration goals
 ----------------------------------------
+
+* Test the instructions of the section 'For the curious: install in a virtual machine'
+
+* Fix the fabric task `launch_cassandra()` so we can install Daedalus enterely from `install_all()`.
 
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
+
+* Failover on client (if one server doesn't respond, try another)
 
 * Test and compare performance and disk space: StorageService vs StorageService2
 
