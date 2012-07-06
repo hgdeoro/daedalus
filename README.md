@@ -31,6 +31,16 @@ Implemented functional use cases
 For the curious: install in a virtual machine
 ----------------------------------------
 
+See [dev-scripts/install-on-ubuntu.sh](https://github.com/hgdeoro/daedalus/blob/master/dev-scripts/install-on-ubuntu.sh).
+
+I recommend you to download and run the script in a newly created virtual machine (mainly because it install many packages,
+and must be run as root). The virtual machine should have at least 1GB of RAM (Cassandra may not work with less memory). The scripts
+installs JDK, Cassandra, clones the Daedalus repository and launch the Django development server.
+
+You can download this script and run it as root, or use it as a guide, copying-and-pasting each of the commans of the script in a
+console or ssh session.
+
+<!--
 I recommend run this in a newly created virtual machine, since the fabric script connects 
 and install all the services as root. The scripts installs Java and Cassandra, and to do
 this, you must download the _bin_ installer of JDK 6u32 `jdk-6u32-linux-x64.bin`
@@ -62,10 +72,12 @@ Install to a CentOS virtual machine:
 Install to a Ubuntu virtual machine:
 
     $ fab -f src/hgdeoro/daedalus/fabfile.py -H root@192.168.122.61 install_ubuntu_packages install_all
-
+-->
 
 For developers: how to download and hack
 ----------------------------------------
+
+JDK: download and install JDK 6.
 
 Cassandra: [download](http://cassandra.apache.org/download/),
 [install](http://wiki.apache.org/cassandra/GettingStarted) and start Cassandra.
@@ -111,7 +123,7 @@ The project could be imported from within Eclipse PyDev.
 Current iteration goals
 ----------------------------------------
 
-* Test the instructions of the section 'For the curious: install in a virtual machine'
+* Change all the scripts on dev-scripts/ to automatically use virtualenv only if it exists.
 
 
 Not implemented right now / Ideas / TODOs

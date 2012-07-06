@@ -10,4 +10,12 @@
 /src/daedalus_local_settings.py
 /apache-cassandra-*.tar.gz
 /daedalus-*.tgz
-
+/rsync
+/rsync-to-ubuntu-vm.sh
+/rsync-from-ubuntu-vm.sh
+/reset-ubuntu-vm.sh
+/reset-ubuntu-vm-and-run-install-on-ubuntu.sh
+/mkreadme.sh
+/github.css
+/fab-ubuntu.sh
+/fab-centos.sh
