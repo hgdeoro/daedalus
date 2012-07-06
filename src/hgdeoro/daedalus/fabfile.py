@@ -68,7 +68,7 @@ def get_run_output(*args, **kwargs):
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Fabric tasks
+# Task: VM management
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #@task
@@ -95,6 +95,9 @@ def get_run_output(*args, **kwargs):
 #    else:
 #        local("sudo -E {0}".format(shell_script))
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Task: CentOS
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @ task
 def centos_install_epel():
@@ -125,6 +128,10 @@ def centos_install_packages():
     run("service cassandra start")
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Task: Ubuntu
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 @ task
 def ubuntu_install_packages():
     """
@@ -140,8 +147,12 @@ def ubuntu_install_packages():
         if not exists(CASSANDRA_DEB_URL.split("/")[-1]):
             run("wget {0}".format(CASSANDRA_DEB_URL))
         run("dpkg -i {0}".format(CASSANDRA_DEB_URL.split("/")[-1]))
-    # Check available memory, and shoy BIG warning if < 1GiB
+    # TODO: Check available memory, and shoy BIG warning if < 1GiB
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Task: Custom Cassandra
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @ task
 def custom_cassandra_install():
@@ -225,6 +236,10 @@ def custom_cassandra_tail_logs():
     run("tail -f /var/log/cassandra/*.log")
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Task: Daedalus
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 @ task
 def daedalus_uninstall():
     """
@@ -249,7 +264,7 @@ def daedalus_reinstall():
     run("echo 'CACHES = {}' > /opt/daedalus-dev/src/daedalus_local_settings.py")
     run("echo 'DAEDALUS_FORCE_SERVING_STATIC_FILES = True' >> "
         "/opt/daedalus-dev/src/daedalus_local_settings.py")
-    execute(virtualenv_setup)
+    execute(daedalusl_virtualenv_setup)
     execute(daedalus_syncdb)
 
 
@@ -259,7 +274,7 @@ def daedalus_reinstall():
 
 
 @ task
-def virtualenv_setup():
+def daedalusl_virtualenv_setup():
     """
     Installs virtualenv and pip requirements.
     """
@@ -279,6 +294,15 @@ def virtualenv_setup():
     run("/opt/virtualenv/bin/pip install gunicorn")
 
 
+@task
+def daedalus_syncdb():
+    """
+    Runs syncdb and syncdb_cassandra.
+    """
+    run("/opt/daedalus-dev/dev-scripts/manage.sh syncdb --noinput")
+    run("/opt/daedalus-dev/dev-scripts/manage.sh syncdb_cassandra")
+
+
 @ task
 def daedalus_test():
     """
@@ -286,6 +310,10 @@ def daedalus_test():
     """
     run("/opt/daedalus-dev/dev-scripts/test.sh")
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Task: Gunicorn
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @task
 def gunicorn_launch():
@@ -299,6 +327,11 @@ def gunicorn_launch():
 #def gunicorn_install_init_scripts():
 #    pass
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Task: Nginx
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 #@task
 #def nginx_install():
 #    pass
@@ -306,12 +339,3 @@ def gunicorn_launch():
 #@task
 #def nginx_install_init_scripts():
 #    pass
-
-
-@task
-def daedalus_syncdb():
-    """
-    Runs syncdb and syncdb_cassandra.
-    """
-    run("/opt/daedalus-dev/dev-scripts/manage.sh syncdb --noinput")
-    run("/opt/daedalus-dev/dev-scripts/manage.sh syncdb_cassandra")
