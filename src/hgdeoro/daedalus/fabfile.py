@@ -23,67 +23,16 @@ import os
 
 from fabric.decorators import task
 from fabric.operations import local, put, run
-from fabric.context_managers import cd, hide
+from fabric.context_managers import hide
 from fabric.contrib.files import exists
 from fabric.utils import abort, warn
 from fabric.tasks import execute
 
-#
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Cassandra installer
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The path to the Cassandra installer in TGZ format could be overriden using
-#   the environment variable CASSANDRA_TGZ_INSTALLER (in this case, you should
-#   set CASSANDRA_INSTALL_DIR too).
-#
-# By default, this script looks for the file 'apache-cassandra-1.1.2-bin.tar.gz'
-#   in the 'root' of the project. You can make it with
-# $ cd /path/to/daedalus
-# $ ln -s /path/to/apache-cassandra-1.1.2-bin.tar.gz  .
-#
-# If you create this link (or copy the real file), you won't have
-# to specify CASSANDRA_TGZ_INSTALLER nor CASSANDRA_INSTALL_DIR.
-#
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# JDK installer
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The path to the JDK installer could be overwriden using
-#   the environment variable JDK_BIN_INSTALLER (in this case, you
-#   should set JDK_INSTALL_DIR too).
-#
-# By default, this script looks for the file 'jdk-6u32-linux-x64.bin'
-#   in the 'root' of the project. You can make it with
-# $ cd /path/to/daedalus
-# $ ln -s /path/to/jdk-6u32-linux-x64.bin  .
-#
-# If you create this link (or copy the real file), you won't have
-# to specify JDK_BIN_INSTALLER nor JDK_INSTALL_DIR.
-
-
-#
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# EXAMPLE
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# 1) Download 'jdk-6u32-linux-x64.bin' and 'apache-cassandra-1.1.2-bin.tar.gz'
-#   and put them on the 'root' of the project (in the same level of 'src', 'web', etc)
-#
-# 2) Run:
-#   $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabric/fabfile.py -H root@192.168.122.77 install_all
-#
-#
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# EXAMPLE
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# To install JDK, Cassandra, and Daedalus on host 192.168.122.77, run:
-#
-# $ export CASSANDRA_TGZ_INSTALLER=/path/to/apache-cassandra-1.1.2-bin.tar.gz
-# $ export CASSANDRA_INSTALL_DIR=apache-cassandra-1.1.2
-# $ export JDK_BIN_INSTALLER=/path/to/jdk-6u21-linux-x64.bin
-# $ export JDK_INSTALL_DIR=jdk1.6.0_21
-# $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabric/fabfile.py -H root@192.168.122.77 install_all
-#
+"""
+This fabric script is intended to automate the testing of Daedalus in different
+Linux distributions. To lower the complexity I have removed the installation of
+the JDK (it's difficult to automate) and now this script use the distribution's JDK.
+"""
 
 # Base directory of Daedalus
 BASE_DIRECTORY = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -92,59 +41,19 @@ BASE_DIRECTORY = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 CASSANDRA_TGZ_INSTALLER = os.path.join(BASE_DIRECTORY, "apache-cassandra-1.1.2-bin.tar.gz")
 
 # Name of the directory created upon decompression of the TGZ
+# TODO: this could be automatized!
 CASSANDRA_INSTALL_DIR = "apache-cassandra-1.1.2"
-
-# JDK installer (.bin)
-JDK_BIN_INSTALLER = os.environ.get('JDK_BIN_INSTALLER',
-    os.path.join(BASE_DIRECTORY, "jdk-6u32-linux-x64.bin"))
-
-# Name of the directory that the JDK installer creates
-JDK_INSTALL_DIR = os.environ.get('JDK_INSTALL_DIR', "jdk1.6.0_32")
-
-CASSANDRA_DEB = "http://www.apache.org/dist/cassandra/debian/pool/main/c/cassandra/cassandra_1.1.2_all.deb"
 
 CASSANDRA_PID = "/var/log/cassandra/cassandra.pid"
 
 EPEL_RPM = "http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm"
 
-#@task
-#def reset_test_vm():
-#    """
-#    Runs the `reset-kvm-test-vm.sh` script.
-#    This scripts DESTROYS the test VM and disk images and re-creates it.
-#    """
-#    shell_script = os.path.join(BASE_DIRECTORY, "dev-scripts", "reset-kvm-test-vm.sh")
-#    local("sudo -E {0}".format(shell_script))
+CASSANDRA_DEB_URL = "http://www.apache.org/dist/cassandra/debian/pool/main/c/cassandra/cassandra_1.1.2_all.deb"
 
 
-@task
-def start_test_vm():
-    """
-    Runs the `start-kvm-test-vm.sh` script: starts the VM and waits until it responds to pings.
-    """
-    shell_script = os.path.join(BASE_DIRECTORY, "dev-scripts", "start-kvm-test-vm.sh")
-    local("sudo -E {0}".format(shell_script))
-
-
-@ task
-def install_epel():
-    """
-    Register EPEL repository.
-    """
-    run("curl -o /tmp/epel.rpm {0}".format(EPEL_RPM))
-    run("rpm -i /tmp/epel.rpm")
-
-
-@ task
-def install_centos_packages():
-    """
-    Installs required packages on CentOS.
-    """
-    run("yum install --assumeyes "
-        "gcc.x86_64 memcached python-devel.x86_64 zlib-devel.x86_64 "
-        "memcached memcached-devel libmemcached-devel nginx "
-        "java-1.6.0-openjdk")
-
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Utility methods
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def get_run_output(*args, **kwargs):
     """
@@ -158,46 +67,107 @@ def get_run_output(*args, **kwargs):
     return ret.stdout, ret
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Fabric tasks
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#@task
+#def reset_test_vm():
+#    """
+#    Runs the `reset-kvm-test-vm.sh` script.
+#    This scripts DESTROYS the test VM and disk images and re-creates it.
+#    """
+#    shell_script = os.path.join(BASE_DIRECTORY, "dev-scripts", "reset-kvm-test-vm.sh")
+#    local("sudo -E {0}".format(shell_script))
+
+#@task
+#def start_test_vm(vm_name=None):
+#    """
+#    Runs the `start-kvm-test-vm.sh` script: starts the VM and waits until it responds to pings.
+#
+#    Parameters:
+#    - vm_name: name of the VM managed using `libvirt`, and also the name of the host
+#    (this name should respond to pings, so this scripts detect when the VM is up).
+#    """
+#    shell_script = os.path.join(BASE_DIRECTORY, "dev-scripts", "start-kvm-test-vm.sh")
+#    if vm_name is not None:
+#        local("sudo -E DAEDALUS_VM_NAME={1} {0}".format(shell_script, vm_name))
+#    else:
+#        local("sudo -E {0}".format(shell_script))
+
+
 @ task
-def install_ubuntu_packages():
+def centos_install_epel():
+    """
+    Register EPEL repository.
+    """
+    if not exists("/etc/yum.repos.d/epel.repo"):
+        run("curl -o /tmp/epel.rpm {0}".format(EPEL_RPM))
+        run("rpm -i /tmp/epel.rpm")
+
+
+@ task
+def centos_install_packages():
+    """
+    Installs required packages on CentOS.
+    """
+    execute(centos_install_epel)
+    run("yum install --assumeyes "
+        "gcc.x86_64 memcached python-devel.x86_64 zlib-devel.x86_64 "
+        "memcached memcached-devel libmemcached-devel nginx "
+        "java-1.6.0-openjdk python-virtualenv")
+    if not exists("/etc/yum.repos.d/riptano.repo"):
+        put(os.path.join(BASE_DIRECTORY, "dev-scripts", "centos", "riptano.repo"),
+            "/etc/yum.repos.d/riptano.repo")
+    run("yum install --assumeyes apache-cassandra11")
+    run("chkconfig --add cassandra")
+    run("chkconfig cassandra on")
+    run("service cassandra start")
+
+
+@ task
+def ubuntu_install_packages():
     """
     Installs required packages on Ubuntu.
     """
     run("aptitude install -y "
         "gcc memcached python-dev nginx "
-        "libmemcached-dev zlib1g-dev openjdk-6-jre "
-        "gunicorn python-pylibmc python-pip " # python-virtualenv python-django
+        "libmemcached-dev zlib1g-dev openjdk-6-jdk "
+        "python-virtualenv "
         "jsvc libcommons-daemon-java libjna-java")
     cassandra_installed = get_run_output("dpkg --get-selections | cut -f 1 | egrep '^cassandra$' | wc -l")[0]
     if int(cassandra_installed) == 0:
-        run("wget {0}".format(CASSANDRA_DEB))
-        run("dpkg -i {0}".format(CASSANDRA_DEB.split("/")[-1]))
-    run("pip install pycassa")
-    run("pip install pytz")
-    run("pip install 'django>=1.4'")
+        if not exists(CASSANDRA_DEB_URL.split("/")[-1]):
+            run("wget {0}".format(CASSANDRA_DEB_URL))
+        run("dpkg -i {0}".format(CASSANDRA_DEB_URL.split("/")[-1]))
+    # Check available memory, and shoy BIG warning if < 1GiB
 
 
 @ task
-def install_jdk():
+def custom_cassandra_install():
     """
-    Installs JDK
-    """
-    if not exists("/opt/{0}".format(JDK_INSTALL_DIR)):
-        installer_name = os.path.basename(JDK_BIN_INSTALLER)
-        dest_file = "/tmp/{0}".format(installer_name)
-        if not exists(dest_file):
-            put(JDK_BIN_INSTALLER, dest_file)
-        run("chmod +x /tmp/{0}".format(installer_name))
-        with cd("/opt"):
-            run("/tmp/{0} < /dev/null".format(installer_name))
-        run("echo /opt/{0} > /opt/daedalus.jdk".format(
-            JDK_INSTALL_DIR))
+    Installs Cassandra from a tarball
 
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Custom Cassandra installer
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    The path to the Cassandra installer in TGZ format could be overriden using
+      the environment variable CASSANDRA_TGZ_INSTALLER (in this case, you should
+      set CASSANDRA_INSTALL_DIR too).
+    
+    By default, this script looks for the file 'apache-cassandra-1.1.2-bin.tar.gz'
+      in the 'root' of the project. You can make it with
+    $ cd /path/to/daedalus
+    $ ln -s /path/to/apache-cassandra-1.1.2-bin.tar.gz  .
+    
+    If you create this link (or copy the real file), you won't have
+    to specify CASSANDRA_TGZ_INSTALLER nor CASSANDRA_INSTALL_DIR.
 
-@ task
-def install_cassandra():
-    """
-    Installs Cassandra
+    Otherwise, set CASSANDRA_TGZ_INSTALLER and CASSANDRA_INSTALL_DIR.
+
+    $ export CASSANDRA_TGZ_INSTALLER=/path/to/apache-cassandra-1.1.2-bin.tar.gz
+    $ export CASSANDRA_INSTALL_DIR=apache-cassandra-1.1.2
+    $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabric/fabfile.py -H root@192.168.122.77 install_all
     """
     # TODO: if `CASSANDRA_TGZ` doesn't exists, exit with error and instructions
     if not exists("/opt/{0}".format(CASSANDRA_INSTALL_DIR)):
@@ -216,12 +186,12 @@ def install_cassandra():
 
 
 #@task
-#def install_cassandra_init_scripts():
+#def custom_cassandra_install_init_scripts():
 #    pass
 
 
 @ task
-def launch_cassandra():
+def custom_cassandra_launch():
     """
     Launch Cassandra on VM.
     """
@@ -236,7 +206,7 @@ def launch_cassandra():
 
 
 @ task
-def shutdown_cassandra():
+def custom_cassandra_shutdown():
     """
     Shutdown Cassandra
     """
@@ -248,7 +218,7 @@ def shutdown_cassandra():
 
 
 @ task
-def tail_cassandra():
+def custom_cassandra_tail_logs():
     """
     Run 'tail -f' on Cassandra logs
     """
@@ -256,34 +226,19 @@ def tail_cassandra():
 
 
 @ task
-def install_all():
-    execute(install_jdk)
-    execute(install_cassandra)
-    execute(launch_cassandra) # Launch Cassandra as soon as possible
-    execute(install_daedalus)
-    execute(syncdb_cassandra)
-
-
-@ task
-def uninstall_all():
-    execute(shutdown_cassandra)
-    if exists("/opt/daedalus.jdk"):
-        run("test -e /opt/daedalus.jdk && "
-            "{ rm -rf $(cat /opt/daedalus.jdk) ; rm /opt/daedalus.jdk ; }")
-    if exists("/opt/daedalus.cassandra"):
-        run("test -e /opt/daedalus.cassandra && "
-            "{ rm -rf $(cat /opt/daedalus.cassandra) ; rm /opt/daedalus.cassandra ; }")
+def daedalus_uninstall():
+    """
+    Removes the installed version of Daedalus.
+    """
     run("rm -rf "
-        "/var/log/cassandra "
-        "/var/lib/cassandra "
         "/opt/daedalus-dev "
         "/opt/virtualenv")
 
 
 @ task
-def install_daedalus():
+def daedalus_reinstall():
     """
-    Installs daedalus in the testing VM.
+    (Re-)Installs daedalus in the testing VM.
     """
     local("git archive --format=tar --prefix=daedalus-dev/ HEAD | gzip "
         "> /tmp/daedalus-dev.tgz")
@@ -294,16 +249,17 @@ def install_daedalus():
     run("echo 'CACHES = {}' > /opt/daedalus-dev/src/daedalus_local_settings.py")
     run("echo 'DAEDALUS_FORCE_SERVING_STATIC_FILES = True' >> "
         "/opt/daedalus-dev/src/daedalus_local_settings.py")
-    execute(setup_virtualenv)
+    execute(virtualenv_setup)
+    execute(daedalus_syncdb)
 
 
 #@task
-#def install_daedalus_init_scripts():
+#def daedalus_install_init_scripts():
 #    pass
 
 
 @ task
-def setup_virtualenv():
+def virtualenv_setup():
     """
     Installs virtualenv and pip requirements.
     """
@@ -314,11 +270,8 @@ def setup_virtualenv():
         run("mkdir ~/pip-cache")
 
     if not exists("/opt/virtualenv"):
-        if not exists("/tmp/virtualenv.py"):
-            run("curl -o /tmp/virtualenv.py https://raw.github.com/pypa/virtualenv/master/virtualenv.py")
-    
-        run("python /tmp/virtualenv.py /opt/virtualenv")
-        
+        run("virtualenv --no-site-packages /opt/virtualenv")
+
     if not exists("/opt/daedalus-dev/virtualenv"):
         run("ln -s /opt/virtualenv /opt/daedalus-dev/virtualenv")
 
@@ -335,7 +288,7 @@ def daedalus_test():
 
 
 @task
-def run_gunicorn():
+def gunicorn_launch():
     """
     Launches gunicorn
     """
@@ -343,20 +296,20 @@ def run_gunicorn():
 
 
 #@task
-#def install_gunicorn_init_scripts():
+#def gunicorn_install_init_scripts():
 #    pass
 
 #@task
-#def nginx_init_scripts():
+#def nginx_install():
 #    pass
 
 #@task
-#def install_nginx_init_scripts():
+#def nginx_install_init_scripts():
 #    pass
 
 
 @task
-def syncdb_cassandra():
+def daedalus_syncdb():
     """
     Runs syncdb and syncdb_cassandra.
     """
