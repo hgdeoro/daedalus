@@ -1,0 +1,9 @@
+#
+# To be downloaded on /etc/yum.repos.d/riptano.repo
+#
+[riptano]
+name=Riptano Repo for CentOS $releasever – $basearch
+baseurl=http://rpm.riptano.com/community
+failovermethod=priority
+enabled=1
+gpgcheck=0
