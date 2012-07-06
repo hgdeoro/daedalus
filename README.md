@@ -8,7 +8,9 @@ There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
 
 This project is al alpha-quality stage, not recommended to be used on production systems.
 
-It's developed on Ubuntu 12.04, and now tested on a CentOS 6 and Ubuntu 12.04 LTS Server virtual machines (with the help of fabric).
+It's developed on Ubuntu 12.04, and tested on CentOS 6 and Ubuntu 12.04 LTS Server virtual machines (with the help of fabric).
+
+Click [here](https://github.com/hgdeoro/daedalus/issues) to report any issue.
 
 Implemented functional use cases
 ----------------------------------------
@@ -65,7 +67,7 @@ Install to a Ubuntu virtual machine:
 For developers: how to download and hack
 ----------------------------------------
 
-Install Cassandra: [download](http://cassandra.apache.org/download/),
+Cassandra: [download](http://cassandra.apache.org/download/),
 [install](http://wiki.apache.org/cassandra/GettingStarted) and start Cassandra.
 
 Download from GitHub

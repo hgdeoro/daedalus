@@ -29,9 +29,15 @@ from fabric.utils import abort, warn
 from fabric.tasks import execute
 
 """
-This fabric script is intended to automate the testing of Daedalus in different
-Linux distributions. To lower the complexity I have removed the installation of
-the JDK (it's difficult to automate) and now this script use the distribution's JDK.
+This fabric script is intended to automate the testing of Daedalus in virtual machines
+with different Linux distributions.
+
+Java/JDK: to lower the complexity I have removed the installation of
+the JDK since it's difficult to automate (now the distribution's JDK is used).
+
+Cassandra: is installed from the official .deb package on Ubuntu, and from the
+Riptano repository on CentOS.
+ To install other version, see the fabric task: `custom_cassandra_install()`
 """
 
 # Base directory of Daedalus
