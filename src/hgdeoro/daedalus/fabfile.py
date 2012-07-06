@@ -23,7 +23,7 @@ import os
 
 from fabric.decorators import task
 from fabric.operations import local, put, run
-from fabric.context_managers import cd
+from fabric.context_managers import cd, hide
 from fabric.contrib.files import exists
 from fabric.utils import abort, warn
 from fabric.tasks import execute
@@ -101,6 +101,8 @@ JDK_BIN_INSTALLER = os.environ.get('JDK_BIN_INSTALLER',
 # Name of the directory that the JDK installer creates
 JDK_INSTALL_DIR = os.environ.get('JDK_INSTALL_DIR', "jdk1.6.0_32")
 
+CASSANDRA_DEB = "http://www.apache.org/dist/cassandra/debian/pool/main/c/cassandra/cassandra_1.1.2_all.deb"
+
 CASSANDRA_PID = "/var/log/cassandra/cassandra.pid"
 
 EPEL_RPM = "http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm"
@@ -140,7 +142,20 @@ def install_centos_packages():
     """
     run("yum install --assumeyes "
         "gcc.x86_64 memcached python-devel.x86_64 zlib-devel.x86_64 "
-        "memcached memcached-devel libmemcached-devel nginx")
+        "memcached memcached-devel libmemcached-devel nginx "
+        "java-1.6.0-openjdk")
+
+
+def get_run_output(*args, **kwargs):
+    """
+    Ejecuta comando en OpenWrt y devuleve (ret.stdout, ret).
+
+    Ejemplo:
+        out, _ = get_run_output("ls -lh /")
+    """
+    with hide('stdout'):
+        ret = run(*args, **kwargs)
+    return ret.stdout, ret
 
 
 @ task
@@ -149,8 +164,17 @@ def install_ubuntu_packages():
     Installs required packages on Ubuntu.
     """
     run("aptitude install -y "
-        "gcc memcached python-dev nginx"
-        " libmemcached-dev zlib1g-dev")
+        "gcc memcached python-dev nginx "
+        "libmemcached-dev zlib1g-dev openjdk-6-jre "
+        "gunicorn python-pylibmc python-pip " # python-virtualenv python-django
+        "jsvc libcommons-daemon-java libjna-java")
+    cassandra_installed = get_run_output("dpkg --get-selections | cut -f 1 | egrep '^cassandra$' | wc -l")[0]
+    if int(cassandra_installed) == 0:
+        run("wget {0}".format(CASSANDRA_DEB))
+        run("dpkg -i {0}".format(CASSANDRA_DEB.split("/")[-1]))
+    run("pip install pycassa")
+    run("pip install pytz")
+    run("pip install 'django>=1.4'")
 
 
 @ task
