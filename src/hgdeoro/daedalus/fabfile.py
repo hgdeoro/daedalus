@@ -235,8 +235,8 @@ def tail_cassandra():
 def install_all():
     execute(install_jdk)
     execute(install_cassandra)
+    execute(launch_cassandra) # Launch Cassandra as soon as possible
     execute(install_daedalus)
-    execute(launch_cassandra)
     execute(syncdb_cassandra)
 
 
