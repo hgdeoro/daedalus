@@ -25,7 +25,7 @@ from fabric.decorators import task
 from fabric.operations import local, put, run
 from fabric.context_managers import cd
 from fabric.contrib.files import exists
-from fabric.utils import abort
+from fabric.utils import abort, warn
 from fabric.tasks import execute
 
 #
@@ -199,20 +199,16 @@ def install_cassandra():
 @ task
 def launch_cassandra():
     """
-    Launch Cassandra on VM
+    Launch Cassandra on VM.
     """
-    # This gave me LOT of problems, and after some tries, couldn't make to
-    # launch cassandra in the background from fabric (using nohup and &)
-    # so, this method launchs Cassandra in foreground (and you'll see all
-    # the logs
     if not exists("/opt/daedalus.jdk"):
         abort("/opt/daedalus.jdk doesn't exists on server. Install the JDK and retry.")
     if not exists("/opt/daedalus.cassandra"):
         abort("/opt/daedalus.cassandra doesn't exists on server. Install Cassandra and retry.")
-    run("env JAVA_HOME=$(cat /opt/daedalus.jdk) "
+    run("nohup su -c 'env JAVA_HOME=$(cat /opt/daedalus.jdk) "
         "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin "
         "$(cat /opt/daedalus.cassandra)/bin/cassandra "
-        "-f -p {0}".format(CASSANDRA_PID))
+        "-f -p {0} &' > /tmp/1 2> /tmp/2 < /dev/null".format(CASSANDRA_PID))
 
 
 @ task
@@ -223,6 +219,16 @@ def shutdown_cassandra():
     if exists(CASSANDRA_PID):
         run("kill $(cat {0}) || true".format(CASSANDRA_PID))
         run("test -e {0} && rm {0}".format(CASSANDRA_PID))
+    else:
+        warn("Can't stop Cassandra: pid file not found")
+
+
+@ task
+def tail_cassandra():
+    """
+    Run 'tail -f' on Cassandra logs
+    """
+    run("tail -f /var/log/cassandra/*.log")
 
 
 @ task
@@ -230,8 +236,7 @@ def install_all():
     execute(install_jdk)
     execute(install_cassandra)
     execute(install_daedalus)
-    # FIXME: before `syncdb_cassandra` we shoud make sure Cassandra is running
-    # execute(launch_cassandra)
+    execute(launch_cassandra)
     execute(syncdb_cassandra)
 
 

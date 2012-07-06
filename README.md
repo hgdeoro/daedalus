@@ -8,9 +8,9 @@ There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
 
 This project is al alpha-quality stage, not recommended to be used on production systems.
 
-It's developed on Ubuntu 12.04, and now tested on a CentOS 6 and Ubuntu 12.04 LTS Server virtual machinees (with the help of fabric).
+It's developed on Ubuntu 12.04, and now tested on a CentOS 6 and Ubuntu 12.04 LTS Server virtual machines (with the help of fabric).
 
-Implemented functional use cases (as of v0.0.2)
+Implemented functional use cases
 ----------------------------------------
 
 1. Backend: Receive log messages using HTTP (POST with JSON encoded message)
@@ -57,6 +57,9 @@ Install to a Ubuntu virtual machine:
 For developers: how to download and hack
 ----------------------------------------
 
+Install Cassandra: [download](http://cassandra.apache.org/download/),
+[install](http://wiki.apache.org/cassandra/GettingStarted) and start Cassandra.
+
 Download from GitHub
 
     $ git clone http://github.com/hgdeoro/daedalus
@@ -99,8 +102,6 @@ Current iteration goals
 ----------------------------------------
 
 * Test the instructions of the section 'For the curious: install in a virtual machine'
-
-* Fix the fabric task `launch_cassandra()` so we can install Daedalus enterely from `install_all()`.
 
 
 Not implemented right now / Ideas / TODOs
