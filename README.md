@@ -29,19 +29,27 @@ Implemented functional use cases
 For the curious: install in a virtual machine
 ----------------------------------------
 
-I recommend run this in a newly created virtual machine, since the fabric script needs to
-connect to the virtual machine as root.
+I recommend run this in a newly created virtual machine, since the fabric script connects 
+and install all the services as root. The scripts installs Java and Cassandra, and to do
+this, you must download the _bin_ installer of JDK 6u32 `jdk-6u32-linux-x64.bin`
+and `apache-cassandra-1.1.2-bin.tar.gz`.
 
-Create a virtual machine of your choice (I use KVM+libvirt).
+(1) Create a virtual machine of your choice (I use KVM+libvirt).
 
-Clone Daedalus using Git:
+(2) Clone Daedalus using Git:
 
     $ git clone http://github.com/hgdeoro/daedalus
     $ cd daedalus
 
-Setup virtualenv and activate it:
+(3) Download the JDK installer and Cassandra, and copy/symlink them to the current directory `daedalus`.
 
-    $ virtualenv virtualenv
+    $ ln -s /path/to/jdk-6u32-linux-x64.bin .
+    $ ln -s /path/to/apache-cassandra-1.1.2-bin.tar.gz .
+
+(4) Download, setup and activate virtualenv:
+
+    $ curl -o /tmp/virtualenv.py https://raw.github.com/pypa/virtualenv/master/virtualenv.py
+    $ python /tmp/virtualenv.py virtualenv
     $ ./virtualenv/bin/pip install -r requirements-dev.txt
     $ . ./virtualenv/bin/activate
 
@@ -64,7 +72,7 @@ Download from GitHub
 
     $ git clone http://github.com/hgdeoro/daedalus
     $ cd daedalus
-    
+
 Create virtualenv and install requeriments
 
     $ virtualenv virtualenv
