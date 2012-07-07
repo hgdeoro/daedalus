@@ -11,4 +11,3 @@ if [ -z "$1" ] ; then
 else
 	$(dirname $0)/manage.sh test --liveserver=localhost:65101 $*
 fi
-

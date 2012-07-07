@@ -93,7 +93,7 @@ Create virtualenv and install requeriments
     $ ./virtualenv/bin/pip install -r requirements.txt
     $ ./virtualenv/bin/pip install -r requirements-dev.txt
 
-Run syncdb and syncdb_cassandra
+Run `syncdb` and `syncdb_cassandra`
 
     $ ./dev-scripts/manage.sh syncdb
     $ ./dev-scripts/manage.sh syncdb_cassandra

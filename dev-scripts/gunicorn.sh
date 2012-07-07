@@ -5,12 +5,14 @@ set -e
 cd $(dirname $0)/..
 
 # path
-export PYTHONPATH=src
+export PYTHONPATH="src:$PYTHONPATH"
 
-# virtualenv
-. ./virtualenv/bin/activate
+# check if virtualenv exists and activate it
+if [ -d ./virtualenv ] ; then
+        . ./virtualenv/bin/activate
+fi
 
-export DJANGO_SETTINGS_MODULE="hgdeoro.daedalus.settings"
+export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-"hgdeoro.daedalus.settings"}
 
 gunicorn --bind=0.0.0.0:8084 hgdeoro.daedalus.web.wsgi:application $*
 

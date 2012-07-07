@@ -6,15 +6,9 @@
 
 set -e
 
-cd $(dirname $0)/..
-
-# path
-export PYTHONPATH=src
-
-# virtualenv
-. ./virtualenv/bin/activate
-
 export DJANGO_SETTINGS_MODULE="hgdeoro.daedalus.web.settings_backend_only"
 
-django-admin.py $*
+cd $(dirname $0)
+
+./manage.sh $*
 

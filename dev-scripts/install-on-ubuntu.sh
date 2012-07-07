@@ -22,8 +22,8 @@ cd daedalus
 git checkout stable
 
 # Setup Cassandra Keyspaces
-./dev-scripts/manage-nv.sh syncdb_cassandra
+./dev-scripts/manage.sh syncdb_cassandra
 
 # Launch Daedalus, listening on all interfaces/IP on port 8080
-./dev-scripts/manage-nv.sh runserver 0.0.0.0:8080
+./dev-scripts/manage.sh runserver 0.0.0.0:8080
 
