@@ -123,8 +123,6 @@ The project could be imported from within Eclipse PyDev.
 Current iteration goals
 ----------------------------------------
 
-* Change all the scripts on dev-scripts/ to automatically use virtualenv only if it exists.
-
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
@@ -208,6 +206,15 @@ Glosary
   - severity
   - timestamp (Cassandra)
 
+
+Changelog
+----------------------------------------
+
+### v0.0.6
+
+* Many enhacements on fabric scripts and new tasks: `daedalus_syncdb()`, `gunicorn_launch()`
+* Created `dev-scripts/install-on-ubuntu.sh` to document and automatize installation on Ubuntu
+* Updated scripts on `dev-scripts/` to automatically use virtualenv if exists
 
 License
 ----------------------------------------
