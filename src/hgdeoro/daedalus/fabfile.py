@@ -147,7 +147,8 @@ def ubuntu_install_packages():
         "gcc memcached python-dev nginx "
         "libmemcached-dev zlib1g-dev openjdk-6-jdk "
         "python-virtualenv "
-        "jsvc libcommons-daemon-java libjna-java")
+        "jsvc libcommons-daemon-java libjna-java "
+        "python-support")
     cassandra_installed = get_run_output("dpkg --get-selections | cut -f 1 | egrep '^cassandra$' | wc -l")[0]
     if int(cassandra_installed) == 0:
         if not exists(CASSANDRA_DEB_URL.split("/")[-1]):
@@ -315,6 +316,15 @@ def daedalus_test():
     Runs the tests in the testing vm..
     """
     run("/opt/daedalus-dev/dev-scripts/test.sh")
+
+
+@ task
+def daedalus_insert_500_random():
+    """
+    Runs the tests in the testing vm..
+    """
+    run("env dont_drop_daedalus_tests=1 "
+        "/opt/daedalus-dev/dev-scripts/test.sh backend.BulkSave.bulk_sparse_save_500")
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
