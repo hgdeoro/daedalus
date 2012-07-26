@@ -123,6 +123,11 @@ The project could be imported from within Eclipse PyDev.
 Current iteration goals
 ----------------------------------------
 
+* Create a command line to send log events
+
+* Create a Django middleware to log exceptions
+
+* Create a handler for the Python logging framework
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
