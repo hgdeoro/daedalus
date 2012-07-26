@@ -21,3 +21,4 @@
 /fab-centos.sh
 /_centos-reset-kvm-test-vm.sh
 /_centos-start-kvm-test-vm.sh
+/cluster
