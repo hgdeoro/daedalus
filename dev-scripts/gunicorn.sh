@@ -5,7 +5,7 @@ set -e
 cd $(dirname $0)/..
 
 # path
-export PYTHONPATH="src:$PYTHONPATH"
+export PYTHONPATH="src:src-client:$PYTHONPATH"
 
 # check if virtualenv exists and activate it
 if [ -d ./virtualenv ] ; then

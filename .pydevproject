@@ -8,6 +8,7 @@
 <path>/daedalus/src</path>
 <path>/daedalus/virtualenv/lib/python2.7/site-packages</path>
 <path>/daedalus/virtualenv/src/fabric</path>
+<path>/daedalus/src-client</path>
 </pydev_pathproperty>
 <pydev_variables_property name="org.python.pydev.PROJECT_VARIABLE_SUBSTITUTION">
 <key>DJANGO_MANAGE_LOCATION</key>
