@@ -69,7 +69,7 @@ def sparse_timestamp_generator(random_seed):
         yield "{0:0.30f}".format(curr_time - (four_months * random_gen.random()))
 
 
-def _bulk_save_random_messages_to_real_keyspace(max_count, timestamp_generator=None):
+def _bulk_save_random_messages_to_real_keyspace(max_count, timestamp_generator=None, *args, **kwargs):
     """
     Saves messages on REAL keyspace.
     Returns a tuple (item inserted, elapsed time).
@@ -77,16 +77,22 @@ def _bulk_save_random_messages_to_real_keyspace(max_count, timestamp_generator=N
     settings.KEYSPACE = settings.KEYSPACE_REAL
     print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
     return _bulk_save_random_messages_to_default_keyspace(max_count,
-        timestamp_generator=timestamp_generator)
+        timestamp_generator=timestamp_generator, *args, **kwargs)
 
 
-def _bulk_save_random_messages_to_default_keyspace(max_count=None, timestamp_generator=None):
+def _bulk_save_random_messages_to_default_keyspace(max_count=None,
+        timestamp_generator=None, max_rate=None):
     """
     Saves messages to the configured keyspace (settings.KEYSPACE).
     Returns a tuple (item inserted, elapsed time).
+    If max_rate is not None, that value limits the insert per seconds.
     """
     start = time.time()
     count = 0
+    if max_rate is not None:
+        wait_between = 1.0 / float(max_rate)
+    else:
+        wait_between = 0.0
     with get_service_cm() as storage_service:
         storage_service.create_keyspace_and_cfs()
         try:
@@ -96,7 +102,9 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None, timestamp_gen
                 count += 1
                 if max_count > 0 and count >= max_count:
                     break
-                if count % 1000 == 0:
+                if max_rate is not None:
+                    time.sleep(wait_between)
+                if count % 100 == 0:
                     avg = float(count) / (time.time() - start)
                     last_message_date = str(datetime.datetime.fromtimestamp(float(message['timestamp'])))
                     logging.info("Inserted %d messages, %f insert/sec - Last message date: %s",
@@ -362,7 +370,11 @@ class BulkSave(StorageTest):
         logging.basicConfig(level=logging.INFO)
         settings.CASSANDRA_CONNECT_RETRY_WAIT = 1
         print "Patched value of CASSANDRA_CONNECT_RETRY_WAIT to 1"
-        _bulk_save_random_messages_to_real_keyspace(0)
+        max_rate = os.environ.get('max_rate', None)
+        if max_rate:
+            _bulk_save_random_messages_to_real_keyspace(0, max_rate=float(max_rate))
+        else:
+            _bulk_save_random_messages_to_real_keyspace(0)
 
     def bulk_sparse_save_until_stop(self, max_count=0):
         """
