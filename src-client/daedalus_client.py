@@ -163,12 +163,13 @@ class DaedalusClient(object):
         Sends a message to the server using the current time.
         """
         try:
-            self._send_message(message, severity, host, application)
+            return self._send_message(message, severity, host, application)
         except:
             if self.log_client_errors:
                 self._logger.exception("Couldn't send message to the server")
             if self.raise_client_exceptions:
                 raise
+            return False
 
     def _send_message(self, message, severity='INFO', host=None, application=None):
         timestamp = utc_str_timestamp()
@@ -223,8 +224,14 @@ class DaedalusClient(object):
 # Main
 #===============================================================================
 
+description = """This is a CLI version of Daedalus client.
+This utility allows you send messages to be stored on Daedalus.
+
+This scripts returns with exit status = 0 if the message was sent.
+"""
+
 if __name__ == '__main__':
-    parser = optparse.OptionParser()
+    parser = optparse.OptionParser(description=description)
     parser.add_option('-s', '--daedalus-server', default="localhost",
         help="Hostname or IP of Daedalus server",
         dest="daedalus_server")
@@ -244,6 +251,10 @@ if __name__ == '__main__':
     parser.add_option('-m', '--message',
         help="Message to send",
         dest="message")
+    parser.add_option('--show-client-exceptions',
+        action="store_true", default=False,
+        help="Show traceback of client exceptions",
+        dest="show_client_exceptions")
 
     (opts, args) = parser.parse_args()
 
@@ -253,9 +264,15 @@ if __name__ == '__main__':
 
     client = DaedalusClient(opts.daedalus_server, int(opts.daedalus_port),
         opts.application, opts.host,
-        log_client_errors=False, raise_client_exceptions=True)
+        log_client_errors=False, raise_client_exceptions=opts.show_client_exceptions)
 
+    # If an exceptino is raised, the exit status will be non-zero
     if opts.from_stdin:
-        client.send_message(sys.stdin.read(), INFO)
+        sent_ok = client.send_message(sys.stdin.read(), INFO)
     else:
-        client.send_message(opts.message, INFO)
+        sent_ok = client.send_message(opts.message, INFO)
+
+    if sent_ok:
+        sys.exit(0)
+    else:
+        sys.exit(1)
