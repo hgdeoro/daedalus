@@ -164,26 +164,18 @@ class DaedalusClient(object):
         """
         try:
             self._send_message(message, severity, host, application)
-        except DaedalusException:
-            # If we get a DaedalusException, always re-raise them, since
-            # they're raised from _send_message() only if 'self.raise_client_exceptions' is True
-            raise
         except:
             if self.log_client_errors:
                 self._logger.exception("Couldn't send message to the server")
             if self.raise_client_exceptions:
                 raise
 
-    def _send_message(self, message, severity, host, application):
-        if severity is None:
-            severity = 'INFO'
+    def _send_message(self, message, severity='INFO', host=None, application=None):
+        timestamp = utc_str_timestamp()
         if host is None:
             host = self.default_message_host
         if application is None:
             application = self.default_message_application
-
-        timestamp = utc_str_timestamp()
-
         msg_dict = {
             'application': application,
             'host': host,
@@ -200,46 +192,30 @@ class DaedalusClient(object):
             conn = httplib.HTTPConnection(host=self.server_host, port=self.server_port)
             conn.request("POST", "/backend/save/", params, {})
             response = conn.getresponse()
-            if response.status == 201:
-                # response.status == 201
+            if response.status == 201: # response.status == 201
                 try:
                     response_data = response.read()
                     response_dict = json.loads(response_data)
                     if response_dict['status'] == 'ok':
                         self._logger.debug("Log message sent OK.")
-                        return
-                except:
-                    pass
-                msg = "Even when http status was 201, something happened " \
-                    "when trying to process the server response"
-                if self.log_client_errors:
-                    self._logger.error(msg)
-                if self.raise_client_exceptions:
-                    raise(DaedalusException(msg))
-                return
-            else:
-                # response.status != 201
-                # We should log a message, raise an exception, or both
+                        return True
+                    else:
+                        raise(DaedalusException("Server returned status != ok. Status: {0}".format(
+                            response_dict['status'])))
+                except: # http, json, etc.
+                    msg = "Even when http status was 201, something happened " \
+                        "when trying to process the server response"
+                    raise(DaedalusException(msg)) # @@@@@@@@@@
+            else: # response.status != 201
                 msg = "Invalid response from server. - status: {0} - reason: {1}".format(
                     response.status, response.reason)
-                if self.log_client_errors:
-                    # Try to read the content of the response
-                    try:
-                        response_data = response.read()
-                    except:
-                        self._logger.exception("Couldn't read the server response")
-                        response_data = ''
-                    self._logger.error(msg + "\n" + response_data)
-                if self.raise_client_exceptions:
-                    raise(DaedalusException(msg))
-                else:
-                    return
+                raise(DaedalusException(msg))
         finally:
             if conn is not None:
                 try:
                     conn.close()
                 except:
-                    if self.log_client_errors:
+                    if self.log_client_errors: # Don't rethrow this exception, it's not so important
                         self._logger.exception("Error detected when trying to close http connection")
 
 
