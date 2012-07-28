@@ -19,21 +19,55 @@
 ##    along with daedalus; see the file LICENSE.txt.
 ##-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import calendar
 import httplib
-import logging
-import os
-import urllib
 import json
+import logging
+import math
+import optparse
 import sys
+import time
 import traceback
-
-from hgdeoro.daedalus.utils import utc_str_timestamp
+import urllib
 
 
 ERROR = 'ERROR'
 WARN = 'WARN'
 INFO = 'INFO'
 DEBUG = 'DEBUG'
+
+
+#===============================================================================
+# This should be the same of `hgdeoro.daedalus.utils.utc_now_from_epoch()`
+#===============================================================================
+
+def utc_now_from_epoch():
+    """
+    Returns a float timestamp representing the current time in seconds from epoch, as UTC.
+    This is a UTC version of time.time()
+    """
+    current_time_from_epoch = time.time()
+    utc_timetuple = time.gmtime(current_time_from_epoch)
+    from_epoch = calendar.timegm(utc_timetuple) + math.modf(current_time_from_epoch)[0]
+    return from_epoch
+
+
+#===============================================================================
+# This should be the same of `hgdeoro.daedalus.utils.utc_str_timestamp()`
+#===============================================================================
+
+def utc_str_timestamp():
+    """
+    Returns a string representing the current time in UTC.
+    The string represents a float: the seconds from EPOCH.
+    """
+    # First implementation. Worked OK, but found other method with better presission.
+    #    utcnow = datetime.datetime.utcnow()
+    #    timestamp = "{0}.{1:06}".format(calendar.timegm(utcnow.timetuple()), utcnow.microsecond)
+    #    return timestamp
+
+    # FIXME: change hardcoded '30' with the real precision of time.time()
+    return "{0:0.30f}".format(utc_now_from_epoch())
 
 
 #===============================================================================
@@ -210,22 +244,43 @@ class DaedalusClient(object):
                         self._logger.exception("Error detected when trying to close http connection")
 
 
+#===============================================================================
+# Main
+#===============================================================================
+
 if __name__ == '__main__':
-    """
-    Examples:
-        $ sudo tail -f /var/log/syslog | env daedalus_app_name=syslog python -u daedalus_client.py
-    """
-    daedalus_host = os.environ.get('daedalus_host', 'localhost')
-    daedalus_port = os.environ.get('daedalus_port', '8085')
-    # FIXME: sanitize hostname, or at least check that it's valid
-    daedalus_hostname = os.environ.get('daedalus_hostname', os.uname()[1])
-    daedalus_app_name = os.environ.get('daedalus_app_name', 'os')
-    client = DaedalusClient(daedalus_host, int(daedalus_port), daedalus_hostname,
-        daedalus_app_name, log_client_errors=False, raise_client_exceptions=False)
-    while True:
-        try:
-            for line in sys.stdin:
-                msg = line.strip()
-                client.send_message(msg, INFO)
-        except KeyboardInterrupt:
-            break
+    parser = optparse.OptionParser()
+    parser.add_option('-s', '--daedalus-server', default="localhost",
+        help="Hostname or IP of Daedalus server",
+        dest="daedalus_server")
+    parser.add_option('-p', '--daedalus-port', default="8084", type="int",
+        help="Port of Daedalus server",
+        dest="daedalus_port")
+    parser.add_option('-a', '--application',
+        help="Name of the application that generated the message",
+        dest="application")
+    parser.add_option('-o', '--host',
+        help="Name of the host that generated the message",
+        dest="host")
+    parser.add_option('-i', '--from-stdin',
+        action="store_true", default=False,
+        help="Read the message from STDIN",
+        dest="from_stdin")
+    parser.add_option('-m', '--message',
+        help="Message to send",
+        dest="message")
+
+    (opts, args) = parser.parse_args()
+
+    if not (opts.from_stdin or opts.message):
+        parser.print_help()
+        exit(1)
+
+    client = DaedalusClient(opts.daedalus_server, int(opts.daedalus_port),
+        opts.application, opts.host,
+        log_client_errors=False, raise_client_exceptions=True)
+
+    if opts.from_stdin:
+        client.send_message(sys.stdin.read(), INFO)
+    else:
+        client.send_message(opts.message, INFO)

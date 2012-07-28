@@ -37,7 +37,9 @@ from pycassa.columnfamily import ColumnFamily
 from pycassa.pool import ConnectionPool
 from pycassa.util import convert_time_to_uuid, convert_uuid_to_time
 
-from daedalus_client import DaedalusClient, DaedalusException, ERROR
+from daedalus_client import DaedalusClient, DaedalusException, ERROR, \
+    utc_now_from_epoch as utc_now_from_epoch_from_client, \
+    utc_str_timestamp as utc_str_timestamp_from_client
 
 from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
 from hgdeoro.daedalus.storage import get_service_cm, get_service
@@ -774,6 +776,18 @@ class DaedalusClientTest(LiveServerTestCase):
     def test_custom_logger(self):
         DaedalusClient(self.server_thread.host, int(self.server_thread.port),
             custom_logger='StdOutCustomLogger')
+
+    def test_duplicated_functions(self):
+        """
+        Assert that duplicated functions on client are exactly the same from `utils`
+        """
+        import inspect
+        self.assertEquals(
+            inspect.getsource(utc_now_from_epoch),
+            inspect.getsource(utc_now_from_epoch_from_client))
+        self.assertEquals(
+            inspect.getsource(utc_str_timestamp),
+            inspect.getsource(utc_str_timestamp_from_client))
 
 
 class DaedalusLoggingHandlerTest(LiveServerTestCase):
