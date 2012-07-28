@@ -778,68 +778,126 @@ class DaedalusClientTest(LiveServerTestCase):
 
 class DaedalusLoggingHandlerTest(LiveServerTestCase):
 
-    def _test(self):
+    def _gen_dict_config(self, daedalus_host, daedalus_port,
+        default_message_host='somehost', default_message_app='someapp', daedalus_debug=True,
+        habndler_level='WARN', logger_level='WARN', propagate=True):
         #=======================================================================
         # Setup logging with dictConfig
         # See: http://docs.python.org/library/logging.config.html#logging-config-dictschema
         #=======================================================================
-        logging.config.dictConfig({
+        return {
             'version': 1,
             'formatters': {
-                #    'formatter_id': {
-                #    },
-                #    'formatter_id': {
-                #    },
+                #    'formatter_id': { },
+                #    'formatter_id': { },
             },
             'filters': {
-                #    'filter_id': {
-                #    },
-                #    'filter_id': {
-                #    },
+                #    'filter_id': {},
+                #    'filter_id': {},
             },
             'handlers': {
                 'daedalus_handler': {
                     'class': 'daedalus_logging_handler.CustomHandler',
-                    'level': 'WARN',
-                    #    'formatter': 'xxxxxx',
-                    #    'filters': ['xxxxxx', 'xxxxxx'],
-                    'daedalus_host': self.server_thread.host,
-                    'daedalus_port': self.server_thread.port,
-                    'host': 'somehost',
-                    'application': 'someapp',
-                    'daedalus_debug': True,
+                    'level': habndler_level,
+                    #    'formatter': 'formatter_id',
+                    #    'filters': ['filter_id', 'filter_id'],
+                    'daedalus_host': daedalus_host,
+                    'daedalus_port': daedalus_port,
+                    'host': default_message_host,
+                    'application': default_message_app,
+                    'daedalus_debug': daedalus_debug,
                     # 'custom_logger': 'StdOutCustomLogger',
                 },
             },
             'loggers': {
+                '': {
+                    'handlers': ['daedalus_handler'],
+                    'level': logger_level,
+                    'propagate': propagate,
+                },
                 #    'logger_id': {
                 #        'level': 'xxxxxxxxx',
                 #        'propagate': 'xxxxxxxxx',
                 #        'filters': ['xxxxxx', 'xxxxxx'],
                 #        'handlers': ['xxxxxx', 'xxxxxx'],
                 #    },
-                '': {
-                    'handlers': ['daedalus_handler'],
-                    'level': 'INFO',
-                    'propagate': True
-                },
             },
             'root': {
                 # Same as items of 'loggers'
             },
             'incremental': False,
             'disable_existing_loggers': True,
-        })
+        }
 
-        #=======================================================================
-        # Test logging
-        #=======================================================================
+    def _test_all(self):
+        self._test_debug()
+        self._test_info()
+        self._test_warn()
+        self._test_error()
 
-        logging.debug("This is a DEBUG message.")
-        logging.info("This is a INFO message.")
+    def _test_debug(self):
+        _truncate_all_column_families()
+        logging.config.dictConfig(self._gen_dict_config(self.server_thread.host, self.server_thread.port,
+            habndler_level='DEBUG', logger_level='DEBUG'))
+
+        debug_msg = "This is a DEBUG message {0}.".format(uuid.uuid4())
+        info_msg = "This is a INFO message {0}.".format(uuid.uuid4())
         warn_msg = "This is a WARN message {0}.".format(uuid.uuid4())
-        logging.warn(warn_msg)
         error_msg = "This is a ERROR message {0}.".format(uuid.uuid4())
+
+        logging.debug(debug_msg)
+        logging.info(info_msg)
+        logging.warn(warn_msg)
+        logging.error(error_msg)
+
+        service = get_service(cache_enabled=False)
+        i = 0
+        result = service.query()
+        while len(result) == 0 and i < 100:
+            i += 1
+            result = service.query()
+        self.assertEqual(len(result), 4)
+        for a_message in result:
+            self.assertIn(a_message['message'], (debug_msg, info_msg, warn_msg, error_msg))
+
+    def _test_info(self):
+        _truncate_all_column_families()
+        logging.config.dictConfig(self._gen_dict_config(self.server_thread.host, self.server_thread.port,
+            habndler_level='INFO', logger_level='INFO'))
+
+        debug_msg = "This is a DEBUG message {0}.".format(uuid.uuid4())
+        info_msg = "This is a INFO message {0}.".format(uuid.uuid4())
+        warn_msg = "This is a WARN message {0}.".format(uuid.uuid4())
+        error_msg = "This is a ERROR message {0}.".format(uuid.uuid4())
+
+        logging.debug(debug_msg)
+        logging.info(info_msg)
+        logging.warn(warn_msg)
+        logging.error(error_msg)
+
+        service = get_service(cache_enabled=False)
+        i = 0
+        result = service.query()
+        while len(result) == 0 and i < 100:
+            i += 1
+            result = service.query()
+        self.assertEqual(len(result), 3)
+        for a_message in result:
+            self.assertIn(a_message['message'], (info_msg, warn_msg, error_msg))
+
+    def _test_warn(self):
+        _truncate_all_column_families()
+        logging.config.dictConfig(self._gen_dict_config(self.server_thread.host, self.server_thread.port,
+            habndler_level='WARN', logger_level='WARN'))
+
+        debug_msg = "This is a DEBUG message {0}.".format(uuid.uuid4())
+        info_msg = "This is a INFO message {0}.".format(uuid.uuid4())
+        warn_msg = "This is a WARN message {0}.".format(uuid.uuid4())
+        error_msg = "This is a ERROR message {0}.".format(uuid.uuid4())
+
+        logging.debug(debug_msg)
+        logging.info(info_msg)
+        logging.warn(warn_msg)
         logging.error(error_msg)
 
         service = get_service(cache_enabled=False)
@@ -850,4 +908,29 @@ class DaedalusLoggingHandlerTest(LiveServerTestCase):
             result = service.query()
         self.assertEqual(len(result), 2)
         for a_message in result:
-            self.assertIn(a_message['message'], (error_msg, warn_msg))
+            self.assertIn(a_message['message'], (warn_msg, error_msg))
+
+    def _test_error(self):
+        _truncate_all_column_families()
+        logging.config.dictConfig(self._gen_dict_config(self.server_thread.host, self.server_thread.port,
+            habndler_level='ERROR', logger_level='ERROR'))
+
+        debug_msg = "This is a DEBUG message {0}.".format(uuid.uuid4())
+        info_msg = "This is a INFO message {0}.".format(uuid.uuid4())
+        warn_msg = "This is a WARN message {0}.".format(uuid.uuid4())
+        error_msg = "This is a ERROR message {0}.".format(uuid.uuid4())
+
+        logging.debug(debug_msg)
+        logging.info(info_msg)
+        logging.warn(warn_msg)
+        logging.error(error_msg)
+
+        service = get_service(cache_enabled=False)
+        i = 0
+        result = service.query()
+        while len(result) == 0 and i < 100:
+            i += 1
+            result = service.query()
+        self.assertEqual(len(result), 1)
+        for a_message in result:
+            self.assertIn(a_message['message'], (error_msg, ))
