@@ -558,22 +558,25 @@ class StorageService2(StorageService):
     def __init__(self, *args, **kwargs):
         StorageService.__init__(self, *args, **kwargs)
 
-    def save_log(self, message):
+    def save_log(self, application, host, severity, timestamp, message):
         EMPTY_VALUE = ''
         pool = self._get_pool()
-
-        application = message['application']
-        host = message['host']
-        severity = message['severity']
-        timestamp = message['timestamp']
 
         _check_application(application)
         _check_severity(severity)
         _check_host(host)
 
         event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
-        message['_uuid'] = event_uuid.get_hex()
-        json_message = json.dumps(message)
+        _uuid_hex = event_uuid.get_hex()
+
+        json_message = json.dumps({
+            'application': application,
+            'host': host,
+            'severity': severity,
+            'timestamp': timestamp,
+            '_uuid': _uuid_hex,
+            'message': message,
+        })
 
         with Mutator(pool) as batch:
             # Save on <CF> CF_LOGS

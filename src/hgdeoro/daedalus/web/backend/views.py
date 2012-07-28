@@ -45,17 +45,12 @@ def error_500(request):
 
 @csrf_exempt
 def save_log(request):
-    #
-    #* Log message
-    #  - **Message**: Exception when invoking service
-    #  - **Detail**: (stacktrace)
-    #  - **Application**: intranet
-    #  - **Host**: 192.168.91.77
-    #  - **Severity**: FATAL
-    #  - **Timestamp**: 1338569478
-    #
-    json_encoded_payload = request.POST['payload']
-    message = json.loads(json_encoded_payload)
+    application = request.POST['application']
+    host = request.POST['host']
+    severity = request.POST['severity']
+    timestamp = request.POST['timestamp']
+    message = request.POST['message']
+
     with get_service_cm() as storage_service:
-        storage_service.save_log(message)
+        storage_service.save_log(application, host, severity, timestamp, message)
     return HttpResponse(json.dumps({'status': 'ok'}), status=201)

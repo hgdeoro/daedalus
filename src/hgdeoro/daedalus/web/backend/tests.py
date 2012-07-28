@@ -101,7 +101,8 @@ def _bulk_save_random_messages_to_default_keyspace(max_count=None,
         try:
             logging.info("Starting insertions...")
             for message in log_dict_generator(1, timestamp_generator=timestamp_generator):
-                storage_service.save_log(message)
+                storage_service.save_log(message['application'], message['host'], message['severity'],
+                    message['timestamp'], message['message'])
                 count += 1
                 if max_count > 0 and count >= max_count:
                     break
@@ -220,7 +221,7 @@ class StorageTest(BaseTestCase):
             'message': u"Successfully activated service 'org.kde.powerdevil.backlighthelper'",
             'timestamp': "{0:0.25f}".format(timestamp),
         }
-        self.get_service().save_log(message)
+        self.get_service().save_log(**message)
 
         # Test storage.query()
         result = self.get_service().query()
@@ -482,8 +483,7 @@ class WebBackendTest(TestCase):
     def test_insert_via_web(self):
         _truncate_all_column_families()
         msg_dict = log_dict_generator(1).next()
-        json_message = json.dumps(msg_dict)
-        respose = self.client.post('/backend/save/', {'payload': json_message})
+        respose = self.client.post('/backend/save/', msg_dict)
         self.assertEqual(respose.status_code, 201)
         content = json.loads(respose.content)
         self.assertEquals(content['status'], 'ok')
@@ -500,8 +500,7 @@ class WebBackendTest(TestCase):
         count = 0
         try:
             for message in log_dict_generator(1):
-                json_message = json.dumps(message)
-                respose = self.client.post('/backend/save/', {'payload': json_message})
+                respose = self.client.post('/backend/save/', message)
                 self.assertEqual(respose.status_code, 201)
                 content = json.loads(respose.content)
                 self.assertEquals(content['status'], 'ok')

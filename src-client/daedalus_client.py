@@ -184,10 +184,7 @@ class DaedalusClient(object):
             'timestamp': timestamp,
             'message': message,
         }
-        json_message = json.dumps(msg_dict)
-        params = urllib.urlencode({
-            'payload': json_message,
-        })
+        params = urllib.urlencode(msg_dict)
         conn = None
         try:
             conn = httplib.HTTPConnection(host=self.server_host, port=self.server_port)
