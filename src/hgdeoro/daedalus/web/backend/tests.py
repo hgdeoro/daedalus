@@ -27,6 +27,7 @@ import os
 import pprint
 import random
 import time
+import uuid
 
 from contextlib import contextmanager
 from django.test.testcases import TestCase, LiveServerTestCase
@@ -769,3 +770,84 @@ class DaedalusClientTest(LiveServerTestCase):
         daedalus_client2.send_message("some message", ERROR)
         pprint.pprint(get_service(cache_enabled=False).query())
         self.assertEquals(len(storage_service.query()), 0)
+
+    def test_custom_logger(self):
+        DaedalusClient(self.server_thread.host, int(self.server_thread.port),
+            custom_logger='StdOutCustomLogger')
+
+
+class DaedalusLoggingHandlerTest(LiveServerTestCase):
+
+    def _test(self):
+        #=======================================================================
+        # Setup logging with dictConfig
+        # See: http://docs.python.org/library/logging.config.html#logging-config-dictschema
+        #=======================================================================
+        logging.config.dictConfig({
+            'version': 1,
+            'formatters': {
+                #    'formatter_id': {
+                #    },
+                #    'formatter_id': {
+                #    },
+            },
+            'filters': {
+                #    'filter_id': {
+                #    },
+                #    'filter_id': {
+                #    },
+            },
+            'handlers': {
+                'daedalus_handler': {
+                    'class': 'daedalus_logging_handler.CustomHandler',
+                    'level': 'WARN',
+                    #    'formatter': 'xxxxxx',
+                    #    'filters': ['xxxxxx', 'xxxxxx'],
+                    'daedalus_host': self.server_thread.host,
+                    'daedalus_port': self.server_thread.port,
+                    'host': 'somehost',
+                    'application': 'someapp',
+                    'daedalus_debug': True,
+                    # 'custom_logger': 'StdOutCustomLogger',
+                },
+            },
+            'loggers': {
+                #    'logger_id': {
+                #        'level': 'xxxxxxxxx',
+                #        'propagate': 'xxxxxxxxx',
+                #        'filters': ['xxxxxx', 'xxxxxx'],
+                #        'handlers': ['xxxxxx', 'xxxxxx'],
+                #    },
+                '': {
+                    'handlers': ['daedalus_handler'],
+                    'level': 'INFO',
+                    'propagate': True
+                },
+            },
+            'root': {
+                # Same as items of 'loggers'
+            },
+            'incremental': False,
+            'disable_existing_loggers': True,
+        })
+
+        #=======================================================================
+        # Test logging
+        #=======================================================================
+
+        logging.debug("This is a DEBUG message.")
+        logging.info("This is a INFO message.")
+        warn_msg = "This is a WARN message {0}.".format(uuid.uuid4())
+        logging.warn(warn_msg)
+        error_msg = "This is a ERROR message {0}.".format(uuid.uuid4())
+        logging.error(error_msg)
+
+        service = get_service(cache_enabled=False)
+        i = 0
+        result = service.query()
+        while len(result) == 0 and i < 100:
+            i += 1
+            result = service.query()
+        self.assertEqual(len(result), 2)
+        for a_message in result:
+            self.assertIn(a_message['message'], (error_msg, warn_msg))
