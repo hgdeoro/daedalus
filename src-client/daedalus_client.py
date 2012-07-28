@@ -166,14 +166,13 @@ class DaedalusClient(object):
             self._send_message(message, severity, host, application)
         except DaedalusException:
             # If we get a DaedalusException, always re-raise them, since
-            # they're raised only if 'self.raise_client_exceptions' is True
+            # they're raised from _send_message() only if 'self.raise_client_exceptions' is True
             raise
         except:
-            # All other exceptions are ignored (are not re-raised,
-            # even if 'self.raise_client_exceptions' is True
-            # FIXME: should we re-raise this exception if 'self.raise_client_exceptions' is True?
             if self.log_client_errors:
                 self._logger.exception("Couldn't send message to the server")
+            if self.raise_client_exceptions:
+                raise
 
     def _send_message(self, message, severity, host, application):
         if severity is None:
