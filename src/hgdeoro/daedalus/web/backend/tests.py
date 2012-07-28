@@ -835,6 +835,13 @@ class DaedalusLoggingHandlerTest(LiveServerTestCase):
         self._test_warn()
         self._test_error()
 
+    def _assertMessagesEquals(self, messages):
+        service = get_service(cache_enabled=False)
+        result = service.query()
+
+        self.assertEqual(set([msg['message'] for msg in result]),
+            set(messages))
+
     def _test_debug(self):
         _truncate_all_column_families()
         logging.config.dictConfig(self._gen_dict_config(self.server_thread.host, self.server_thread.port,
@@ -850,15 +857,7 @@ class DaedalusLoggingHandlerTest(LiveServerTestCase):
         logging.warn(warn_msg)
         logging.error(error_msg)
 
-        service = get_service(cache_enabled=False)
-        i = 0
-        result = service.query()
-        while len(result) == 0 and i < 100:
-            i += 1
-            result = service.query()
-        self.assertEqual(len(result), 4)
-        for a_message in result:
-            self.assertIn(a_message['message'], (debug_msg, info_msg, warn_msg, error_msg))
+        self._assertMessagesEquals([debug_msg, info_msg, warn_msg, error_msg])
 
     def _test_info(self):
         _truncate_all_column_families()
@@ -875,15 +874,7 @@ class DaedalusLoggingHandlerTest(LiveServerTestCase):
         logging.warn(warn_msg)
         logging.error(error_msg)
 
-        service = get_service(cache_enabled=False)
-        i = 0
-        result = service.query()
-        while len(result) == 0 and i < 100:
-            i += 1
-            result = service.query()
-        self.assertEqual(len(result), 3)
-        for a_message in result:
-            self.assertIn(a_message['message'], (info_msg, warn_msg, error_msg))
+        self._assertMessagesEquals([info_msg, warn_msg, error_msg])
 
     def _test_warn(self):
         _truncate_all_column_families()
@@ -900,15 +891,7 @@ class DaedalusLoggingHandlerTest(LiveServerTestCase):
         logging.warn(warn_msg)
         logging.error(error_msg)
 
-        service = get_service(cache_enabled=False)
-        i = 0
-        result = service.query()
-        while len(result) == 0 and i < 100:
-            i += 1
-            result = service.query()
-        self.assertEqual(len(result), 2)
-        for a_message in result:
-            self.assertIn(a_message['message'], (warn_msg, error_msg))
+        self._assertMessagesEquals([warn_msg, error_msg])
 
     def _test_error(self):
         _truncate_all_column_families()
@@ -925,12 +908,4 @@ class DaedalusLoggingHandlerTest(LiveServerTestCase):
         logging.warn(warn_msg)
         logging.error(error_msg)
 
-        service = get_service(cache_enabled=False)
-        i = 0
-        result = service.query()
-        while len(result) == 0 and i < 100:
-            i += 1
-            result = service.query()
-        self.assertEqual(len(result), 1)
-        for a_message in result:
-            self.assertIn(a_message['message'], (error_msg, ))
+        self._assertMessagesEquals([error_msg])
