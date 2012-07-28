@@ -125,12 +125,12 @@ Current iteration goals
 
 * Create a command line to send log events
 
-* Create a Django middleware to log exceptions
-
 * Create a handler for the Python logging framework
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
+
+* Create a Django middleware to log exceptions
 
 * Failover on client (if one server doesn't respond, try another)
 
@@ -214,6 +214,11 @@ Glosary
 
 Changelog
 ----------------------------------------
+
+### v0.0.7
+
+* Created a command line to send log events
+* Created a handler for the Python logging framework
 
 ### v0.0.6
 
