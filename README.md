@@ -2,7 +2,7 @@ Daedalus
 ----------------------------------------
 
 Daedalus is a __Django__ application to store log messages on __Cassandra__.
-The messages are sent/received using HTTP POST, encoded as a JSON dictionary.
+The messages are sent using HTTP POST.
 
 There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
 
