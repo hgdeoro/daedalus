@@ -146,7 +146,7 @@ def status(request):
         storage_status = service.get_status()
     for key in sorted(storage_status.keys()):
         status_list.append((key, storage_status[key]))
-    return HttpResponse(render_to_response('status.html',
+    return HttpResponse(render_to_response('daedalus/frontend/status.html',
         context_instance=RequestContext(request, ctx)))
 
 
