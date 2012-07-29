@@ -15,7 +15,7 @@ Click [here](https://github.com/hgdeoro/daedalus/issues) to report any issue.
 Implemented functional use cases
 ----------------------------------------
 
-1. Backend: Receive log messages using HTTP (POST with JSON encoded message)
+1. Backend: Receive log messages using HTTP
 
 2. Frontend: Show messages
   - Filter by application
@@ -25,8 +25,9 @@ Implemented functional use cases
   - Simplest form of pagination
   - Show line chart counting messages received
 
-3. Client: Python client to send messages using HTTP (POST with JSON encoded message)
+3. Client: Python client to send messages using HTTP
 
+4. Client: [Java client](https://github.com/hgdeoro/DaedalusJavaClient) to send messages using HTTP.
 
 For the curious: install in a virtual machine
 ----------------------------------------
@@ -148,8 +149,6 @@ Not implemented right now / Ideas / TODOs
 
 * Accept messages even when lack some field(s)
 
-* Accept messages sent with POST even if the message is not JSON encoded
-
 * Filter by date
 
 * TTL of messages / automatic disposal of old messages
@@ -177,8 +176,6 @@ General architecture
 
 * Messages sent over HTTP
 
-* Messages encoded using JSON
-
 
 Cassandra
 ----------------------------------------
@@ -205,7 +202,6 @@ Glosary
 
 * Log message: structure containing:
   - message
-  - detail
   - application
   - host
   - severity
