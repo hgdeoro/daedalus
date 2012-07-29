@@ -22,3 +22,4 @@
 /dev-scripts/rsync-from-ubuntu-vm.sh
 /dev-scripts/rsync-to-ubuntu-vm.sh
 /dev-scripts/rsync/
+/dist

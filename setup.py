@@ -2,7 +2,7 @@ import os
 
 from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
-from setuptools import find_packages
+from distutils.util import convert_path
 
 """
 This is the setup file for the Daedalus server, which includes:
@@ -47,14 +47,14 @@ def gen_data_files():
 
     data_files = []
 
-    walk_directory = os.path.join(base_directory, 'web')
+    walk_directory = os.path.join(base_directory, 'src')
     for dirpath, dirnames, filenames in os.walk(walk_directory):
         # dirpath -> absolute path
         # relative_dirpath -> relative to 'base_directory'
         relative_dirpath = dirpath[(len(base_directory)+1):]
         data_files.append([
             relative_dirpath,
-            [os.path.join(relative_dirpath, f) for f in filenames]
+            [os.path.join(relative_dirpath, f) for f in filenames if not f.endswith('.pyc')]
         ])
 
     return data_files
@@ -84,7 +84,16 @@ setup(
     author="Horacio G. de Oro",
     author_email="hgdeoror@gmail.com",
     url="https://github.com/hgdeoro/daedalus",
-    packages=find_packages('src'),
+    packages=[
+        'hgdeoro',
+        'hgdeoro.daedalus',
+        'hgdeoro.daedalus.web',
+        'hgdeoro.daedalus.web.frontend',
+        'hgdeoro.daedalus.web.frontend.templatetags',
+        'hgdeoro.daedalus.web.backend',
+        'hgdeoro.daedalus.web.backend.management',
+        'hgdeoro.daedalus.web.backend.management.commands',
+    ],
     package_dir={'': 'src'},
     install_requires=[
         'pycassa==1.6.0',
@@ -92,5 +101,5 @@ setup(
         'pylibmc==1.2.3',
     ],
     classifiers=classifiers, 
-    data_files=gen_data_files(), 
+    data_files=[('', ['version.py'])] + gen_data_files(),
 )
