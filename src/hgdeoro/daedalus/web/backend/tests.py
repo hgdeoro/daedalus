@@ -481,180 +481,143 @@ class ResetRealKeyspace(StorageTest):
 class WebBackendTest(TestCase):
 
     def test_insert_via_web(self):
-        _truncate_all_column_families()
         msg_dict = log_dict_generator(1).next()
         respose = self.client.post('/backend/save/', msg_dict)
         self.assertEqual(respose.status_code, 201)
         content = json.loads(respose.content)
         self.assertEquals(content['status'], 'ok')
 
+    def _test_error_400(self, message_dict):
+        respose = self.client.post('/backend/save/', message_dict)
+        self.assertEqual(respose.status_code, 400)
+        content = json.loads(respose.content)
+        self.assertEquals(content['status'], 'error')
+
     def test_insert_via_web_with_invalid_timestamp(self):
         # without timestamp
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'host': u'host123',
             'severity': u"INFO",
             'message': u"message123'",
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with empty timestamp
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'host': u'host123',
             'severity': u"INFO",
             'message': u"message123'",
             'timestamp': u"",
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with invalid timestamp
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'host': u'host123',
             'severity': u"INFO",
             'message': u"message123'",
             'timestamp': u"sometext",
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
     def test_insert_via_web_with_invalid_application(self):
         # without application
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'host': u'host123',
             'severity': u"INFO",
             'message': u"message123'",
             'timestamp': unicode(time.time()),
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with emtpy application
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'host': u'host123',
             'severity': u"INFO",
             'message': u"message123'",
             'timestamp': unicode(time.time()),
             'application': u"",
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with invalid application
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'host': u'host123',
             'severity': u"INFO",
             'message': u"message123'",
             'timestamp': unicode(time.time()),
             'application': u"___",
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
     def test_insert_via_web_with_invalid_host(self):
         # without host
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'severity': u"INFO",
             'message': u"message123'",
             'timestamp': unicode(time.time()),
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with empty host
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'severity': u"INFO",
             'message': u"message123'",
             'timestamp': unicode(time.time()),
             'host': u'',
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with invalid host
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'severity': u"INFO",
             'message': u"message123'",
             'timestamp': unicode(time.time()),
             'host': u'___',
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
     def test_insert_via_web_with_invalid_severity(self):
         # without severity
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'host': u'host123',
             'message': u"message123'",
             'timestamp': unicode(time.time()),
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with empty severity
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'host': u'host123',
             'message': u"message123'",
             'timestamp': unicode(time.time()),
             'severity': u"",
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with invalid severity
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'host': u'host123',
             'message': u"message123'",
             'timestamp': unicode(time.time()),
             'severity': u"xxx",
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
     def test_insert_via_web_with_invalid_message(self):
         # without message
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'host': u'host123',
             'severity': u"INFO",
             'timestamp': unicode(time.time()),
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
         # with empty message
-        respose = self.client.post('/backend/save/', {
+        self._test_error_400({
             'application': u'application123',
             'host': u'host123',
             'severity': u"INFO",
             'timestamp': unicode(time.time()),
             'message': u"",
         })
-        self.assertEqual(respose.status_code, 400)
-        content = json.loads(respose.content)
-        self.assertEquals(content['status'], 'error')
 
     def test_save_100_log(self):
         self._save_random_messages_via_web(100)
