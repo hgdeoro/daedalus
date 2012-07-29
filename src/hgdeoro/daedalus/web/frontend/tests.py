@@ -49,17 +49,17 @@ class WebFrontendTest(TestCase):
         _bulk_save_random_messages_to_default_keyspace(max_count)
 
         response = self.client.get(reverse(views.home))
-        self.assertTemplateUsed(response, 'index.html')
+        self.assertTemplateUsed(response, 'daedalus/frontend/index.html')
 
         for severity in ('ERROR', 'WARN', 'INFO', 'DEBUG'):
             logger.info("Testing search by severity: '%s'", severity)
             response = self.client.get(reverse(views.search_by_severity, args=[severity]))
-            self.assertTemplateUsed(response, 'index.html')
+            self.assertTemplateUsed(response, 'daedalus/frontend/index.html')
 
         for app in EXAMPLE_APPS:
             logger.info("Testing search by app: '%s'", app)
             response = self.client.get(reverse(views.search_by_application, args=[app]))
-            self.assertTemplateUsed(response, 'index.html')
+            self.assertTemplateUsed(response, 'daedalus/frontend/index.html')
 
     def repeated_test(self):
         logging.basicConfig(level=logging.INFO)
