@@ -1,8 +1,11 @@
 import os
+
 from subprocess import Popen, PIPE
 
 from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
+#from distutils.command.build_py import build_py as _build_py
+from distutils.command.sdist import sdist as _sdist
 
 """
 This is the setup file for the Daedalus client, which includes:
@@ -31,7 +34,19 @@ classifiers = [
 #for scheme in INSTALL_SCHEMES.values():
 #    scheme['data'] = scheme['purelib']
 
+class sdist(_sdist):
+
+    def make_release_tree(self, base_dir, files):
+        _sdist.make_release_tree(self, base_dir, files)
+        setup_orig_client_path = os.path.abspath(os.path.join(base_dir, 'setup_client.py'))
+        setup_new_client_path = os.path.abspath(os.path.join(base_dir, 'setup.py'))
+        assert os.path.exists(setup_orig_client_path)
+        print "Renaming {0} -> {1}".format(setup_orig_client_path, setup_new_client_path)
+        os.rename(setup_orig_client_path, setup_new_client_path)
+
+# http://docs.python.org/distutils/extending.html
 setup(
+    cmdclass={'sdist': sdist},
     name="daedalus-python-client",
     version=VERSION,
     description='Python client to send messages to Daedalus.',
@@ -41,5 +56,8 @@ setup(
     packages=[''],
     package_dir={'': 'src-client'},
     py_modules=['daedalus_client', 'daedalus_logging_handler'],
-    classifiers=classifiers, 
+    classifiers=classifiers,
+    data_files=[
+        ('', ['version.py']),
+    ]
 )
