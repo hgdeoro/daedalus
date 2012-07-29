@@ -2,15 +2,20 @@ Daedalus
 ----------------------------------------
 
 Daedalus is a __Django__ application to store log messages on __Cassandra__.
-The messages are sent using HTTP POST.
 
-There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github.
+There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github. This project is al alpha-quality stage, not recommended to be used on production systems.
+It's developed on Ubuntu 12.04, and tested on CentOS 6 and Ubuntu 12.04 LTS Server virtual machines (with the help of fabric). Please, [report any issue here](https://github.com/hgdeoro/daedalus/issues).
 
-This project is al alpha-quality stage, not recommended to be used on production systems.
+To install and run Daedalus server using PIP, (assuming a `virtualenv` directory exists and Cassandra running on localhost) use:
 
-It's developed on Ubuntu 12.04, and tested on CentOS 6 and Ubuntu 12.04 LTS Server virtual machines (with the help of fabric).
+    $ ./virtualenv/bin/pip install daedalus
+    $ export DJANGO_SETTINGS_MODULE=hgdeoro.daedalus.settings
+    $ ./virtualenv/bin/django-admin.py runserver
 
-Click [here](https://github.com/hgdeoro/daedalus/issues) to report any issue.
+To install only the Python client (and logging handler), run:
+
+    $ pip install daedalus-python-client
+
 
 Implemented functional use cases
 ----------------------------------------
@@ -31,12 +36,13 @@ Implemented functional use cases
 
 5. Client: [Java client and log4j appender](https://github.com/hgdeoro/daedalus-java-client) to send messages using HTTP.
 
+
 For the curious: install in a virtual machine
 ----------------------------------------
 
 See [dev-scripts/install-on-ubuntu.sh](https://github.com/hgdeoro/daedalus/blob/master/dev-scripts/install-on-ubuntu.sh).
 
-I recommend you to download and run the script in a newly created virtual machine (mainly because it install many packages,
+I recommend you to download and run the script in a newly created __virtual machine__ (mainly because it install many packages,
 and must be run as root). The virtual machine should have at least 1GB of RAM (Cassandra may not work with less memory). The scripts
 installs JDK, Cassandra, clones the Daedalus repository and launch the Django development server.
 
@@ -80,7 +86,7 @@ Install to a Ubuntu virtual machine:
 For developers: how to download and hack
 ----------------------------------------
 
-JDK: download and install JDK 6.
+JDK: download and install JDK 6 (needed for Cassandra).
 
 Cassandra: [download](http://cassandra.apache.org/download/),
 [install](http://wiki.apache.org/cassandra/GettingStarted) and start Cassandra.
@@ -186,7 +192,7 @@ Changelog
 
 * Created a command line to send log events
 * Created a handler for the Python logging framework
-* Created `setup_client.py`
+* Fixed various issues around `setup.py` and created `setup.py` for the Python client.
 
 ### v0.0.6
 

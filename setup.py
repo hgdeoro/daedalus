@@ -30,7 +30,7 @@ to avoid installing the whole projet in the cases where only the client is neede
 #  + git push ; git push --tags
 #
 
-VERSION = __import__('version').get_daedalus_version()
+VERSION = __import__('daedalus_version').get_daedalus_version()
 
 def gen_data_files():
     """
@@ -47,14 +47,16 @@ def gen_data_files():
 
     data_files = []
 
+    print base_directory
     walk_directory = os.path.join(base_directory, 'src')
     for dirpath, dirnames, filenames in os.walk(walk_directory):
         # dirpath -> absolute path
         # relative_dirpath -> relative to 'base_directory'
         relative_dirpath = dirpath[(len(base_directory)+1):]
+        dest_path = dirpath[(len(walk_directory)+1):]
         data_files.append([
-            relative_dirpath,
-            [os.path.join(relative_dirpath, f) for f in filenames if not f.endswith('.pyc')]
+            dest_path,
+            [os.path.join(relative_dirpath, f) for f in filenames if not f.endswith('.pyc') and not f.endswith('.py')]
         ])
 
     return data_files
@@ -98,8 +100,10 @@ setup(
     install_requires=[
         'pycassa==1.6.0',
         'django==1.4',
-        'pylibmc==1.2.3',
+        'pylibmc',
+        'pytz',
+        'daedalus-python-client',
     ],
     classifiers=classifiers, 
-    data_files=[('', ['version.py'])] + gen_data_files(),
+    data_files=[('', ['daedalus_version.py'])] + gen_data_files(),
 )
