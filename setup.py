@@ -20,15 +20,13 @@ to avoid installing the whole projet in the cases where only the client is neede
 # Release instructions
 #----------------------------------------------------------------------
 #  + run tests
-#  + remove '-dev' from version of setup.py
-#  + VER="$(./virtualenv/bin/python setup.py --version)"
-#  + git commit setup.py -m "Updated setup: version=v$VER"
-#  + git tag -a -m "Version $VER" "v$VER"
+#  + remove '-dev' from version of daedalus_version.py
+#  + git commit daedalus_version.py -m "Updated daedalus_version: version=v$(python daedalus_version.py)"
+#  + git tag -a -m "Version $(python daedalus_version.py)" "v$(python daedalus_version.py)"
 #  + git tag -f stable
-#  + git archive --format=tar --prefix=daedalus-$VER/ stable | gzip > daedalus-$VER.tgz
-#  + increment version number and add '-dev' on version of setup.py
-#  + git push ; git push --tags
 #  + python setup.py sdist upload
+#  + increment version number and add '-dev' on version of daedalus_version.py
+#  + git push ; git push --tags
 #
 
 VERSION = __import__('daedalus_version').get_daedalus_version()
