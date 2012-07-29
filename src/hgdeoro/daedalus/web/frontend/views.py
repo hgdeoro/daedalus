@@ -93,7 +93,7 @@ def home(request):
         except:
             ctx['render_messages'].append("Error detected while executing query()")
             logger.exception(ctx['render_messages'][-1])
-    return HttpResponse(render_to_response('index.html',
+    return HttpResponse(render_to_response('daedalus/frontend/index.html',
         context_instance=RequestContext(request, ctx)))
 
 
@@ -107,7 +107,7 @@ def search_by_severity(request, severity):
         last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only '{0}' messages.".format(severity))
-    return HttpResponse(render_to_response('index.html',
+    return HttpResponse(render_to_response('daedalus/frontend/index.html',
         context_instance=RequestContext(request, ctx)))
 
 
@@ -121,7 +121,7 @@ def search_by_application(request, application):
         last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only messages of application '{0}'.".format(application))
-    return HttpResponse(render_to_response('index.html',
+    return HttpResponse(render_to_response('daedalus/frontend/index.html',
         context_instance=RequestContext(request, ctx)))
 
 
@@ -135,7 +135,7 @@ def search_by_host(request, host):
         last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
         top_message="Showing only messages from host '{0}'.".format(host))
-    return HttpResponse(render_to_response('index.html',
+    return HttpResponse(render_to_response('daedalus/frontend/index.html',
         context_instance=RequestContext(request, ctx)))
 
 
@@ -173,5 +173,5 @@ def charts(request, chart_type=None):
             chart_id = '6hs'
     ctx['charts_data'] = charts_data
     ctx['chart_id'] = chart_id
-    return HttpResponse(render_to_response('charts.html',
+    return HttpResponse(render_to_response('daedalus/frontend/charts.html',
         context_instance=RequestContext(request, ctx)))
