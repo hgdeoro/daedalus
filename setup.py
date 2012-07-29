@@ -4,6 +4,18 @@ from distutils.core import setup
 from distutils.command.install import INSTALL_SCHEMES
 from setuptools import find_packages
 
+"""
+This is the setup file for the Daedalus server, which includes:
+- Backend: what receives the messages
+- Frontend: webapp to see the messages
+- Python client: library to send messages messages to Daedalus from Python
+- Loggin handler: to attach to Python's logging framework and send log messages to Daedalus
+
+The `setup.py` file is fot the entire project.
+The `setup_client.py` is for the Python client and logging handler: this exists
+to avoid installing the whole projet in the cases where only the client is needed.
+"""
+
 #----------------------------------------------------------------------
 # Release instructions
 #----------------------------------------------------------------------
@@ -18,7 +30,7 @@ from setuptools import find_packages
 #  + git push ; git push --tags
 #
 
-VERSION = "0.0.7-dev"
+VERSION = __import__('version').get_daedalus_version()
 
 def gen_data_files():
     """
@@ -66,7 +78,7 @@ for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
 
 setup(
-    name="Daedalus",
+    name="daedalus",
     version=VERSION,
     description='Django application to store log messages on Cassandra',
     author="Horacio G. de Oro",
