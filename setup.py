@@ -28,6 +28,7 @@ to avoid installing the whole projet in the cases where only the client is neede
 #  + git archive --format=tar --prefix=daedalus-$VER/ stable | gzip > daedalus-$VER.tgz
 #  + increment version number and add '-dev' on version of setup.py
 #  + git push ; git push --tags
+#  + python setup.py sdist upload
 #
 
 VERSION = __import__('daedalus_version').get_daedalus_version()
@@ -47,7 +48,6 @@ def gen_data_files():
 
     data_files = []
 
-    print base_directory
     walk_directory = os.path.join(base_directory, 'src')
     for dirpath, dirnames, filenames in os.walk(walk_directory):
         # dirpath -> absolute path

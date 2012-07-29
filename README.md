@@ -6,7 +6,7 @@ Daedalus is a __Django__ application to store log messages on __Cassandra__.
 There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github. This project is al alpha-quality stage, not recommended to be used on production systems.
 It's developed on Ubuntu 12.04, and tested on CentOS 6 and Ubuntu 12.04 LTS Server virtual machines (with the help of fabric). Please, [report any issue here](https://github.com/hgdeoro/daedalus/issues).
 
-To install and run Daedalus server using PIP, (assuming a `virtualenv` directory exists and Cassandra running on localhost) use:
+To install and run Daedalus server using `pip`, (assuming a `virtualenv` directory exists and Cassandra running on localhost) use:
 
     $ ./virtualenv/bin/pip install daedalus
     $ export DJANGO_SETTINGS_MODULE=hgdeoro.daedalus.settings
@@ -37,8 +37,8 @@ Implemented functional use cases
 5. Client: [Java client and log4j appender](https://github.com/hgdeoro/daedalus-java-client) to send messages using HTTP.
 
 
-For the curious: install in a virtual machine
-----------------------------------------
+For the absolutely newby: how to install Cassandra + Daedalus in Ubuntu
+--------------------------------------------------------------------------------
 
 See [dev-scripts/install-on-ubuntu.sh](https://github.com/hgdeoro/daedalus/blob/master/dev-scripts/install-on-ubuntu.sh).
 
@@ -193,6 +193,7 @@ Changelog
 * Created a command line to send log events
 * Created a handler for the Python logging framework
 * Fixed various issues around `setup.py` and created `setup.py` for the Python client.
+* Now the Daedalus server and Python client are uploaded to PYPI
 
 ### v0.0.6
 
