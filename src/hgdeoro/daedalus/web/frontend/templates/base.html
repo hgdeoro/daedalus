@@ -6,18 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link href="{{ STATIC_URL }}bootstrap-2.0.4/css/bootstrap.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}daedalus/frontend/bootstrap-2.0.4/css/bootstrap.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
     </style>
-    <link href="{{ STATIC_URL }}bootstrap-2.0.4/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}daedalus/frontend/bootstrap-2.0.4/css/bootstrap-responsive.css" rel="stylesheet">
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link rel="shortcut icon" href="{{ STATIC_URL }}bootstrap-2.0.4/ico/favicon.ico">
+    <link rel="shortcut icon" href="{{ STATIC_URL }}daedalus/frontend/bootstrap-2.0.4/ico/favicon.ico">
 	<script type="text/javascript">
 	{% block extra_js %}
 	{% endblock extra_js %}
@@ -102,7 +102,7 @@
     		src="http://www.python.org/community/logos/python-powered-w-70x28.png"
     		border="0" alt="Powered By Python" title="Powered By Python" /></a>
     	<a href="http://cassandra.apache.org/" target="_blank"><img
-    		src="{{ STATIC_URL }}powered_by_cassandra.jpg" border="0" alt="Powered By Cassandra"/></a>
+    		src="{{ STATIC_URL }}daedalus/frontend/powered_by_cassandra.jpg" border="0" alt="Powered By Cassandra"/></a>
     	<a href="http://www.djangoproject.com/" target="_blank"><img
     		src="https://www.djangoproject.com/m/img/badges/djangoproject120x25.gif"
     		border="0" alt="A Django project" title="A Django project" /></a>
@@ -112,8 +112,8 @@
     	<em>It is {% now "DATETIME_FORMAT" %}
     		with timezone: '{% now "e" %}'</em>
     </div>
-    <script src="{{ STATIC_URL }}bootstrap-2.0.4/js/jquery.js"></script>
-    <script src="{{ STATIC_URL }}bootstrap-2.0.4/js/bootstrap.js"></script>
+    <script src="{{ STATIC_URL }}daedalus/frontend/bootstrap-2.0.4/js/jquery.js"></script>
+    <script src="{{ STATIC_URL }}daedalus/frontend/bootstrap-2.0.4/js/bootstrap.js"></script>
 	{% block extra_js_bottom %}
 	{% endblock extra_js_bottom %}
   </body>
