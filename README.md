@@ -27,7 +27,9 @@ Implemented functional use cases
 
 3. Client: Python client to send messages using HTTP
 
-4. Client: [Java client](https://github.com/hgdeoro/DaedalusJavaClient) to send messages using HTTP.
+4. Client: logging handler to integrate to the Python's logging framework
+
+5. Client: [Java client and log4j appender](https://github.com/hgdeoro/daedalus-java-client) to send messages using HTTP.
 
 For the curious: install in a virtual machine
 ----------------------------------------
@@ -124,9 +126,6 @@ The project could be imported from within Eclipse PyDev.
 Current iteration goals
 ----------------------------------------
 
-* Create a command line to send log events
-
-* Create a handler for the Python logging framework
 
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
@@ -215,6 +214,7 @@ Changelog
 
 * Created a command line to send log events
 * Created a handler for the Python logging framework
+* Created `setup_client.py`
 
 ### v0.0.6
 
