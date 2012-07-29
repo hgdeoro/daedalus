@@ -38,8 +38,11 @@ from pycassa.cassandra.c10.ttypes import NotFoundException
 
 from hgdeoro.daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
     utc_timestamp2datetime, time_series_generator
+from daedalus_client import DaedalusException
 
 logger = logging.getLogger(__name__)
+
+EMPTY_VALUE = ''
 
 # TODO: this regex should be valid only for valid Cassandra row keys
 APPLICATION_REGEX = re.compile(r'^[a-zA-Z0-9/-]+$')
@@ -65,17 +68,29 @@ def _json_cache(key, ttl, callback, *args, **kwargs):
 
 
 def _check_severity(severity):
-    assert severity in ('ERROR', 'WARN', 'INFO', 'DEBUG')
+    if severity not in ('ERROR', 'WARN', 'INFO', 'DEBUG'):
+        raise(DaedalusException("Invalid value for severity: '{0}'".format(severity)))
 
 
 def _check_application(application):
+    if not isinstance(application, basestring):
+        raise(DaedalusException("Invalid identifier for application: '{0}'".format(application)))
     if not APPLICATION_REGEX.search(application):
-        assert False, "Invalid identifier for application: '{0}'".format(application)
+        raise(DaedalusException("Invalid identifier for application: '{0}'".format(application)))
 
 
 def _check_host(host):
+    if not isinstance(host, basestring):
+        raise(DaedalusException("Invalid identifier for host: '{0}'".format(host)))
     if not HOST_REGEX.search(host):
-        assert False, "Invalid identifier for host: '{0}'".format(host)
+        raise(DaedalusException("Invalid identifier for host: '{0}'".format(host)))
+
+
+def _check_message(message):
+    if not isinstance(message, basestring):
+        raise(DaedalusException("Invalid message: '{0}'".format(message)))
+    if len(message) == 0:
+        raise(DaedalusException("Invalid message: message is empty"))
 
 
 def _get_connection(retry=None, wait_between_retry=None):
@@ -559,14 +574,21 @@ class StorageService2(StorageService):
         StorageService.__init__(self, *args, **kwargs)
 
     def save_log(self, application, host, severity, timestamp, message):
-        EMPTY_VALUE = ''
-        pool = self._get_pool()
-
+        """
+        Saves a log message.
+        Raises:
+        - DaedalusException if any parameter isn't valid.
+        """
         _check_application(application)
         _check_severity(severity)
         _check_host(host)
+        _check_message(message)
+        try:
+            timestamp = float(timestamp)
+        except:
+            raise(DaedalusException("The timestamp '{0}' couldn't be transformed to a float".format(timestamp)))
 
-        event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
+        event_uuid = convert_time_to_uuid(timestamp, randomize=True)
         _uuid_hex = event_uuid.get_hex()
 
         json_message = json.dumps({
@@ -578,6 +600,7 @@ class StorageService2(StorageService):
             'message': message,
         })
 
+        pool = self._get_pool()
         with Mutator(pool) as batch:
             # Save on <CF> CF_LOGS
             row_key = ymd_from_uuid1(event_uuid)

@@ -21,10 +21,11 @@
 
 import json
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 
 from hgdeoro.daedalus.storage import get_service_cm
+from daedalus_client import DaedalusException
 
 
 def home(request):
@@ -45,12 +46,15 @@ def error_500(request):
 
 @csrf_exempt
 def save_log(request):
-    application = request.POST['application']
-    host = request.POST['host']
-    severity = request.POST['severity']
-    timestamp = request.POST['timestamp']
-    message = request.POST['message']
+    application = request.POST.get('application', None)
+    host = request.POST.get('host', None)
+    severity = request.POST.get('severity', None)
+    timestamp = request.POST.get('timestamp', None)
+    message = request.POST.get('message', None)
 
     with get_service_cm() as storage_service:
-        storage_service.save_log(application, host, severity, timestamp, message)
+        try:
+            storage_service.save_log(application, host, severity, timestamp, message)
+        except DaedalusException, de:
+            return HttpResponseBadRequest(json.dumps({'status': 'error', 'error': unicode(de.message)}))
     return HttpResponse(json.dumps({'status': 'ok'}), status=201)
