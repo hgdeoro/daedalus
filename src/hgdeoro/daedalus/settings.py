@@ -152,11 +152,6 @@ STATICFILES_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
-if DAEDALUS_ENABLED_SUBSYSTEMS in ('frontend', 'both'):
-    STATICFILES_DIRS += (
-        abspath(join(DAEDALUS_DIR, 'web', 'frontend', 'static')),
-    )
-
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
@@ -190,11 +185,6 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
 )
-
-if DAEDALUS_ENABLED_SUBSYSTEMS in ('frontend', 'both'):
-    TEMPLATE_DIRS += (
-        abspath(join(DAEDALUS_DIR, 'web', 'frontend', 'templates')),
-    )
 
 INSTALLED_APPS = (
     'django.contrib.auth',
