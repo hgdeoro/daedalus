@@ -1,12 +1,72 @@
 Daedalus
 ----------------------------------------
 
-Daedalus is a __Django__ application to store log messages on __Cassandra__.
+Daedalus is client/server application. The __server__ (what receives the messages) is implemented
+using __Django__. The log messages are stored in __Cassandra__. The __clients__ send the messages
+using a POST messages, allowing to send messages from virtually any language.
 
-There's a basic [wiki](https://github.com/hgdeoro/daedalus/wiki) at github. This project is al alpha-quality stage, not recommended to be used on production systems.
-It's developed on Ubuntu 12.04, and tested on CentOS 6 and Ubuntu 12.04 LTS Server virtual machines (with the help of fabric). Please, [report any issue here](https://github.com/hgdeoro/daedalus/issues).
+Please, [report any issue here](https://github.com/hgdeoro/daedalus/issues).
 
-To install and run Daedalus server using `pip`, (assuming a `virtualenv` directory exists and Cassandra running on localhost) use:
+### Server
+
+* Backend: what receives the log messages
+
+* Frontend: the webapp to list the messages (see [screenshots](https://github.com/hgdeoro/daedalus/wiki)). You can:
+  - Filter by application
+  - Filter by host
+  - Filter by severity
+  - Show all messages (default for home page)
+  - Simplest form of pagination
+  - Show line chart counting messages received
+
+### Implemented clients
+
+* [Python client and logging handler](http://pypi.python.org/pypi/daedalus-python-client/): to send
+messages from Python or through the Python's logging framework
+
+* [Java client and log4j appender](https://github.com/hgdeoro/daedalus-java-client): to send
+messages from Java or log4j.
+
+### Log messages
+
+A log messages includes:
+
+  - `message`: any string with a single or multi-line text
+  - `application`: the application that generated the meessage
+  - `host`: the host that generated the message
+  - `severity`: the serverity of the message: one of 'DEBUG', 'INFO', 'WARN' or 'ERROR'
+  - `timestamp`: seconds from EPOCH (in UTC) associated with the message.
+
+How to manually send a message from Python:
+
+        import httplib
+        import urllib
+        params = urllib.urlencode({
+            'application': u'intranet',
+            'host': u'appserver3.example.com',
+            'severity': u"WARN",
+            'message': u"The account 'johndoe' was locked after three login attempts.",
+            'timestamp': u"1343607762.837293",
+        })
+        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        conn = httplib.HTTPConnection("localhost", "8084")
+        conn.request("POST", "/backend/save/", params, headers)
+        response = conn.getresponse()
+        print response.read()
+        conn.close()
+
+Sending the same message using the Python client:
+
+        msg = u"The account 'johndoe' was locked after three login attempts."
+        daedalus_client = DaedalusClient("localhost", 8084)
+        daedalus_client.send_message(msg, "ERROR", "appserver3.example.com", "intranet")
+
+
+How to install from PYPI using virgualenv
+--------------------------------------------------------------------------------
+
+To install and run Daedalus server using `pip`, (assuming a `virtualenv` directory exists
+and Cassandra running on localhost) use:
 
     $ ./virtualenv/bin/pip install daedalus
     $ export DJANGO_SETTINGS_MODULE=hgdeoro.daedalus.settings
@@ -15,26 +75,6 @@ To install and run Daedalus server using `pip`, (assuming a `virtualenv` directo
 To install only the Python client (and logging handler), run:
 
     $ pip install daedalus-python-client
-
-
-Implemented functional use cases
-----------------------------------------
-
-1. Backend: Receive log messages using HTTP
-
-2. Frontend: Show messages
-  - Filter by application
-  - Filter by host
-  - Filter by severity
-  - Show all messages (default for home page)
-  - Simplest form of pagination
-  - Show line chart counting messages received
-
-3. Client: Python client to send messages using HTTP
-
-4. Client: logging handler to integrate to the Python's logging framework
-
-5. Client: [Java client and log4j appender](https://github.com/hgdeoro/daedalus-java-client) to send messages using HTTP.
 
 
 For the absolutely newby: how to install Cassandra + Daedalus in Ubuntu
@@ -129,29 +169,10 @@ To create some random log messages, you could run:
 The project could be imported from within Eclipse PyDev.
 
 
-Current iteration goals
-----------------------------------------
-
-
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
 
 See [TODOs](TODO.md).
-
-
-General architecture
-----------------------------------------
-
-* Client + server app.
-
-* Client:
-  - Thin layer over a http client to send the messages
-
-* Server:
-  - Backend: Django app that receives the messages.
-  - Frontend: Django app for viewing the messages.
-
-* Messages sent over HTTP
 
 
 Cassandra
@@ -172,17 +193,6 @@ Cassandra
   - CF: Logs\_by\_severity - Cols[]: { uuid1/timestamp: '' }
 
 * No SuperColumn nor secondary indexes by now.
-
-
-Glosary
-----------------------------------------
-
-* Log message: structure containing:
-  - message
-  - application
-  - host
-  - severity
-  - timestamp (Cassandra)
 
 
 Changelog
