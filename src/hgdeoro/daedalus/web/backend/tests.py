@@ -777,6 +777,26 @@ class PycassaUtilsTest(BaseTestCase):
             self.assertEqual(int(now_utc_timestamp), int(time_from_uuid))
 
 
+class PythonClientTest(LiveServerTestCase):
+
+    def test(self):
+        import httplib
+        import urllib
+        params = urllib.urlencode({
+            'application': u'intranet',
+            'host': u'appserver3.example.com',
+            'severity': u"WARN",
+            'message': u"The account 'johndoe' was locked after three login attempts.",
+            'timestamp': u"1343607762.837293",
+        })
+        headers = {"Content-type": "application/x-www-form-urlencoded"}
+        conn = httplib.HTTPConnection("localhost", "8084")
+        conn.request("POST", "/backend/save/", params, headers)
+        response = conn.getresponse()
+        print response.read()
+        conn.close()
+
+
 class DaedalusClientTest(LiveServerTestCase):
 
     def test_client(self):
