@@ -62,7 +62,7 @@ Sending the same message using the Python client:
         daedalus_client.send_message(msg, "ERROR", "appserver3.example.com", "intranet")
 
 
-How to install from PYPI using virgualenv
+How to install from PYPI using virtualenv
 --------------------------------------------------------------------------------
 
 To install and run Daedalus server using `pip`, (assuming a `virtualenv` directory exists
