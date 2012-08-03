@@ -11,12 +11,12 @@ aptitude install -y \
 wget http://www.apache.org/dist/cassandra/debian/pool/main/c/cassandra/cassandra_1.1.2_all.deb
 dpkg -i cassandra_1.1.2_all.deb
 
-# Install required python libraries
-pip install pycassa pytz 'django>=1.4'
-
 # Clone (download) Daedalus
 git clone https://github.com/hgdeoro/daedalus.git
 cd daedalus
+
+# Install required python libraries
+pip install -r requirements.txt
 
 # Optional: change to the 'stable' version
 git checkout stable
