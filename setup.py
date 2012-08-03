@@ -98,7 +98,7 @@ setup(
     install_requires=[
         'pycassa==1.6.0',
         'django==1.4',
-        'pylibmc',
+        'python-memcached',
         'pytz',
         'daedalus-python-client',
     ],
