@@ -14,5 +14,5 @@ fi
 
 export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-"daedalus.settings"}
 
-gunicorn --bind=0.0.0.0:8084 daedalus.wsgi:application $*
+gunicorn --bind=0.0.0.0:64364 daedalus.wsgi:application $*
 

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #
-# Starts the development server on port 8084.
+# Starts the development server on port 64364.
 #
 
 set -e
 
-$(dirname $0)/manage.sh runserver 8084
+$(dirname $0)/manage.sh runserver 64364

@@ -146,7 +146,7 @@ class DaedalusClient(object):
     - raise_client_exceptions: if True, raises Exception when a error is detected.
     - custom_logger: custom logger to use instead of Python's `logging` framework.
     """
-    def __init__(self, server_host="127.0.0.1", server_port=8085,
+    def __init__(self, server_host="127.0.0.1", server_port=64364,
         default_message_host=None, default_message_application=None,
         log_client_errors=True, raise_client_exceptions=False,
         custom_logger=None):
@@ -232,7 +232,7 @@ if __name__ == '__main__':
     parser.add_option('-s', '--daedalus-server', default="localhost",
         help="Hostname or IP of Daedalus server",
         dest="daedalus_server")
-    parser.add_option('-p', '--daedalus-port', default="8084", type="int",
+    parser.add_option('-p', '--daedalus-port', default="64364", type="int",
         help="Port of Daedalus server",
         dest="daedalus_port")
     parser.add_option('-a', '--application',

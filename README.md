@@ -49,7 +49,7 @@ How to manually send a message from Python:
             'timestamp': u"1343607762.837293",
         })
         headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn = httplib.HTTPConnection("localhost", "8084")
+        conn = httplib.HTTPConnection("localhost", "64364")
         conn.request("POST", "/backend/save/", params, headers)
         response = conn.getresponse()
         print response.read()
@@ -58,7 +58,7 @@ How to manually send a message from Python:
 Sending the same message using the Python client:
 
         msg = u"The account 'johndoe' was locked after three login attempts."
-        daedalus_client = DaedalusClient("localhost", 8084)
+        daedalus_client = DaedalusClient("localhost", 64364)
         daedalus_client.send_message(msg, "ERROR", "appserver3.example.com", "intranet")
 
 
@@ -158,7 +158,7 @@ Start development server
 By now you'll have the Django development server running.
 Both the Daedalus __backend__ (the Django app that receives the logs via HTTP)
 and the __frontend__ (the application used to see the logs) are started.
-To use it, go to [http://127.0.0.1:8084/](http://127.0.0.1:8084/).
+To use it, go to [http://127.0.0.1:64364/](http://127.0.0.1:64364/).
 
 To create some random log messages, you could run:
 
@@ -201,6 +201,7 @@ Changelog
 ### v0.0.8
 
 * Refactored Python package (from hgdeoro.daedalus.web.frontend/backend to daedalus.frontend/backend)
+* Changed default port from 8084 to 64364
 
 ### v0.0.7
 
