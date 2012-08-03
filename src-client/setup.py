@@ -29,7 +29,7 @@ classifiers = [
 # http://docs.python.org/distutils/extending.html
 setup(
     name="daedalus-python-client",
-    version="0.0.1",
+    version="0.0.2",
     description='Python client to send messages to Daedalus.',
     author="Horacio G. de Oro",
     author_email="hgdeoror@gmail.com",
