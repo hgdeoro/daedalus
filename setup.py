@@ -85,8 +85,6 @@ setup(
     author_email="hgdeoror@gmail.com",
     url="https://github.com/hgdeoro/daedalus",
     packages=[
-        'hgdeoro',
-        'daedalus',
         'daedalus',
         'daedalus.frontend',
         'daedalus.frontend.templatetags',
