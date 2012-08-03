@@ -264,7 +264,9 @@ if __name__ == '__main__':
         log_client_errors=False, raise_client_exceptions=opts.show_client_exceptions)
 
     # If an exceptino is raised, the exit status will be non-zero
-    if opts.from_stdin:
+    if opts.from_stdin and opts.message:
+        sent_ok = client.send_message(opts.message + "\n" + sys.stdin.read(), INFO)
+    elif opts.from_stdin:
         sent_ok = client.send_message(sys.stdin.read(), INFO)
     else:
         sent_ok = client.send_message(opts.message, INFO)
