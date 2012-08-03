@@ -47,6 +47,7 @@ if settings.DAEDALUS_ENABLED_SUBSYSTEMS in ('frontend', 'both'):
         url(r'^frontend/search/host/(.*)/', frontend_views.search_by_host),
         url(r'^frontend/search/application/(.*)/', frontend_views.search_by_application),
         url(r'^frontend/message/get/(.*)/', frontend_views.get_message_detail),
+        url(r'^frontend/message/view/(.*)/', frontend_views.show_message),
         url(r'^frontend/charts/(.+)/', frontend_views.charts),
         url(r'^frontend/charts/', frontend_views.charts),
         url(r'^frontend/cache/reset/', frontend_views.reset_cache),

@@ -50,7 +50,8 @@
 		<thead>
 			<tr>
 				<th width="5%">Date</th>
-				<th width="5%">Application</th>
+				<th width="5%">Host</th>
+				<th width="5%"><span title="Application that generated the message">App</span></th>
 				<th width="5%">Severity</th>
 				<th width="85%">Message</th>
 			</tr>
@@ -58,8 +59,11 @@
 		<tbody>
 			{% for item in result %}
 			<tr>
-				<td style="white-space: nowrap;"><a
-					href="javascript:load_message_details('{{ item|msg_2_id }}');">{{ item|msg_2_datetime|date:'SHORT_DATETIME_FORMAT' }}</a></td>
+				<td style="white-space: nowrap;">
+					<a href="javascript:load_message_details('{{ item|msg_2_id }}');">{{ item|msg_2_datetime|date:'SHORT_DATETIME_FORMAT' }}</a>
+					<a href="{% url daedalus.frontend.views.show_message item|msg_2_id %}" target="_blank"><i class="icon-fullscreen"></i></a>
+				</td>
+				<td style="white-space: nowrap;">{{ item.host }}</td>
 				<td style="white-space: nowrap;">{{ item.application }}</td>
 				<td style="white-space: nowrap;">
 					{% if item.severity == 'ERROR' %}

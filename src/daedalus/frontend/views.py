@@ -99,6 +99,15 @@ def home(request):
         context_instance=RequestContext(request, ctx)))
 
 
+def show_message(request, message_id):
+    ctx = _ctx()
+    with get_service_cm() as service:
+        message = service.get_by_id(message_id)
+    ctx['message'] = message
+    return HttpResponse(render_to_response('daedalus/frontend/message_show.html',
+        context_instance=RequestContext(request, ctx)))
+
+
 def search_by_severity(request, severity):
     from_col = str_to_column_key(request.GET.get('from', None))
     with get_service_cm() as service:
