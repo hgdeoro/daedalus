@@ -24,10 +24,10 @@ import logging
 from django.test.testcases import TestCase
 from django.core.urlresolvers import reverse
 
-from hgdeoro.daedalus.web.backend.tests import _truncate_all_column_families,\
+from daedalus.backend.tests import _truncate_all_column_families,\
     _bulk_save_random_messages_to_default_keyspace
-from hgdeoro.daedalus.web.frontend import views
-from hgdeoro.daedalus.proto.random_log_generator import EXAMPLE_APPS
+from daedalus.frontend import views
+from daedalus.proto.random_log_generator import EXAMPLE_APPS
 
 logger = logging.getLogger(__name__)
 

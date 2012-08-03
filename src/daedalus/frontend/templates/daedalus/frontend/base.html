@@ -36,26 +36,26 @@
         <div class="navbar navbar-fixed-top">
 
 		<!--  style="margin-left: 0px;" hace q' 'Daedalus' no se vea pegado al lado izq. del body -->
-		<a class="brand" style="margin-left: 0px;" href="{% url hgdeoro.daedalus.web.frontend.views.home %}">Daedalus</a>
+		<a class="brand" style="margin-left: 0px;" href="{% url daedalus.frontend.views.home %}">Daedalus</a>
 
           <ul class="nav">
 
 				<li class="divider-vertical"></li>
-				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.home %}">All</a></li>
-				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.status %}">Status</a></li>
-				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.charts %}">Charts</a></li>
+				<li><a href="{% url daedalus.frontend.views.home %}">All</a></li>
+				<li><a href="{% url daedalus.frontend.views.status %}">Status</a></li>
+				<li><a href="{% url daedalus.frontend.views.charts %}">Charts</a></li>
 				<li class="divider-vertical"></li>
-				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_severity 'ERROR' %}">Error ({{ error_count }})</a></li>
-				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_severity 'WARN' %}">Warn ({{ warn_count }})</a></li>
-				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_severity 'INFO' %}">Info ({{ info_count }})</a></li>
-				<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_severity 'DEBUG' %}">Debug ({{ debug_count }})</a></li>
+				<li><a href="{% url daedalus.frontend.views.search_by_severity 'ERROR' %}">Error ({{ error_count }})</a></li>
+				<li><a href="{% url daedalus.frontend.views.search_by_severity 'WARN' %}">Warn ({{ warn_count }})</a></li>
+				<li><a href="{% url daedalus.frontend.views.search_by_severity 'INFO' %}">Info ({{ info_count }})</a></li>
+				<li><a href="{% url daedalus.frontend.views.search_by_severity 'DEBUG' %}">Debug ({{ debug_count }})</a></li>
 
 					{% if app_list %}
 						<li class="dropdown">
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown"> By App. <b class="caret"></b></a>
 							<ul class="dropdown-menu">
 								{% for app in app_list %}
-									<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_application app %}">{{ app }}</a></li>
+									<li><a href="{% url daedalus.frontend.views.search_by_application app %}">{{ app }}</a></li>
 								{% endfor %}
 							</ul>
 						</li>
@@ -66,7 +66,7 @@
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown"> By Host <b class="caret"></b></a>
 							<ul class="dropdown-menu">
 								{% for host in host_list %}
-									<li><a href="{% url hgdeoro.daedalus.web.frontend.views.search_by_host host %}">{{ host }}</a></li>
+									<li><a href="{% url daedalus.frontend.views.search_by_host host %}">{{ host }}</a></li>
 								{% endfor %}
 							</ul>
 						</li>

@@ -185,7 +185,7 @@ def custom_cassandra_install():
 
     $ export CASSANDRA_TGZ_INSTALLER=/path/to/apache-cassandra-1.1.2-bin.tar.gz
     $ export CASSANDRA_INSTALL_DIR=apache-cassandra-1.1.2
-    $ ./virtualenv/bin/fab -f src/hgdeoro/daedalus/fabric/fabfile.py -H root@192.168.122.77 install_all
+    $ ./virtualenv/bin/fab -f src/daedalus/fabric/fabfile.py -H root@192.168.122.77 install_all
     """
     # TODO: if `CASSANDRA_TGZ` doesn't exists, exit with error and instructions
     if not exists("/opt/{0}".format(CASSANDRA_INSTALL_DIR)):

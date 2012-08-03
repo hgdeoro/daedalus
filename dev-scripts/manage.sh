@@ -20,7 +20,7 @@ if [ -d ./virtualenv ] ; then
 	. ./virtualenv/bin/activate
 fi
 
-export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-"hgdeoro.daedalus.settings"}
+export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-"daedalus.settings"}
 
 if [ "$(which django-admin.py)" ] ; then
         django-admin.py $*

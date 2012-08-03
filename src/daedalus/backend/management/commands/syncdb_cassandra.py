@@ -21,7 +21,7 @@
 
 from django.core.management.base import BaseCommand
 
-from hgdeoro.daedalus.storage import get_service_cm
+from daedalus.storage import get_service_cm
 
 
 class Command(BaseCommand):

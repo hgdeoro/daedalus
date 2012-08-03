@@ -24,7 +24,7 @@ import os
 from django.test.simple import DjangoTestSuiteRunner
 from django.conf import settings
 from pycassa.system_manager import SystemManager
-from hgdeoro.daedalus import storage
+from daedalus import storage
 
 
 class CassandraDjangoTestSuiteRunner(DjangoTestSuiteRunner):

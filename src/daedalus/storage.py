@@ -36,7 +36,7 @@ from pycassa.pool import AllServersUnavailable
 from pycassa.util import convert_time_to_uuid
 from pycassa.cassandra.c10.ttypes import NotFoundException
 
-from hgdeoro.daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
+from daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
     utc_timestamp2datetime, time_series_generator
 from daedalus_client import DaedalusException
 

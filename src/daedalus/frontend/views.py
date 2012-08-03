@@ -26,8 +26,8 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 
-from hgdeoro.daedalus.storage import get_service_cm
-from hgdeoro.daedalus.utils import str_to_column_key
+from daedalus.storage import get_service_cm
+from daedalus.utils import str_to_column_key
 
 logger = logging.getLogger(__name__)
 

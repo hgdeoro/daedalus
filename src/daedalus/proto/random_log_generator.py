@@ -21,7 +21,7 @@
 
 import random
 
-from hgdeoro.daedalus.utils import utc_str_timestamp
+from daedalus.utils import utc_str_timestamp
 
 EXAMPLE_APPS = ['intranet', 'extranet', 'gunicorn', 'nginx-dmz']
 

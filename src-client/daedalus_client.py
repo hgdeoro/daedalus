@@ -38,7 +38,7 @@ DEBUG = 'DEBUG'
 
 
 #===============================================================================
-# This should be the same of `hgdeoro.daedalus.utils.utc_now_from_epoch()`
+# This should be the same of `daedalus.utils.utc_now_from_epoch()`
 #===============================================================================
 
 def utc_now_from_epoch():
@@ -53,7 +53,7 @@ def utc_now_from_epoch():
 
 
 #===============================================================================
-# This should be the same of `hgdeoro.daedalus.utils.utc_str_timestamp()`
+# This should be the same of `daedalus.utils.utc_str_timestamp()`
 #===============================================================================
 
 def utc_str_timestamp():

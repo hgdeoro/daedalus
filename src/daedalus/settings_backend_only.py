@@ -23,7 +23,7 @@
 Reference this settings to start ONLY the BACKEND.
 
 Ex:
-    export DJANGO_SETTINGS_MODULE="hgdeoro.daedalus.web.settings_backend_only"
+    export DJANGO_SETTINGS_MODULE="daedalus.settings_backend_only"
     django-admin.py runserver
 """
 
@@ -31,4 +31,4 @@ import os
 
 os.environ['DAEDALUS_ENABLED_SUBSYSTEMS'] = 'backend'
 
-from hgdeoro.daedalus.settings import * #@UnusedWildImport
+from daedalus.settings import * #@UnusedWildImport

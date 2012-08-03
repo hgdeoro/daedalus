@@ -69,7 +69,7 @@ To install and run Daedalus server using `pip`, (assuming a `virtualenv` directo
 and Cassandra running on localhost) use:
 
     $ ./virtualenv/bin/pip install daedalus
-    $ export DJANGO_SETTINGS_MODULE=hgdeoro.daedalus.settings
+    $ export DJANGO_SETTINGS_MODULE=daedalus.settings
     $ ./virtualenv/bin/django-admin.py runserver
 
 To install only the Python client (and logging handler), run:
@@ -116,11 +116,11 @@ and `apache-cassandra-1.1.2-bin.tar.gz`.
 
 Install to a CentOS virtual machine:
 
-    $ fab -f src/hgdeoro/daedalus/fabfile.py -H root@192.168.122.61 install_centos_packages install_all
+    $ fab -f src/daedalus/fabfile.py -H root@192.168.122.61 install_centos_packages install_all
 
 Install to a Ubuntu virtual machine:
 
-    $ fab -f src/hgdeoro/daedalus/fabfile.py -H root@192.168.122.61 install_ubuntu_packages install_all
+    $ fab -f src/daedalus/fabfile.py -H root@192.168.122.61 install_ubuntu_packages install_all
 -->
 
 For developers: how to download and hack

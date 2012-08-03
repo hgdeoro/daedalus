@@ -24,7 +24,7 @@ import pytz
 import calendar
 import time
 import os
-from hgdeoro.daedalus.utils import utc_str_timestamp, utc_timestamp2datetime
+from daedalus.utils import utc_str_timestamp, utc_timestamp2datetime
 
 
 def main():

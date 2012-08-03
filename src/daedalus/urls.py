@@ -23,8 +23,8 @@ from django.conf.urls import patterns, url
 from django.views.generic.simple import redirect_to
 from django.conf import settings
 
-from hgdeoro.daedalus.web.backend import views as backend_views
-from hgdeoro.daedalus.web.frontend import views as frontend_views
+from daedalus.backend import views as backend_views
+from daedalus.frontend import views as frontend_views
 
 urlpatterns = patterns('',
 )
@@ -34,9 +34,9 @@ if settings.DAEDALUS_ENABLED_SUBSYSTEMS in ('backend', 'both'):
         url(r'^backend/save/', backend_views.save_log),
         url(r'^backend/$', backend_views.home),
     )
-    handler403 = 'hgdeoro.daedalus.web.backend.views.error_403'
-    handler404 = 'hgdeoro.daedalus.web.backend.views.error_404'
-    handler500 = 'hgdeoro.daedalus.web.backend.views.error_500'
+    handler403 = 'daedalus.backend.views.error_403'
+    handler404 = 'daedalus.backend.views.error_404'
+    handler500 = 'daedalus.backend.views.error_500'
 
 if settings.DAEDALUS_ENABLED_SUBSYSTEMS in ('frontend', 'both'):
     urlpatterns += patterns('',

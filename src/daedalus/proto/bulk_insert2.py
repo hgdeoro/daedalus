@@ -26,11 +26,11 @@ import uuid
 
 from pycassa.columnfamily import ColumnFamily
 
-from hgdeoro.daedalus.proto import simple_client
-from hgdeoro.daedalus.proto.simple_client import CF_LOGS, CF_LOGS_BY_APP,\
+from daedalus.proto import simple_client
+from daedalus.proto.simple_client import CF_LOGS, CF_LOGS_BY_APP,\
     CF_LOGS_BY_HOST, CF_LOGS_BY_SEVERITY
-from hgdeoro.daedalus.proto.random_log_generator import log_generator
-from hgdeoro.daedalus.utils import ymd_from_uuid1
+from daedalus.proto.random_log_generator import log_generator
+from daedalus.utils import ymd_from_uuid1
 
 
 def mass_insert(pool):

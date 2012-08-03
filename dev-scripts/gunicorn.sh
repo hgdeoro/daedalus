@@ -12,7 +12,7 @@ if [ -d ./virtualenv ] ; then
         . ./virtualenv/bin/activate
 fi
 
-export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-"hgdeoro.daedalus.settings"}
+export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-"daedalus.settings"}
 
-gunicorn --bind=0.0.0.0:8084 hgdeoro.daedalus.web.wsgi:application $*
+gunicorn --bind=0.0.0.0:8084 daedalus.wsgi:application $*
 

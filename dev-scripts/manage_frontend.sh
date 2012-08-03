@@ -8,7 +8,7 @@ set -e
 
 cd $(dirname $0)
 
-export DJANGO_SETTINGS_MODULE="hgdeoro.daedalus.web.settings_frontend_only"
+export DJANGO_SETTINGS_MODULE="daedalus.settings_frontend_only"
 
 ./manage.sh $*
 

@@ -77,12 +77,12 @@ CACHES = {
     }
 }
 
-TEST_RUNNER = 'hgdeoro.daedalus.test_runner.CassandraDjangoTestSuiteRunner'
+TEST_RUNNER = 'daedalus.test_runner.CassandraDjangoTestSuiteRunner'
 
-ROOT_URLCONF = 'hgdeoro.daedalus.web.urls'
+ROOT_URLCONF = 'daedalus.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'hgdeoro.daedalus.web.wsgi.application'
+WSGI_APPLICATION = 'daedalus.wsgi.application'
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -198,12 +198,12 @@ INSTALLED_APPS = (
 
 if DAEDALUS_ENABLED_SUBSYSTEMS in ('frontend', 'both'):
     INSTALLED_APPS += (
-        'hgdeoro.daedalus.web.frontend',
+        'daedalus.frontend',
     )
 
 if DAEDALUS_ENABLED_SUBSYSTEMS in ('backend', 'both'):
     INSTALLED_APPS += (
-        'hgdeoro.daedalus.web.backend',
+        'daedalus.backend',
     )
 
 # A sample logging configuration. The only tangible logging

@@ -23,7 +23,7 @@
 Reference this settings to start ONLY the FRONTEND.
 
 Ex:
-    export DJANGO_SETTINGS_MODULE="hgdeoro.daedalus.web.settings_frontend_only"
+    export DJANGO_SETTINGS_MODULE="daedalus.settings_frontend_only"
     django-admin.py runserver
 """
 
@@ -31,4 +31,4 @@ import os
 
 os.environ['DAEDALUS_ENABLED_SUBSYSTEMS'] = 'frontend'
 
-from hgdeoro.daedalus.settings import * #@UnusedWildImport
+from daedalus.settings import * #@UnusedWildImport

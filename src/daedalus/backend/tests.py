@@ -41,9 +41,9 @@ from daedalus_client import DaedalusClient, DaedalusException, ERROR, \
     utc_now_from_epoch as utc_now_from_epoch_from_client, \
     utc_str_timestamp as utc_str_timestamp_from_client
 
-from hgdeoro.daedalus.proto.random_log_generator import log_dict_generator
-from hgdeoro.daedalus.storage import get_service_cm, get_service
-from hgdeoro.daedalus.utils import utc_str_timestamp, utc_timestamp2datetime,\
+from daedalus.proto.random_log_generator import log_dict_generator
+from daedalus.storage import get_service_cm, get_service
+from daedalus.utils import utc_str_timestamp, utc_timestamp2datetime,\
     utc_now, utc_now_from_epoch, ymd_from_epoch, ymd_from_uuid1,\
     backward_time_series_generator, time_series_generator
 

@@ -24,11 +24,11 @@ import logging
 from pycassa.columnfamily import ColumnFamily
 from pycassa.cassandra.c10.ttypes import NotFoundException
 
-from hgdeoro.daedalus.proto import simple_client
-from hgdeoro.daedalus.proto.simple_client import CF_LOGS, CF_LOGS_BY_APP,\
+from daedalus.proto import simple_client
+from daedalus.proto.simple_client import CF_LOGS, CF_LOGS_BY_APP,\
     CF_LOGS_BY_HOST, CF_LOGS_BY_SEVERITY
-from hgdeoro.daedalus.proto.random_log_generator import EXAMPLE_APPS, EXAMPLE_HOSTS
-from hgdeoro.daedalus.utils import ymd_from_epoch
+from daedalus.proto.random_log_generator import EXAMPLE_APPS, EXAMPLE_HOSTS
+from daedalus.utils import ymd_from_epoch
 
 
 def query(pool):

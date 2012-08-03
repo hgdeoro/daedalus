@@ -23,8 +23,8 @@ import logging
 
 from pycassa.columnfamily import ColumnFamily
 
-from hgdeoro.daedalus.proto import simple_client
-from hgdeoro.daedalus.proto.simple_client import CF_LOGS
+from daedalus.proto import simple_client
+from daedalus.proto.simple_client import CF_LOGS
 
 
 def query(pool):

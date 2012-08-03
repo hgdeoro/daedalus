@@ -6,7 +6,7 @@
 
 set -e
 
-export DJANGO_SETTINGS_MODULE="hgdeoro.daedalus.web.settings_backend_only"
+export DJANGO_SETTINGS_MODULE="daedalus.settings_backend_only"
 
 cd $(dirname $0)
 

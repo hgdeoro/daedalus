@@ -24,7 +24,7 @@ import json
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 
-from hgdeoro.daedalus.storage import get_service_cm
+from daedalus.storage import get_service_cm
 from daedalus_client import DaedalusException
 
 
