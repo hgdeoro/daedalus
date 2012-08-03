@@ -60,7 +60,9 @@
 			{% for item in result %}
 			<tr>
 				<td style="white-space: nowrap;">
-					<a href="javascript:load_message_details('{{ item|msg_2_id }}');">{{ item|msg_2_datetime|date:'SHORT_DATETIME_FORMAT' }}</a>
+					<span title="({{ item|msg_2_datetime|timesince }})">
+						<a href="javascript:load_message_details('{{ item|msg_2_id }}');">{{ item|msg_2_datetime|date:'SHORT_DATETIME_FORMAT' }}</a>
+					</span>
 					<a href="{% url daedalus.frontend.views.show_message item|msg_2_id %}" target="_blank"><i class="icon-fullscreen"></i></a>
 				</td>
 				<td style="white-space: nowrap;">{{ item.host }}</td>

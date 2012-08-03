@@ -8,7 +8,33 @@
 
 	{% block container %}
 
-	<pre>{{ message }}</pre>
+	<table class="table table-striped table-condensed" width="100%">
+		<tbody>
+			<tr>
+				<th style="text-align: right;">Severity:</th><td style="text-align: left;">
+					{% if message.severity == 'ERROR' %}
+						<span class="label label-important">{{ message.severity }}</span>
+					{% elif message.severity == 'WARN' %}
+						<span class="label label-warning">{{ message.severity }}</span>
+					{% elif message.severity == 'INFO' %}
+						<span class="label label-info">{{ message.severity }}</span>
+					{% elif message.severity == 'DEBUG' %}
+						<span class="label">{{ message.severity }}</span>
+					{% else %}
+						<span class="label">{{ message.severity }}</span>
+					{% endif %}
+				</td>
+				<th style="text-align: right;">Date:</th><td style="text-align: left;">
+					{{ message|msg_2_datetime|date:'DATETIME_FORMAT' }}
+					({{ message|msg_2_datetime|timesince }})
+				</td>
+				<th style="text-align: right;">Host:</th><td style="text-align: left;">{{ message.host }}</td>
+				<th style="text-align: right;">App:</th><td style="text-align: left;">{{ message.application}}</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<pre>{{ message.message }}</pre>
 
 	{% endblock container %}
 
