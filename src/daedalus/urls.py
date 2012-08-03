@@ -49,6 +49,7 @@ if settings.DAEDALUS_ENABLED_SUBSYSTEMS in ('frontend', 'both'):
         url(r'^frontend/message/get/(.*)/', frontend_views.get_message_detail),
         url(r'^frontend/charts/(.+)/', frontend_views.charts),
         url(r'^frontend/charts/', frontend_views.charts),
+        url(r'^frontend/cache/reset/', frontend_views.reset_cache),
     )
 
 if settings.DAEDALUS_FORCE_SERVING_STATIC_FILES is True:

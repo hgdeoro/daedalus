@@ -22,12 +22,14 @@
 import json
 import logging
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
+from django.core.cache import cache
 
 from daedalus.storage import get_service_cm
 from daedalus.utils import str_to_column_key
+from django.core.urlresolvers import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -175,3 +177,8 @@ def charts(request, chart_type=None):
     ctx['chart_id'] = chart_id
     return HttpResponse(render_to_response('daedalus/frontend/charts.html',
         context_instance=RequestContext(request, ctx)))
+
+
+def reset_cache(request):
+    cache.clear()
+    return HttpResponseRedirect(reverse(home))

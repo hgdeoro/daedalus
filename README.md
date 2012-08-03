@@ -202,6 +202,7 @@ Changelog
 
 * Refactored Python package (from hgdeoro.daedalus.web.frontend/backend to daedalus.frontend/backend)
 * Changed default port from 8084 to 64364
+* Implemented reset of memcache
 
 ### v0.0.7
 
