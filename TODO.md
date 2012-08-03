@@ -2,6 +2,8 @@
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
 
+* Cleanup uses of `pylibmc` (now `python-memcached` is used)
+
 * Create a Django middleware to log exceptions
 
 * Failover on client (if one server doesn't respond, try another)
