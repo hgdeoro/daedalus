@@ -790,7 +790,7 @@ class PythonClientTest(LiveServerTestCase):
             'timestamp': u"1343607762.837293",
         })
         headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn = httplib.HTTPConnection("localhost", "8084")
+        conn = httplib.HTTPConnection("localhost", self.server_thread.port)
         conn.request("POST", "/backend/save/", params, headers)
         response = conn.getresponse()
         print response.read()
