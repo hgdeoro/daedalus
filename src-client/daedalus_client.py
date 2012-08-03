@@ -260,7 +260,7 @@ if __name__ == '__main__':
         exit(1)
 
     client = DaedalusClient(opts.daedalus_server, int(opts.daedalus_port),
-        opts.application, opts.host,
+        opts.host, opts.application,
         log_client_errors=False, raise_client_exceptions=opts.show_client_exceptions)
 
     # If an exceptino is raised, the exit status will be non-zero
