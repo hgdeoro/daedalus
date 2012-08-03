@@ -198,6 +198,10 @@ Cassandra
 Changelog
 ----------------------------------------
 
+### v0.0.8
+
+* Refactored Python package (from hgdeoro.daedalus.web.frontend/backend to daedalus.frontend/backend)
+
 ### v0.0.7
 
 * Created a command line to send log events
