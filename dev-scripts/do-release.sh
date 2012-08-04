@@ -35,7 +35,7 @@ cd $(dirname $0)/..
 	read
 }
 
-echo ./virtualenv/bin/python daedalus_version.py | grep -q 'dev' && {
+echo python daedalus_version.py | grep -q 'dev' && {
 	echo ""
 	echo "ERROR: Version information does NOT contains 'dev'"
 	echo ""
@@ -68,9 +68,9 @@ echo " Removing -dev from daedalus_version.py"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo ""
 
-./virtualenv/bin/python daedalus_version.py remove_dev
+python daedalus_version.py remove_dev
 
-export VER="$(./virtualenv/bin/python daedalus_version.py)"
+export VER="$(python daedalus_version.py)"
 
 echo "Version: $VER"
 
@@ -80,7 +80,7 @@ echo $VER | grep -q 'dev' && {
 }
 
 # Once we're sure daedalus_version.py hasn't '-dev', we set client's version
-./virtualenv/bin/python daedalus_version.py set_version_of_client
+python daedalus_version.py set_version_of_client
 
 
 #
@@ -92,7 +92,7 @@ echo $VER | grep -q 'dev' && {
 
 
 # Now run 'setup.py sdist' to update MANIFEST
-python setup sdist
+python setup.py sdist
 ( cd src-client/ ; python setup.py sdist )
 
 # Add to git the files that we've changed, commit and tag the stable version
@@ -132,12 +132,11 @@ echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 echo " Incrementing version"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo ""
-read
 
-./virtualenv/bin/python daedalus_version.py incr_patch_version
-./virtualenv/bin/python daedalus_version.py add_dev
+python daedalus_version.py incr_patch_version
+python daedalus_version.py add_dev
 
-NEWVER="$(./virtualenv/bin/python daedalus_version.py)"
+NEWVER="$(python daedalus_version.py)"
 
 if [ "$VER" = "$NEWVER" ] ; then
 	echo "ERROR: version on daedalus_version.py haven't changed"
