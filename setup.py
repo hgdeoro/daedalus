@@ -17,19 +17,8 @@ to avoid installing the whole projet in the cases where only the client is neede
 """
 
 #----------------------------------------------------------------------
-# Release instructions
+# Release instructions --> USE `do-release.sh`
 #----------------------------------------------------------------------
-#  + run tests
-#  + remove '-dev' from version of daedalus_version.py
-#  + git commit daedalus_version.py -m "Updated daedalus_version: version=v$(python daedalus_version.py)"
-#  + git tag -a -m "Version $(python daedalus_version.py)" "v$(python daedalus_version.py)"
-#  + git tag -f stable
-#  + python setup.py sdist upload
-#  - [client]  increment version number at `src-client/setup.py`
-#  - [client]  cd src-client ; python setup.py sdist upload ; cd ..
-#  + increment version number and add '-dev' on version of daedalus_version.py
-#  + git push ; git push --tags
-#
 
 VERSION = __import__('daedalus_version').get_daedalus_version()
 
