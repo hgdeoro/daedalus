@@ -2,6 +2,8 @@
 Not implemented right now / Ideas / TODOs
 ----------------------------------------
 
+* Cassandra timeouts: backend should have a short timeout and few retries, frontend a larger timeout and many retries.
+
 * Cleanup uses of `pylibmc` (now `python-memcached` is used)
 
 * Create a Django middleware to log exceptions

@@ -38,6 +38,7 @@ src/daedalus/frontend/static/daedalus/frontend/bootstrap-2.0.4/js/google-code-pr
 src/daedalus/frontend/templates/daedalus/frontend/base.html
 src/daedalus/frontend/templates/daedalus/frontend/charts.html
 src/daedalus/frontend/templates/daedalus/frontend/index.html
+src/daedalus/frontend/templates/daedalus/frontend/message_show.html
 src/daedalus/frontend/templates/daedalus/frontend/status.html
 src/daedalus/frontend/templatetags/__init__.py
 src/daedalus/frontend/templatetags/frontend_helpers.py
