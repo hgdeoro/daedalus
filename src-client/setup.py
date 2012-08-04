@@ -15,7 +15,7 @@ to avoid installing the whole projet in the cases where only the client is neede
 # ATTENTION!
 # DON'T CHANGE `VERSION` BY HAND!!! IT'S MANAGED FROM `daedalus_version.py`
 #===============================================================================
-VERSION = '0.0.9-dev'
+VERSION = '0.0.9'
 
 # http://pypi.python.org/pypi?%3Aaction=list_classifiers
 classifiers = [
