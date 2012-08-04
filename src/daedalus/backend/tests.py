@@ -846,6 +846,33 @@ class PythonClientTest(LiveServerTestCase):
         result = get_service(cache_enabled=False).query_by_severity(INFO)
         self.assertTrue(stdin_msg in [a_msg['message'] for a_msg in result])
 
+    def test_cli_bad_uses(self):
+        # First check that something works
+        self.assertEqual(cli_main(["-p", str(self.server_thread.port),
+            "-m", "Some message", "-o", "somehost", "-a", "someapp"], StringIO(), StringIO()), 0)
+
+        # No host nor app
+        self.assertEqual(cli_main(["-p", str(self.server_thread.port),
+            "-m", "Sample msg"], StringIO(), StringIO()), 1)
+
+        # No host
+        self.assertEqual(cli_main(["-p", str(self.server_thread.port),
+            "-m", "Sample msg", "-a", "someapp"], StringIO(), StringIO()), 1)
+
+        # No app
+        self.assertEqual(cli_main(["-p", str(self.server_thread.port),
+            "-m", "Sample msg", "-o", "somehost"], StringIO(), StringIO()), 1)
+
+        # No msg
+        self.assertEqual(cli_main(["-p", str(self.server_thread.port),
+            "-o", "somehost", "-a", "someapp"], StringIO(), StringIO()), 1)
+        self.assertEqual(cli_main(["-p", str(self.server_thread.port),
+            "-m", "", "-o", "somehost", "-a", "someapp"], StringIO(), StringIO()), 1)
+
+        # Multiple secerities
+        self.assertEqual(cli_main(["-p", str(self.server_thread.port),
+            "-m", "Sample msg", "-o", "somehost", "--error", "--info"], StringIO(), StringIO()), 1)
+
 
 class DaedalusClientTest(LiveServerTestCase):
 
