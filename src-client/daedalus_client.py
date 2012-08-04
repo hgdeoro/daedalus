@@ -229,7 +229,8 @@ This scripts returns with exit status = 0 if the message was sent.
 By default, a severity of INFO is used.
 """
 
-if __name__ == '__main__':
+
+def _main(cli_args, stdin_file):
     parser = optparse.OptionParser(description=description)
     parser.add_option('-s', '--daedalus-server', default="localhost",
         help="Hostname or IP of Daedalus server",
@@ -271,22 +272,22 @@ if __name__ == '__main__':
         help="Use ERROR severity for the message",
         dest="severity_error")
 
-    (opts, args) = parser.parse_args()
+    (opts, args) = parser.parse_args(cli_args) #@UnusedVariable
 
     if not (opts.from_stdin or opts.message):
         print "ERROR: you must specify '--from-stdin' or '-m' or both"
         parser.print_help()
-        sys.exit(1)
+        return 1
 
     severity_sum = sum([1 for value in (opts.severity_error, opts.severity_warn, opts.severity_info,
         opts.severity_debug, ) if value])
-    if severity_sum == 0:
+    if severity_sum == 0 or opts.severity_info:
         # DEFAULT -> INFO
         severity = INFO
     elif severity_sum > 1:
         print "ERROR: you can only specify ONE severity, or use the default"
         parser.print_help()
-        sys.exit(1)
+        return 1
     else:
         if opts.severity_error:
             severity = ERROR
@@ -305,13 +306,17 @@ if __name__ == '__main__':
 
     # If an exceptino is raised, the exit status will be non-zero
     if opts.from_stdin and opts.message:
-        sent_ok = client.send_message(opts.message + "\n" + sys.stdin.read(), severity)
+        sent_ok = client.send_message(opts.message + "\n" + stdin_file.read(), severity)
     elif opts.from_stdin:
-        sent_ok = client.send_message(sys.stdin.read(), severity)
+        sent_ok = client.send_message(stdin_file.read(), severity)
     else:
         sent_ok = client.send_message(opts.message, severity)
 
     if sent_ok:
-        sys.exit(0)
+        return 0
     else:
-        sys.exit(1)
+        return 1
+
+
+if __name__ == '__main__':
+    sys.exit(_main(sys.argv[1:], sys.stdin))

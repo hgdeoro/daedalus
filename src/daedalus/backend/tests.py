@@ -30,6 +30,7 @@ import time
 import uuid
 
 from contextlib import contextmanager
+from StringIO import StringIO
 from django.test.testcases import TestCase, LiveServerTestCase
 from django.conf import settings
 from pycassa.system_manager import SystemManager
@@ -37,9 +38,10 @@ from pycassa.columnfamily import ColumnFamily
 from pycassa.pool import ConnectionPool
 from pycassa.util import convert_time_to_uuid, convert_uuid_to_time
 
-from daedalus_client import DaedalusClient, DaedalusException, ERROR, \
+from daedalus_client import DaedalusClient, DaedalusException, \
     utc_now_from_epoch as utc_now_from_epoch_from_client, \
-    utc_str_timestamp as utc_str_timestamp_from_client
+    utc_str_timestamp as utc_str_timestamp_from_client, _main as cli_main, \
+    ERROR, WARN, INFO, DEBUG
 
 from daedalus.proto.random_log_generator import log_dict_generator
 from daedalus.storage import get_service_cm, get_service
@@ -795,6 +797,54 @@ class PythonClientTest(LiveServerTestCase):
         response = conn.getresponse()
         print response.read()
         conn.close()
+
+    def test_cli_good_uses(self):
+        _truncate_all_column_families()
+
+        # ~~~~~ First simplest test of CLI ~~~~~
+        test_host = str(uuid.uuid4())
+        test_app = str(uuid.uuid4())
+        test_msg = str(uuid.uuid4())
+        result = cli_main(["-p", str(self.server_thread.port),
+            "-o", test_host, "-a", test_app,
+            "-m", test_msg], StringIO())
+        self.assertEqual(result, 0)
+
+        result = get_service(cache_enabled=False).query_by_host(test_host)
+        self.assertTrue(test_msg in [a_msg['message'] for a_msg in result])
+
+        result = get_service(cache_enabled=False).query_by_application(test_app)
+        self.assertTrue(test_msg in [a_msg['message'] for a_msg in result])
+
+        # ~~~~~ Test severities ~~~~~
+        for sev, msg, cmdline in (
+                (ERROR, str(uuid.uuid4()), '--error'),
+                (WARN, str(uuid.uuid4()), '--warn'),
+                (INFO, str(uuid.uuid4()), '--info'),
+                (INFO, str(uuid.uuid4()), ''),
+                (DEBUG, str(uuid.uuid4()), '--debug'),
+            ):
+
+            result = cli_main(["-p", str(self.server_thread.port),
+                "-o", "somehost", "-a", "someapp",
+                "-m", msg, cmdline], StringIO())
+            self.assertEqual(result, 0)
+
+            result = get_service(cache_enabled=False).query_by_severity(sev)
+            self.assertTrue(msg in [a_msg['message'] for a_msg in result])
+
+        # ~~~~~ Test readin from stdin ~~~~~
+        stdin_msg = str(uuid.uuid4())
+        fake_stdin = StringIO()
+        fake_stdin.write(stdin_msg)
+        fake_stdin.seek(0)
+        result = cli_main(["-p", str(self.server_thread.port),
+            "-o", "somehost", "-a", "someapp",
+            "--show-client-exceptions",
+            "--from-stdin"], fake_stdin)
+        self.assertEqual(result, 0)
+        result = get_service(cache_enabled=False).query_by_severity(INFO)
+        self.assertTrue(stdin_msg in [a_msg['message'] for a_msg in result])
 
 
 class DaedalusClientTest(LiveServerTestCase):
