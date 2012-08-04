@@ -198,24 +198,26 @@ Cassandra
 Changelog
 ----------------------------------------
 
+### v0.0.9
+
+* Frontend: added 'host' column to list of messages
+* Client: implemented command line arguments for setting the severity
+* Client: implemented tests for CLI
+* General: automatized steps needed for creating a 'release'
+
 ### v0.0.8
 
-* Refactored Python package (from hgdeoro.daedalus.web.frontend/backend to daedalus.frontend/backend)
-* Changed default port from 8084 to 64364
-* Implemented reset of memcache
+* General: refactored Python package (from hgdeoro.daedalus.web.frontend/backend to daedalus.frontend/backend)
+* General: changed default port from 8084 to 64364
+* Frontend: implemented reset of memcache
 
 ### v0.0.7
 
-* Created a command line to send log events
-* Created a handler for the Python logging framework
-* Fixed various issues around `setup.py` and created `setup.py` for the Python client.
-* Now the Daedalus server and Python client are uploaded to PYPI
+* Client: created a command line to send log events
+* Client: created a handler for the Python logging framework
+* General: fixed various issues around `setup.py` and created `setup.py` for the Python client.
+* General: now the Daedalus server and Python client are uploaded to PYPI
 
-### v0.0.6
-
-* Many enhacements on fabric scripts and new tasks: `daedalus_syncdb()`, `gunicorn_launch()`
-* Created `dev-scripts/install-on-ubuntu.sh` to document and automatize installation on Ubuntu
-* Updated scripts on `dev-scripts/` to automatically use virtualenv if exists
 
 License
 ----------------------------------------
