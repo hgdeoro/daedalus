@@ -1,7 +1,7 @@
 MAJOR_VERSION=0
 MINOR_VERSION=0
-PATCH_VERSION=9
-EXTRA=''
+PATCH_VERSION=10
+EXTRA='-dev'
 
 def get_daedalus_version():
     return "{0}.{1}.{2}{3}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, EXTRA)
