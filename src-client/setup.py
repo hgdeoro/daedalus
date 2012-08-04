@@ -11,6 +11,12 @@ The `setup_client.py` is for the Python client and logging handler: this exists
 to avoid installing the whole projet in the cases where only the client is needed.
 """
 
+#===============================================================================
+# ATTENTION!
+# DON'T CHANGE `VERSION` BY HAND!!! IT'S MANAGED FROM `daedalus_version.py`
+#===============================================================================
+VERSION = '0.0.9-dev'
+
 # http://pypi.python.org/pypi?%3Aaction=list_classifiers
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -29,7 +35,7 @@ classifiers = [
 # http://docs.python.org/distutils/extending.html
 setup(
     name="daedalus-python-client",
-    version="0.0.2",
+    version=VERSION,
     description='Python client to send messages to Daedalus.',
     author="Horacio G. de Oro",
     author_email="hgdeoror@gmail.com",
