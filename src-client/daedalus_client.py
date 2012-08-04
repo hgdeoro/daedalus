@@ -225,6 +225,8 @@ description = """This is a CLI version of Daedalus client.
 This utility allows you send messages to be stored on Daedalus.
 
 This scripts returns with exit status = 0 if the message was sent.
+
+By default, a severity of INFO is used.
 """
 
 if __name__ == '__main__':
@@ -252,12 +254,50 @@ if __name__ == '__main__':
         action="store_true", default=False,
         help="Show traceback of client exceptions",
         dest="show_client_exceptions")
+    parser.add_option('--debug',
+        action="store_true", default=False,
+        help="Use DEBUG severity for the message",
+        dest="severity_debug")
+    parser.add_option('--info',
+        action="store_true", default=False,
+        help="Use INFO severity for the message",
+        dest="severity_info")
+    parser.add_option('--warn',
+        action="store_true", default=False,
+        help="Use WARN severity for the message",
+        dest="severity_warn")
+    parser.add_option('--error',
+        action="store_true", default=False,
+        help="Use ERROR severity for the message",
+        dest="severity_error")
 
     (opts, args) = parser.parse_args()
 
     if not (opts.from_stdin or opts.message):
+        print "ERROR: you must specify '--from-stdin' or '-m' or both"
         parser.print_help()
-        exit(1)
+        sys.exit(1)
+
+    severity_sum = sum([1 for value in (opts.severity_error, opts.severity_warn, opts.severity_info,
+        opts.severity_debug, ) if value])
+    if severity_sum == 0:
+        # DEFAULT -> INFO
+        severity = INFO
+    elif severity_sum > 1:
+        print "ERROR: you can only specify ONE severity, or use the default"
+        parser.print_help()
+        sys.exit(1)
+    else:
+        if opts.severity_error:
+            severity = ERROR
+        elif opts.severity_warn:
+            severity = WARN
+        elif opts.severity_debug:
+            severity = DEBUG
+        else:
+            severity = None
+
+    assert severity is not None
 
     client = DaedalusClient(opts.daedalus_server, int(opts.daedalus_port),
         opts.host, opts.application,
@@ -265,11 +305,11 @@ if __name__ == '__main__':
 
     # If an exceptino is raised, the exit status will be non-zero
     if opts.from_stdin and opts.message:
-        sent_ok = client.send_message(opts.message + "\n" + sys.stdin.read(), INFO)
+        sent_ok = client.send_message(opts.message + "\n" + sys.stdin.read(), severity)
     elif opts.from_stdin:
-        sent_ok = client.send_message(sys.stdin.read(), INFO)
+        sent_ok = client.send_message(sys.stdin.read(), severity)
     else:
-        sent_ok = client.send_message(opts.message, INFO)
+        sent_ok = client.send_message(opts.message, severity)
 
     if sent_ok:
         sys.exit(0)
