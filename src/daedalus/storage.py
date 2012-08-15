@@ -58,6 +58,37 @@ CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
 SECONDS_IN_DAY = 60 * 60 * 24
 
 
+#===============================================================================
+# Entry point of the module
+#===============================================================================
+
+def get_service(*args, **kwargs):
+    """
+    Returns an instance of  StorageService.
+    """
+    return StorageService2(*args, **kwargs)
+
+
+@contextlib.contextmanager
+def get_service_cm(*args, **kwargs):
+    """
+    Generates context manager for a service instance.
+
+    Use:
+        with get_service_cm() as service:
+            pass
+    """
+    service = get_service(*args, **kwargs)
+    try:
+        yield service
+    finally:
+        service.close()
+
+
+#===============================================================================
+# Utility methods
+#===============================================================================
+
 def _json_cache(key, ttl, callback, *args, **kwargs):
     cached = cache.get(key)
     if cached is not None:
@@ -117,29 +148,6 @@ def _get_connection(retry=None, wait_between_retry=None):
                 raise
             logger.warn("AllServersUnavailable detected. Retrying (%d of %d)...", num, retry)
             time.sleep(wait_between_retry)
-
-
-def get_service(*args, **kwargs):
-    """
-    Returns an instance of  StorageService.
-    """
-    return StorageService2(*args, **kwargs)
-
-
-@contextlib.contextmanager
-def get_service_cm(*args, **kwargs):
-    """
-    Generates context manager for a service instance.
-
-    Use:
-        with get_service_cm() as service:
-            pass
-    """
-    service = get_service(*args, **kwargs)
-    try:
-        yield service
-    finally:
-        service.close()
 
 
 class StorageService(object):
