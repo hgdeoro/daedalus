@@ -34,7 +34,7 @@ from pycassa.types import TimeUUIDType
 from pycassa.batch import Mutator
 from pycassa.pool import AllServersUnavailable
 from pycassa.util import convert_time_to_uuid
-from pycassa.cassandra.c10.ttypes import NotFoundException
+from pycassa.cassandra.ttypes import NotFoundException
 
 from daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
     utc_timestamp2datetime, time_series_generator
