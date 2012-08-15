@@ -66,7 +66,7 @@ def get_service(*args, **kwargs):
     """
     Returns an instance of  StorageService.
     """
-    return StorageService2(*args, **kwargs)
+    return StorageServiceUniqueMessagePlusReferences(*args, **kwargs)
 
 
 @contextlib.contextmanager
@@ -151,6 +151,19 @@ def _get_connection(retry=None, wait_between_retry=None):
 
 
 class StorageService(object):
+    """
+    First implementation of Storage Service.
+    The logs are saved in each of the CF.
+
+    This could be good because:
+    - listing messages is fast, since all the messages are in the CF
+    (listing messages of a host, or an application, or a severity)
+
+    This could bad because:
+    - al the messages are n-plicated (one copy in the main CF,
+    other copy in the CF of application,other copy in the CF of host,
+    other copy in the CF of severity)
+    """
     # FIXME: ensure close() is called on every instance created elsewhere
 
     def __init__(self, cache_enabled=True):
@@ -570,11 +583,21 @@ class StorageService(object):
         return self._generate_chart_data(TWO_HOURS, 6 * 7)
 
 
-class StorageService2(StorageService):
+class StorageServiceUniqueMessagePlusReferences(StorageService):
     """
     A second implementation of Storage Service.
     With this implementation, the logs are saved only once,
     on CF_LOGS. In the other CFs, an empty column value is inserted.
+
+    The messages are saved only once, and the other CF have 'references'
+    to the messages in the mail CF.
+
+    This could be good because:
+    - stores less information
+
+    This could bad because:
+    - when searching or listing using the others CF, we need an extra query
+    for each message to fetch the messages contents.
     """
     # FIXME: ensure close() is called on every instance created elsewhere
 

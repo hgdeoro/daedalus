@@ -186,7 +186,7 @@ Cassandra
   - CF: Logs\_by\_host - Cols[]: { uuid1/timestamp: JSON encodded message }
   - CF: Logs\_by\_severity - Cols[]: { uuid1/timestamp: JSON encodded message }
 
-* Alternative format (implemented by StorageService2):
+* Alternative format (implemented by StorageServiceUniqueMessagePlusReferences):
   - CF: Logs - Cols[]: { uuid1/timestamp: JSON encodded message }
   - CF: Logs\_by\_app - Cols[]: { uuid1/timestamp: '' }
   - CF: Logs\_by\_host - Cols[]: { uuid1/timestamp: '' }

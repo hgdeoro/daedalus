@@ -10,7 +10,7 @@ Not implemented right now / Ideas / TODOs
 
 * Failover on client (if one server doesn't respond, try another)
 
-* Test and compare performance and disk space: StorageService vs StorageService2
+* Test and compare performance and disk space: StorageService vs StorageServiceUniqueMessagePlusReferences
 
 * Document installation procedure
 
