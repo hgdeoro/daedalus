@@ -1026,3 +1026,15 @@ class StorageServiceRowPerMinute(StorageService):
         Returns a list of valid hosts.
         """
         return self._get_cf_metadata().get('hosts', column_count=999).keys()
+
+    def get_by_id(self, message_id):
+        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
+        return None
+        #
+        #        # F.I.X.M.E: add documentation
+        #        # F.I.X.M.E: add tests
+        #        # F.I.X.M.E: return None if doesn't exists
+        #        msg_uuid = uuid.UUID(hex=message_id)
+        #        row_key = ymd_from_uuid1(msg_uuid)
+        #        json_str = self._get_cf_logs().get(row_key, columns=[msg_uuid])[msg_uuid]
+        #        return json.loads(json_str)
