@@ -22,7 +22,7 @@
 import logging
 
 from pycassa.columnfamily import ColumnFamily
-from pycassa.cassandra.c10.ttypes import NotFoundException
+from pycassa.cassandra.ttypes import NotFoundException
 
 from daedalus.proto import simple_client
 from daedalus.proto.simple_client import CF_LOGS, CF_LOGS_BY_APP,\
