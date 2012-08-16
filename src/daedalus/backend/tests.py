@@ -755,17 +755,27 @@ class PycassaUtilsTest(BaseTestCase):
 
     def test_convert_time_to_uuid_is_not_utc(self):
         """
-        Asserts that `pycassa.util.convert_uuid_to_time()`
-        does NOT works with UTC when passing `datetime` arguments.
-        """
-        with custom_tz("UTC-04:00"):
-            now_utc_datetime = utc_now()
-            uuid_from_datetime = convert_time_to_uuid(now_utc_datetime)
-            time_from_uuid = convert_uuid_to_time(uuid_from_datetime)
-            datetime_from_uuid = utc_timestamp2datetime(time_from_uuid)
+        On version 1.6 of pycassa, `pycassa.util.convert_uuid_to_time()`
+        does NOT worked with UTC when passing `datetime` arguments.
 
-        self.assertRaises(AssertionError, self.assertDatetimesEquals,
-            now_utc_datetime, datetime_from_uuid)
+        In version 1.7, pycassa supports UTC datetimes for default.
+        So, if: A = utc_now() -> convert_time_to_uuid() -> UUID ...
+        ... UUID -> convert_uuid_to_time() -> B
+        1) with pycassa 1.6, A != B (because pycassa doesn't work with UTF)
+        2) with pycassa 1.7, A == B (since all the operation are in UTC)
+        """
+
+        def callback():
+            now_utc_datetime__A = utc_now()
+            uuid_from_datetime = convert_time_to_uuid(now_utc_datetime__A)
+            time_from_uuid = convert_uuid_to_time(uuid_from_datetime)
+            datetime_from_uuid___B = utc_timestamp2datetime(time_from_uuid)
+            return (now_utc_datetime__A, datetime_from_uuid___B)
+
+        timestamps_tuples = run_foreach_tz(callback)
+
+        for A, B in timestamps_tuples:
+            self.assertDatetimesEquals(A, B)
 
     def test_convert_time_to_uuid_using_epoch_works(self):
         """
