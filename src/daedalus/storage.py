@@ -30,7 +30,7 @@ from django.conf import settings
 from django.core.cache import cache
 from pycassa import ConnectionPool, ColumnFamily
 from pycassa.system_manager import SystemManager, SIMPLE_STRATEGY
-from pycassa.types import TimeUUIDType
+from pycassa.types import TimeUUIDType, CompositeType, UTF8Type
 from pycassa.batch import Mutator
 from pycassa.pool import AllServersUnavailable
 from pycassa.util import convert_time_to_uuid
@@ -54,6 +54,7 @@ CF_LOGS = 'Logs'
 CF_LOGS_BY_APP = 'Logs_by_app'
 CF_LOGS_BY_HOST = 'Logs_by_host'
 CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
+CF_METADATA = 'Metadata'
 
 SECONDS_IN_DAY = 60 * 60 * 24
 
@@ -66,7 +67,7 @@ def get_service(*args, **kwargs):
     """
     Returns an instance of  StorageService.
     """
-    return StorageServiceUniqueMessagePlusReferences(*args, **kwargs)
+    return StorageServiceRowPerMinute(*args, **kwargs)
 
 
 @contextlib.contextmanager
@@ -204,9 +205,9 @@ class StorageService(object):
             self._pool.dispose()
             self._pool = None
 
-    def create_keyspace_and_cfs(self):
+    def create_keyspace(self):
         """
-        Creates the KEYSPACE and CF
+        Creates the Cassandra Keyspace (if not exist)
         """
         sys_mgr = None
         try:
@@ -214,24 +215,41 @@ class StorageService(object):
             try:
                 sys_mgr.describe_ring(settings.KEYSPACE)
             except:
-                logger.info("create_keyspace_and_cfs(): Creating keyspace %s", settings.KEYSPACE)
+                logger.info("create_keyspace(): Creating keyspace %s", settings.KEYSPACE)
                 sys_mgr.create_keyspace(settings.KEYSPACE, SIMPLE_STRATEGY, {'replication_factor': '1'})
-    
-            try:
-                pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
-                for cf_name in [CF_LOGS, CF_LOGS_BY_APP, CF_LOGS_BY_HOST, CF_LOGS_BY_SEVERITY]:
-                    try:
-                        cf = ColumnFamily(pool, cf_name)
-                    except:
-                        logger.info("create_keyspace_and_cfs(): Creating column family %s", cf_name)
-                        sys_mgr.create_column_family(settings.KEYSPACE, cf_name, comparator_type=TimeUUIDType())
-                        cf = ColumnFamily(pool, cf_name)
-                        cf.get_count(str(uuid.uuid4()))
-            finally:
-                pool.dispose()
         finally:
             if sys_mgr:
                 sys_mgr.close()
+
+    def create_cfs(self):
+        """
+        Creates the Cassandra Column Families (if not exist)
+        """
+        sys_mgr = None
+        pool = None
+        try:
+            sys_mgr = SystemManager()
+            pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
+            for cf_name in [CF_LOGS, CF_LOGS_BY_APP, CF_LOGS_BY_HOST, CF_LOGS_BY_SEVERITY]:
+                try:
+                    cf = ColumnFamily(pool, cf_name)
+                except:
+                    logger.info("create_cfs(): Creating column family %s", cf_name)
+                    sys_mgr.create_column_family(settings.KEYSPACE, cf_name, comparator_type=TimeUUIDType())
+                    cf = ColumnFamily(pool, cf_name)
+                    cf.get_count(str(uuid.uuid4()))
+        finally:
+            if pool:
+                pool.dispose()
+            if sys_mgr:
+                sys_mgr.close()
+
+    def create_keyspace_and_cfs(self):
+        """
+        Creates the KEYSPACE and CF
+        """
+        self.create_keyspace()
+        self.create_cfs()
 
     def save_log(self, message):
         pool = self._get_pool()
@@ -281,7 +299,7 @@ class StorageService(object):
 
     def _get_rows_keys(self, cf):
         """
-        Return all the existing keys of a cf.
+        Return all the existing keys of a cf (UNSORTED).
         """
         # FIXME: check current implementation's performance
         # BUT row-cache of Cassandra should make this query pretty fast
@@ -748,3 +766,263 @@ class StorageServiceUniqueMessagePlusReferences(StorageService):
             if cols_keys:
                 cols_keys = cols_keys[1:]
         return self._get_from_logs_cf(cols_keys)
+
+
+class StorageServiceRowPerMinute(StorageService):
+    """
+    A third implementation of Storage Service.
+    With this implementation, the logs are saved only once,
+    on CF_LOGS, using a CompositeKey
+
+    This could be good because:
+    - Uses many rows, this raises the posibility of well balanced clusters
+
+    This could bad because:
+    - the service is more complex
+    """
+    # FIXME: ensure close() is called on every instance created elsewhere
+
+    def __init__(self, *args, **kwargs):
+        StorageService.__init__(self, *args, **kwargs)
+        self._app_cache = {}
+        self._host_cache = {}
+        self._cf_metadata = None
+
+    def _get_cf_metadata(self):
+        if self._cf_metadata is None:
+            self._cf_metadata = ColumnFamily(self._get_pool(), CF_METADATA)
+        return self._cf_metadata
+
+    def create_cfs(self):
+        """
+        Creates the Cassandra Column Families (if not exist)
+        """
+        sys_mgr = None
+        pool = None
+        try:
+            sys_mgr = SystemManager()
+            pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
+            for cf_name in [CF_LOGS]:
+                try:
+                    cf = ColumnFamily(pool, cf_name)
+                except:
+                    logger.info("create_cfs(): Creating column family %s", cf_name)
+                    # CompositeType
+                    # 1. UUID + Timestamp
+                    # 2. Host / Origin
+                    # 3. Application
+                    # 4. Severiry
+                    comparator = CompositeType(TimeUUIDType(), UTF8Type(), UTF8Type(), UTF8Type())
+                    sys_mgr.create_column_family(settings.KEYSPACE,
+                        cf_name, comparator_type=comparator)
+                    cf = ColumnFamily(pool, cf_name)
+                    cf.get_count(str(uuid.uuid4()))
+            try:
+                cf = ColumnFamily(pool, CF_METADATA)
+            except:
+                logger.info("create_cfs(): Creating column family %s", CF_METADATA)
+                # CompositeType
+                # 1. UUID + Timestamp
+                # 2. Host / Origin
+                # 3. Application
+                # 4. Severiry
+                sys_mgr.create_column_family(settings.KEYSPACE,
+                    CF_METADATA, comparator_type=UTF8Type())
+                cf = ColumnFamily(pool, CF_METADATA)
+                cf.get_count(str(uuid.uuid4()))
+        finally:
+            if pool:
+                pool.dispose()
+            if sys_mgr:
+                sys_mgr.close()
+
+    def save_log(self, application, host, severity, timestamp, message):
+        """
+        Saves a log message.
+
+        Raises:
+        - DaedalusException if any parameter isn't valid.
+        """
+        _check_application(application)
+        _check_severity(severity)
+        _check_host(host)
+        _check_message(message)
+        try:
+            timestamp = float(timestamp)
+        except:
+            raise(DaedalusException("The timestamp '{0}' couldn't be "
+                "transformed to a float".format(timestamp)))
+
+        event_uuid = convert_time_to_uuid(timestamp, randomize=True)
+        _uuid_hex = event_uuid.get_hex()
+
+        json_message = json.dumps({
+            'application': application,
+            'host': host,
+            'severity': severity,
+            'timestamp': timestamp,
+            '_uuid': _uuid_hex,
+            'message': message,
+        })
+
+        if not application in self._app_cache:
+            self._app_cache[application] = True
+            self._get_cf_metadata().insert('applications', {application: ''})
+
+        if not host in self._host_cache:
+            self._host_cache[host] = True
+            self._get_cf_metadata().insert('hosts', {host: ''})
+
+        row_key = ymd_from_uuid1(event_uuid)
+        self._get_cf_logs().insert(row_key, {
+            (event_uuid, host, application, severity): json_message,
+        })
+
+    def query(self, from_col=None):
+        """
+        Returns list of dicts.
+        """
+        result = []
+
+        # As of https://issues.apache.org/jira/browse/CASSANDRA-295, I think Daedalus should
+        # not depend on the type of partitioner configured, since it's configured cluster-wide
+        # and since RandomPartitioner is the default and sugested, we should work with it.
+
+        # FIXME: StorageServiceRowPerMinute: this well be SOOOOO slow!
+        #         And this method use only 999 rows!
+        row_keys = sorted(self._get_rows_keys(self._get_cf_logs()), reverse=True)
+
+        #    - ROW key -> yyyymmddhhmm
+        #        + COL key -> host:app:severity:uuidtime
+        #            + COL value -> json
+        #        + COL key -> host:app:severity:uuidtime
+        #            + COL value -> json
+        #        + COL key -> host:app:severity:uuidtime
+        #            + COL value -> json
+        #        + COL key -> host:app:severity:uuidtime
+        #            + COL value -> json
+
+        for row_key in row_keys:
+            try:
+                ignore_first = False
+                if from_col is None:
+                    cass_result = self._get_cf_logs().get(row_key, column_reversed=True)
+                else:
+                    cass_result = self._get_cf_logs().get(row_key, column_reversed=True,
+                        column_start=from_col, column_count=101)
+                    ignore_first = True
+
+                for _, col_val in cass_result.iteritems():
+                    if ignore_first:
+                        ignore_first = False
+                        continue
+                    if len(result) < 100:
+                        result.append(json.loads(col_val))
+                    else:
+                        return result
+            except NotFoundException:
+                # FIXME: try to avoid this kind of exception starting the search in the right row
+                # logger.exception("---------- NotFoundException {0} ----------".format(row_key))
+                pass
+
+        return result
+
+    def query_by_severity(self, severity, from_col=None):
+        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
+        return self.query(from_col=from_col)
+        #        """
+        #        Returns list of dicts.
+        #        """
+        #        _check_severity(severity)
+        #        try:
+        #            if from_col is None:
+        #                cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True)
+        #                cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        #            else:
+        #                cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True,
+        #                    column_start=from_col, column_count=101)
+        #                cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        #                if cols_keys:
+        #                    cols_keys = cols_keys[1:]
+        #        except NotFoundException:
+        #            return []
+        #
+        #        return self._get_from_logs_cf(cols_keys)
+
+    def query_by_application(self, application, from_col=None):
+        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
+        return self.query(from_col=from_col)
+        #        """
+        #        Returns OrderedDict.
+        #
+        #        Use:
+        #            cassandra_result = query_by_application(severity)
+        #            result = []
+        #            for _, col in cassandra_result.iteritems():
+        #                message = json.loads(col)
+        #                result.append(message)
+        #        """
+        #        _check_application(application)
+        #        if from_col is None:
+        #            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True)
+        #            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        #        else:
+        #            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True,
+        #                column_start=from_col, column_count=101)
+        #            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        #            if cols_keys:
+        #                cols_keys = cols_keys[1:]
+        #        return self._get_from_logs_cf(cols_keys)
+
+    def query_by_host(self, host, from_col=None):
+        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
+        return self.query(from_col=from_col)
+        #        """
+        #        Returns OrderedDict.
+        #
+        #        Use:
+        #            cassandra_result = query_by_host(severity)
+        #            result = []
+        #            for _, col in cassandra_result.iteritems():
+        #                message = json.loads(col)
+        #                result.append(message)
+        #        """
+        #        _check_host(host)
+        #        if from_col is None:
+        #            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True)
+        #            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        #        else:
+        #            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True,
+        #                column_start=from_col, column_count=101)
+        #            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
+        #            if cols_keys:
+        #                cols_keys = cols_keys[1:]
+        #        return self._get_from_logs_cf(cols_keys)
+
+    def get_error_count(self):
+        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
+        return 0
+    
+    def get_warn_count(self):
+        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
+        return 0
+    
+    def get_info_count(self):
+        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
+        return 0
+    
+    def get_debug_count(self):
+        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
+        return 0
+
+    def list_applications(self):
+        """
+        Returns a list of valid applications.
+        """
+        return self._get_cf_metadata().get('applications', column_count=999).keys()
+
+    def list_hosts(self):
+        """
+        Returns a list of valid hosts.
+        """
+        return self._get_cf_metadata().get('hosts', column_count=999).keys()
