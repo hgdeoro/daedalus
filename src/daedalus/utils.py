@@ -113,6 +113,18 @@ def ymd_from_uuid1(uuid1_value):
         a_date.year, a_date.month, a_date.day)
 
 
+def ymdhm_from_uuid1(uuid1_value):
+    """
+    Returns a string with the format YEAR+MONTH+DAY+HOUR+MINUTE
+    """
+    # Originaly this was done with `datetime.date.fromtimestamp()`, but
+    # this method works with localtime, instead of UTC.
+    timestamp = convert_uuid_to_time(uuid1_value)
+    a_date = utc_timestamp2datetime(timestamp)
+    return "{0:04d}{1:02d}{2:02d}{3:02d}{4:02d}".format(
+        a_date.year, a_date.month, a_date.day, a_date.hour, a_date.minute)
+
+
 def column_key_to_str(col_key):
     """
     Serializes a Cassandra column key to a string.
