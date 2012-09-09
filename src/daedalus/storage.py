@@ -30,7 +30,7 @@ from django.conf import settings
 from django.core.cache import cache
 from pycassa import ConnectionPool, ColumnFamily
 from pycassa.system_manager import SystemManager, SIMPLE_STRATEGY
-from pycassa.types import TimeUUIDType, CompositeType, UTF8Type
+from pycassa.types import TimeUUIDType, CompositeType, UTF8Type, IntegerType
 from pycassa.batch import Mutator
 from pycassa.pool import AllServersUnavailable
 from pycassa.util import convert_time_to_uuid
@@ -55,6 +55,7 @@ CF_LOGS_BY_APP = 'Logs_by_app'
 CF_LOGS_BY_HOST = 'Logs_by_host'
 CF_LOGS_BY_SEVERITY = 'Logs_by_severity'
 CF_METADATA = 'Metadata'
+CF_TIMESTAMP_BITMAP = 'TimestampBitmap'
 
 SECONDS_IN_DAY = 60 * 60 * 24
 
@@ -786,12 +787,22 @@ class StorageServiceRowPerMinute(StorageService):
         StorageService.__init__(self, *args, **kwargs)
         self._app_cache = {}
         self._host_cache = {}
+        self._timestamp_bitmap_cache = {}
+        # METADATA cf has 2 rows:
+        # - applications
+        # - hosts
         self._cf_metadata = None
+        self._cf_timestamp_bitmap = None
 
     def _get_cf_metadata(self):
         if self._cf_metadata is None:
             self._cf_metadata = ColumnFamily(self._get_pool(), CF_METADATA)
         return self._cf_metadata
+
+    def _get_cf_timestamp_bitmap(self):
+        if self._cf_timestamp_bitmap is None:
+            self._cf_timestamp_bitmap = ColumnFamily(self._get_pool(), CF_TIMESTAMP_BITMAP)
+        return self._cf_timestamp_bitmap
 
     def create_cfs(self):
         """
@@ -817,19 +828,23 @@ class StorageServiceRowPerMinute(StorageService):
                         cf_name, comparator_type=comparator)
                     cf = ColumnFamily(pool, cf_name)
                     cf.get_count(str(uuid.uuid4()))
+
             try:
                 cf = ColumnFamily(pool, CF_METADATA)
             except:
                 logger.info("create_cfs(): Creating column family %s", CF_METADATA)
-                # CompositeType
-                # 1. UUID + Timestamp
-                # 2. Host / Origin
-                # 3. Application
-                # 4. Severiry
                 sys_mgr.create_column_family(settings.KEYSPACE,
                     CF_METADATA, comparator_type=UTF8Type())
                 cf = ColumnFamily(pool, CF_METADATA)
                 cf.get_count(str(uuid.uuid4()))
+
+            try:
+                cf = ColumnFamily(pool, CF_TIMESTAMP_BITMAP)
+            except:
+                logger.info("create_cfs(): Creating column family %s", CF_TIMESTAMP_BITMAP)
+                sys_mgr.create_column_family(settings.KEYSPACE,
+                    CF_TIMESTAMP_BITMAP, comparator_type=IntegerType())
+                cf = ColumnFamily(pool, CF_TIMESTAMP_BITMAP)
         finally:
             if pool:
                 pool.dispose()
@@ -872,6 +887,12 @@ class StorageServiceRowPerMinute(StorageService):
         if not host in self._host_cache:
             self._host_cache[host] = True
             self._get_cf_metadata().insert('hosts', {host: ''})
+
+        timestamp_for_bitmap = int(timestamp)
+        timestamp_for_bitmap -= timestamp_for_bitmap % 60
+        if not timestamp_for_bitmap in self._timestamp_bitmap_cache:
+            self._timestamp_bitmap_cache[timestamp_for_bitmap] = True
+            self._get_cf_timestamp_bitmap().insert('timestamp_bitmap', {timestamp_for_bitmap: ''})
 
         row_key = ymd_from_uuid1(event_uuid)
         self._get_cf_logs().insert(row_key, {
