@@ -137,22 +137,6 @@ def ymdhm_from_uuid1(uuid1_value):
         a_date.year, a_date.month, a_date.day, a_date.hour, a_date.minute)
 
 
-def column_key_to_str(col_key):
-    """
-    Serializes a Cassandra column key to a string.
-    """
-    return col_key.get_hex()
-
-
-def str_to_column_key(str_key):
-    """
-    De-serializes a string to be used as a Cassandra column key.
-    """
-    if str_key is None:
-        return None
-    return uuid.UUID(hex=str_key)
-
-
 #def get_posixtime(uuid1):
 #    """
 #    Convert the uuid1 timestamp to a standard posix timestamp.

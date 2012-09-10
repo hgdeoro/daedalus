@@ -28,7 +28,6 @@ from django.template.context import RequestContext
 from django.core.cache import cache
 
 from daedalus.storage import get_service_cm
-from daedalus.utils import str_to_column_key
 from django.core.urlresolvers import reverse
 
 logger = logging.getLogger(__name__)
@@ -85,9 +84,9 @@ def _ctx(**kwargs):
 
 
 def home(request):
-    from_col = str_to_column_key(request.GET.get('from', None))
     ctx = _ctx()
     with get_service_cm() as service:
+        from_col = service.str_to_column_key(request.GET.get('from', None))
         try:
             ctx['result'] = service.query(from_col=from_col)
             if ctx['result']:
@@ -109,8 +108,8 @@ def show_message(request, message_id):
 
 
 def search_by_severity(request, severity):
-    from_col = str_to_column_key(request.GET.get('from', None))
     with get_service_cm() as service:
+        from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_severity(severity, from_col=from_col)
     if result:
         last_message_timestamp = result[-1]['_uuid']
@@ -123,8 +122,8 @@ def search_by_severity(request, severity):
 
 
 def search_by_application(request, application):
-    from_col = str_to_column_key(request.GET.get('from', None))
     with get_service_cm() as service:
+        from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_application(application, from_col=from_col)
     if result:
         last_message_timestamp = result[-1]['_uuid']
@@ -137,8 +136,8 @@ def search_by_application(request, application):
 
 
 def search_by_host(request, host):
-    from_col = str_to_column_key(request.GET.get('from', None))
     with get_service_cm() as service:
+        from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_host(host, from_col=from_col)
     if result:
         last_message_timestamp = result[-1]['_uuid']

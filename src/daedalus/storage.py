@@ -37,7 +37,7 @@ from pycassa.util import convert_time_to_uuid
 from pycassa.cassandra.ttypes import NotFoundException
 
 from daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
-    utc_timestamp2datetime, time_series_generator, utc_now_from_epoch,\
+    utc_timestamp2datetime, time_series_generator, \
     ymdhm_from_uuid1
 from daedalus_client import DaedalusException
 
@@ -69,6 +69,8 @@ def get_service(*args, **kwargs):
     """
     Returns an instance of  StorageService.
     """
+    #return StorageService(*args, **kwargs)
+    #return StorageServiceUniqueMessagePlusReferences(*args, **kwargs)
     return StorageServiceRowPerMinute(*args, **kwargs)
 
 
@@ -601,6 +603,20 @@ class StorageService(object):
         """
         TWO_HOURS = 60 * 60 * 2 # 6 per day
         return self._generate_chart_data(TWO_HOURS, 6 * 7)
+
+    def column_key_to_str(self, col_key):
+        """
+        Serializes a log message id (Cassandra column key) to a string.
+        """
+        return col_key.get_hex()
+
+    def str_to_column_key(self, str_key):
+        """
+        De-serializes a string to be used as a log message id (Cassandra column key).
+        """
+        if str_key is None:
+            return None
+        return uuid.UUID(hex=str_key)
 
 
 class StorageServiceUniqueMessagePlusReferences(StorageService):
