@@ -966,7 +966,8 @@ class StorageServiceRowPerMinute(StorageService):
 
         # for row_key in row_keys:
         bitmap_keys_iter = iter(bitmap_keys_generator)
-        while len(result) < 100:
+        iteration_count_control = iter(xrange(1, 101))
+        while len(result) < 100 and iteration_count_control.next() < 100:
             bitmap_col_key, _ = bitmap_keys_iter.next()
             row_key = str(bitmap_col_key)
             try:
