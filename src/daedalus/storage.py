@@ -970,19 +970,16 @@ class StorageServiceRowPerMinute(StorageService):
             bitmap_col_key, _ = bitmap_keys_iter.next()
             row_key = str(bitmap_col_key)
             try:
-                ignore_first = False
                 if from_col is None:
                     cass_result = self._get_cf_logs().xget(row_key, column_reversed=True)
                 else:
                     cass_result = self._get_cf_logs().xget(row_key, column_reversed=True,
                         column_start=from_col)
-                    ignore_first = True
 
                 for col_key, col_val in cass_result:
-                    if filter_callback is not None and filter_callback(col_key) is False:
+                    if from_col is not None and from_col == col_key:
                         continue
-                    if ignore_first: # FIXME: simplify this `ignore_first` thing!
-                        ignore_first = False
+                    if filter_callback is not None and filter_callback(col_key) is False:
                         continue
                     if len(result) < 100:
                         result.append(json.loads(col_val))
