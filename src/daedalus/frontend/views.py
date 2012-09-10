@@ -90,7 +90,7 @@ def home(request):
         try:
             ctx['result'] = service.query(from_col=from_col)
             if ctx['result']:
-                ctx['last_message_timestamp'] = ctx['result'][-1]['_id']
+                ctx['last_message_id'] = ctx['result'][-1]['_id']
         except:
             ctx['render_messages'].append("Error detected while executing query()")
             logger.exception(ctx['render_messages'][-1])
@@ -112,10 +112,10 @@ def search_by_severity(request, severity):
         from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_severity(severity, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['_id']
+        last_message_id = result[-1]['_id']
     else:
-        last_message_timestamp = None
-    ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
+        last_message_id = None
+    ctx = _ctx(result=result, last_message_id=last_message_id,
         top_message="Showing only '{0}' messages.".format(severity))
     return HttpResponse(render_to_response('daedalus/frontend/index.html',
         context_instance=RequestContext(request, ctx)))
@@ -126,10 +126,10 @@ def search_by_application(request, application):
         from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_application(application, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['_id']
+        last_message_id = result[-1]['_id']
     else:
-        last_message_timestamp = None
-    ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
+        last_message_id = None
+    ctx = _ctx(result=result, last_message_id=last_message_id,
         top_message="Showing only messages of application '{0}'.".format(application))
     return HttpResponse(render_to_response('daedalus/frontend/index.html',
         context_instance=RequestContext(request, ctx)))
@@ -140,10 +140,10 @@ def search_by_host(request, host):
         from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_host(host, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['_id']
+        last_message_id = result[-1]['_id']
     else:
-        last_message_timestamp = None
-    ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
+        last_message_id = None
+    ctx = _ctx(result=result, last_message_id=last_message_id,
         top_message="Showing only messages from host '{0}'.".format(host))
     return HttpResponse(render_to_response('daedalus/frontend/index.html',
         context_instance=RequestContext(request, ctx)))

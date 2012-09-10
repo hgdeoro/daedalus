@@ -25,10 +25,10 @@
 
 	{% block extra_navbar %}
 
-		{% if last_message_timestamp %}
+		{% if last_message_id %}
 			<ul class="nav pull-right">
 					<li>
-						<a href="?from={{ last_message_timestamp }}">Next</a>
+						<a href="?from={{ last_message_id }}">Next</a>
 					</li>
 					<li>
 						<a href="javascript:void(0);">&nbsp;</a>
