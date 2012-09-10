@@ -113,6 +113,18 @@ def ymd_from_uuid1(uuid1_value):
         a_date.year, a_date.month, a_date.day)
 
 
+def ymdhm_int_from_timestamp(utc_timestamp):
+    """
+    Returns a int with the format YEAR+MONTH+DAY+HOUR+MINUTE
+    """
+    a_date = utc_timestamp2datetime(utc_timestamp)
+    return a_date.year * 10 ** 8 + \
+        a_date.month * 10 ** 6 + \
+        a_date.day * 10 ** 4 + \
+        a_date.hour * 10 ** 2 + \
+        a_date.minute
+
+
 def ymdhm_from_uuid1(uuid1_value):
     """
     Returns a string with the format YEAR+MONTH+DAY+HOUR+MINUTE

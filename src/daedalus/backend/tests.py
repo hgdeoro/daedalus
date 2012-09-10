@@ -47,7 +47,8 @@ from daedalus.proto.random_log_generator import log_dict_generator
 from daedalus.storage import get_service_cm, get_service
 from daedalus.utils import utc_str_timestamp, utc_timestamp2datetime,\
     utc_now, utc_now_from_epoch, ymd_from_epoch, ymd_from_uuid1,\
-    backward_time_series_generator, time_series_generator
+    backward_time_series_generator, time_series_generator,\
+    ymdhm_int_from_timestamp
 
 logger = logging.getLogger(__name__)
 
@@ -724,6 +725,25 @@ class TimeRelatedUtilTest(TestCase):
 
         ymd_list = run_foreach_tz(callback)
         self.assertEqual(len(set(ymd_list)), 1)
+
+    def test_ymdhm_int_from_timestamp(self):
+
+        # 1347237097 / Mon 10 Sep 2012 12:31:37 AM UTC
+        self.assertEqual(
+            ymdhm_int_from_timestamp(1347237097),
+            201209100031)
+
+        # 1347237289 / Mon 10 Sep 2012 12:34:49 AM UTC
+        self.assertEqual(
+            ymdhm_int_from_timestamp(1347237289),
+            201209100034)
+
+        def callback():
+            return ymdhm_int_from_timestamp(1347237289)
+
+        ymdhm_list = run_foreach_tz(callback)
+        self.assertEqual(len(set(ymdhm_list)), 1)
+        self.assertEqual(ymdhm_list[0], 201209100034)
 
     def test_time_series_generator(self):
 
