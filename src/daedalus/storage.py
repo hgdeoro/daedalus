@@ -911,7 +911,7 @@ class StorageServiceRowPerMinute(StorageService):
             (event_uuid, host, application, severity): json_message,
         })
 
-    def query(self, from_col=None):
+    def query(self, from_col=None, filter_callback=None):
         """
         Returns list of dicts.
         """
@@ -951,7 +951,9 @@ class StorageServiceRowPerMinute(StorageService):
                         column_start=from_col, column_count=101)
                     ignore_first = True
 
-                for _, col_val in cass_result.iteritems():
+                for col_key, col_val in cass_result.iteritems():
+                    if filter_callback is not None and filter_callback(col_key) is False:
+                        continue
                     if ignore_first:
                         ignore_first = False
                         continue
@@ -967,76 +969,34 @@ class StorageServiceRowPerMinute(StorageService):
         return result
 
     def query_by_severity(self, severity, from_col=None):
-        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
-        return self.query(from_col=from_col)
-        #        """
-        #        Returns list of dicts.
-        #        """
-        #        _check_severity(severity)
-        #        try:
-        #            if from_col is None:
-        #                cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True)
-        #                cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
-        #            else:
-        #                cass_result = self._get_cf_logs_by_severity().get(severity, column_reversed=True,
-        #                    column_start=from_col, column_count=101)
-        #                cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
-        #                if cols_keys:
-        #                    cols_keys = cols_keys[1:]
-        #        except NotFoundException:
-        #            return []
-        #
-        #        return self._get_from_logs_cf(cols_keys)
+        def filter_callback(col_key):
+            # col_key[0] -> UUID + Timestamp
+            # col_key[1] -> Host / Origin
+            # col_key[2] -> Application
+            # col_key[3] -> Severiry
+            assert col_key is not None
+            return col_key[3] == severity
+        return self.query(from_col, filter_callback=filter_callback)
 
     def query_by_application(self, application, from_col=None):
-        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
-        return self.query(from_col=from_col)
-        #        """
-        #        Returns OrderedDict.
-        #
-        #        Use:
-        #            cassandra_result = query_by_application(severity)
-        #            result = []
-        #            for _, col in cassandra_result.iteritems():
-        #                message = json.loads(col)
-        #                result.append(message)
-        #        """
-        #        _check_application(application)
-        #        if from_col is None:
-        #            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True)
-        #            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
-        #        else:
-        #            cass_result = self._get_cf_logs_by_app().get(application, column_reversed=True,
-        #                column_start=from_col, column_count=101)
-        #            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
-        #            if cols_keys:
-        #                cols_keys = cols_keys[1:]
-        #        return self._get_from_logs_cf(cols_keys)
+        def filter_callback(col_key):
+            # col_key[0] -> UUID + Timestamp
+            # col_key[1] -> Host / Origin
+            # col_key[2] -> Application
+            # col_key[3] -> Severiry
+            assert col_key is not None
+            return col_key[2] == application
+        return self.query(from_col, filter_callback=filter_callback)
 
     def query_by_host(self, host, from_col=None):
-        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
-        return self.query(from_col=from_col)
-        #        """
-        #        Returns OrderedDict.
-        #
-        #        Use:
-        #            cassandra_result = query_by_host(severity)
-        #            result = []
-        #            for _, col in cassandra_result.iteritems():
-        #                message = json.loads(col)
-        #                result.append(message)
-        #        """
-        #        _check_host(host)
-        #        if from_col is None:
-        #            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True)
-        #            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
-        #        else:
-        #            cass_result = self._get_cf_logs_by_host().get(host, column_reversed=True,
-        #                column_start=from_col, column_count=101)
-        #            cols_keys = [col_key for col_key, _ in cass_result.iteritems()]
-        #            if cols_keys:
-        #                cols_keys = cols_keys[1:]
-        #        return self._get_from_logs_cf(cols_keys)
+        def filter_callback(col_key):
+            # col_key[0] -> UUID + Timestamp
+            # col_key[1] -> Host / Origin
+            # col_key[2] -> Application
+            # col_key[3] -> Severiry
+            assert col_key is not None
+            return col_key[1] == host
+        return self.query(from_col, filter_callback=filter_callback)
 
     def get_error_count(self):
         # FIXME: StorageServiceRowPerMinute: IMPLEMENT
