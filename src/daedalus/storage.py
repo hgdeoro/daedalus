@@ -878,6 +878,11 @@ class StorageServiceRowPerMinute(StorageService):
             if sys_mgr:
                 sys_mgr.close()
 
+    def _get_bitmap_key_from_event_uuid(self, event_uuid):
+        row_key = ymdhm_from_uuid1(event_uuid)
+        key_for_bitmap = int(row_key)
+        return key_for_bitmap
+
     def save_log(self, application, host, severity, timestamp, message):
         """
         Saves a log message.
@@ -938,8 +943,14 @@ class StorageServiceRowPerMinute(StorageService):
 
         # Fist, get "minutes" with messages using bitmap
         try:
-            bitmap_keys = self._get_cf_timestamp_bitmap().get('timestamp_bitmap',
-                column_reversed=True, column_count=100).keys()
+            if from_col:
+                from_column_key = self._get_bitmap_key_from_event_uuid(from_col[0])
+                bitmap_keys = self._get_cf_timestamp_bitmap().get('timestamp_bitmap',
+                    column_start=from_column_key,
+                    column_reversed=True, column_count=100).keys()
+            else:
+                bitmap_keys = self._get_cf_timestamp_bitmap().get('timestamp_bitmap',
+                    column_reversed=True, column_count=100).keys()
         except NotFoundException:
             return result
 
