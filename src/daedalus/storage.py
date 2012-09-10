@@ -37,7 +37,8 @@ from pycassa.util import convert_time_to_uuid
 from pycassa.cassandra.ttypes import NotFoundException
 
 from daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
-    utc_timestamp2datetime, time_series_generator
+    utc_timestamp2datetime, time_series_generator, utc_now_from_epoch,\
+    ymdhm_from_uuid1
 from daedalus_client import DaedalusException
 
 logger = logging.getLogger(__name__)
@@ -813,21 +814,28 @@ class StorageServiceRowPerMinute(StorageService):
         try:
             sys_mgr = SystemManager()
             pool = ConnectionPool(settings.KEYSPACE, server_list=settings.CASSANDRA_HOSTS)
-            for cf_name in [CF_LOGS]:
-                try:
-                    cf = ColumnFamily(pool, cf_name)
-                except:
-                    logger.info("create_cfs(): Creating column family %s", cf_name)
-                    # CompositeType
-                    # 1. UUID + Timestamp
-                    # 2. Host / Origin
-                    # 3. Application
-                    # 4. Severiry
-                    comparator = CompositeType(TimeUUIDType(), UTF8Type(), UTF8Type(), UTF8Type())
-                    sys_mgr.create_column_family(settings.KEYSPACE,
-                        cf_name, comparator_type=comparator)
-                    cf = ColumnFamily(pool, cf_name)
-                    cf.get_count(str(uuid.uuid4()))
+
+            try:
+                cf = ColumnFamily(pool, CF_LOGS)
+            except:
+                logger.info("create_cfs(): Creating column family %s", CF_LOGS)
+                #========================================
+                # Column key -> CompositeType
+                #========================================
+                # 1. UUID + Timestamp
+                # 2. Host / Origin
+                # 3. Application
+                # 4. Severiry
+                comparator = CompositeType(
+                    TimeUUIDType(),
+                    UTF8Type(),
+                    UTF8Type(),
+                    UTF8Type()
+                )
+                sys_mgr.create_column_family(settings.KEYSPACE,
+                    CF_LOGS, comparator_type=comparator)
+                cf = ColumnFamily(pool, CF_LOGS)
+                cf.get_count(str(uuid.uuid4()))
 
             try:
                 cf = ColumnFamily(pool, CF_METADATA)
@@ -888,13 +896,17 @@ class StorageServiceRowPerMinute(StorageService):
             self._host_cache[host] = True
             self._get_cf_metadata().insert('hosts', {host: ''})
 
-        timestamp_for_bitmap = int(timestamp)
-        timestamp_for_bitmap -= timestamp_for_bitmap % 60
-        if not timestamp_for_bitmap in self._timestamp_bitmap_cache:
-            self._timestamp_bitmap_cache[timestamp_for_bitmap] = True
-            self._get_cf_timestamp_bitmap().insert('timestamp_bitmap', {timestamp_for_bitmap: ''})
+        row_key = ymdhm_from_uuid1(event_uuid)
+        #    timestamp_for_bitmap = int(timestamp)
+        #    timestamp_for_bitmap -= timestamp_for_bitmap % 60
+        #    if not timestamp_for_bitmap in self._timestamp_bitmap_cache:
+        #        self._timestamp_bitmap_cache[timestamp_for_bitmap] = True
+        #        self._get_cf_timestamp_bitmap().insert('timestamp_bitmap', {timestamp_for_bitmap: ''})
+        key_for_bitmap = int(row_key)
+        if not key_for_bitmap in self._timestamp_bitmap_cache:
+            self._timestamp_bitmap_cache[key_for_bitmap] = True
+            self._get_cf_timestamp_bitmap().insert('timestamp_bitmap', {key_for_bitmap: ''})
 
-        row_key = ymd_from_uuid1(event_uuid)
         self._get_cf_logs().insert(row_key, {
             (event_uuid, host, application, severity): json_message,
         })
