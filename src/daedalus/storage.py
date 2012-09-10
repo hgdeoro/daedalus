@@ -255,51 +255,54 @@ class StorageService(object):
         self.create_keyspace()
         self.create_cfs()
 
-    def save_log(self, message):
-        pool = self._get_pool()
-
-        application = message['application']
-        host = message['host']
-        severity = message['severity']
-        timestamp = message['timestamp']
-
-        _check_application(application)
-        _check_severity(severity)
-        _check_host(host)
-
-        event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
-        message['_id'] = event_uuid.get_hex()
-        json_message = json.dumps(message)
-
-        with Mutator(pool) as batch:
-            # Save on <CF> CF_LOGS
-            row_key = ymd_from_uuid1(event_uuid)
-            batch.insert(
-                self._get_cf_logs(),
-                str(row_key), {
-                    event_uuid: json_message,
-            })
-
-            # Save on <CF> CF_LOGS_BY_APP
-            batch.insert(
-                self._get_cf_logs_by_app(),
-                application, {
-                    event_uuid: json_message,
-            })
-
-            # Save on <CF> CF_LOGS_BY_HOST
-            batch.insert(
-                self._get_cf_logs_by_host(),
-                host, {
-                    event_uuid: json_message,
-            })
-
-            # Save on <CF> CF_LOGS_BY_SEVERITY
-            batch.insert(
-                self._get_cf_logs_by_severity(),
-                severity, {
-                    event_uuid: json_message,
-            })
+    #
+    #    TODO: migrate to multiple parameters instead of single `message` parameter
+    #
+    #    def save_log(self, message):
+    #        pool = self._get_pool()
+    #
+    #        application = message['application']
+    #        host = message['host']
+    #        severity = message['severity']
+    #        timestamp = message['timestamp']
+    #
+    #        _check_application(application)
+    #        _check_severity(severity)
+    #        _check_host(host)
+    #
+    #        event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
+    #        message['_id'] = event_uuid.get_hex()
+    #        json_message = json.dumps(message)
+    #
+    #        with Mutator(pool) as batch:
+    #            # Save on <CF> CF_LOGS
+    #            row_key = ymd_from_uuid1(event_uuid)
+    #            batch.insert(
+    #                self._get_cf_logs(),
+    #                str(row_key), {
+    #                    event_uuid: json_message,
+    #            })
+    #
+    #            # Save on <CF> CF_LOGS_BY_APP
+    #            batch.insert(
+    #                self._get_cf_logs_by_app(),
+    #                application, {
+    #                    event_uuid: json_message,
+    #            })
+    #
+    #            # Save on <CF> CF_LOGS_BY_HOST
+    #            batch.insert(
+    #                self._get_cf_logs_by_host(),
+    #                host, {
+    #                    event_uuid: json_message,
+    #            })
+    #
+    #            # Save on <CF> CF_LOGS_BY_SEVERITY
+    #            batch.insert(
+    #                self._get_cf_logs_by_severity(),
+    #                severity, {
+    #                    event_uuid: json_message,
+    #            })
 
     def _get_rows_keys(self, cf):
         """
@@ -604,11 +607,11 @@ class StorageService(object):
         TWO_HOURS = 60 * 60 * 2 # 6 per day
         return self._generate_chart_data(TWO_HOURS, 6 * 7)
 
-    def column_key_to_str(self, col_key):
-        """
-        Serializes a log message id (Cassandra column key) to a string.
-        """
-        return col_key.get_hex()
+    #    def column_key_to_str(self, col_key):
+    #        """
+    #        Serializes a log message id (Cassandra column key) to a string.
+    #        """
+    #        return col_key.get_hex()
 
     def str_to_column_key(self, str_key):
         """
@@ -656,14 +659,14 @@ class StorageServiceUniqueMessagePlusReferences(StorageService):
             raise(DaedalusException("The timestamp '{0}' couldn't be transformed to a float".format(timestamp)))
 
         event_uuid = convert_time_to_uuid(timestamp, randomize=True)
-        _uuid_hex = event_uuid.get_hex()
+        _id = event_uuid.get_hex()
 
         json_message = json.dumps({
             'application': application,
             'host': host,
             'severity': severity,
             'timestamp': timestamp,
-            '_id': _uuid_hex,
+            '_id': _id,
             'message': message,
         })
 
@@ -893,14 +896,15 @@ class StorageServiceRowPerMinute(StorageService):
                 "transformed to a float".format(timestamp)))
 
         event_uuid = convert_time_to_uuid(timestamp, randomize=True)
-        _uuid_hex = event_uuid.get_hex()
+        column_key = (event_uuid, host, application, severity)
+        _id = ','.join((event_uuid.get_hex(), host, application, severity, ))
 
         json_message = json.dumps({
             'application': application,
             'host': host,
             'severity': severity,
             'timestamp': timestamp,
-            '_id': _uuid_hex,
+            '_id': _id,
             'message': message,
         })
 
@@ -913,18 +917,13 @@ class StorageServiceRowPerMinute(StorageService):
             self._get_cf_metadata().insert('hosts', {host: ''})
 
         row_key = ymdhm_from_uuid1(event_uuid)
-        #    timestamp_for_bitmap = int(timestamp)
-        #    timestamp_for_bitmap -= timestamp_for_bitmap % 60
-        #    if not timestamp_for_bitmap in self._timestamp_bitmap_cache:
-        #        self._timestamp_bitmap_cache[timestamp_for_bitmap] = True
-        #        self._get_cf_timestamp_bitmap().insert('timestamp_bitmap', {timestamp_for_bitmap: ''})
         key_for_bitmap = int(row_key)
         if not key_for_bitmap in self._timestamp_bitmap_cache:
             self._timestamp_bitmap_cache[key_for_bitmap] = True
             self._get_cf_timestamp_bitmap().insert('timestamp_bitmap', {key_for_bitmap: ''})
 
         self._get_cf_logs().insert(row_key, {
-            (event_uuid, host, application, severity): json_message,
+            column_key: json_message,
         })
 
     def query(self, from_col=None, filter_callback=None):
@@ -1043,13 +1042,21 @@ class StorageServiceRowPerMinute(StorageService):
         return self._get_cf_metadata().get('hosts', column_count=999).keys()
 
     def get_by_id(self, message_id):
-        # FIXME: StorageServiceRowPerMinute: IMPLEMENT
-        return None
-        #
-        #        # F.I.X.M.E: add documentation
-        #        # F.I.X.M.E: add tests
-        #        # F.I.X.M.E: return None if doesn't exists
-        #        msg_uuid = uuid.UUID(hex=message_id)
-        #        row_key = ymd_from_uuid1(msg_uuid)
-        #        json_str = self._get_cf_logs().get(row_key, columns=[msg_uuid])[msg_uuid]
-        #        return json.loads(json_str)
+        # FIXME: add documentation
+        # FIXME: add tests
+        column_key = self.str_to_column_key(message_id)
+        row_key = ymdhm_from_uuid1(column_key[0])
+        try:
+            json_str = self._get_cf_logs().get(row_key, columns=[column_key])[column_key]
+        except NotFoundException:
+            return None
+        return json.loads(json_str)
+
+    def str_to_column_key(self, str_key):
+        """
+        De-serializes a string to be used as a log message id (Cassandra column key).
+        """
+        if str_key is None:
+            return None
+        splitted = str_key.split(',')
+        return (uuid.UUID(hex=splitted[0]), splitted[1], splitted[2], splitted[3],)
