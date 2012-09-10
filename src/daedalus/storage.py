@@ -945,17 +945,14 @@ class StorageServiceRowPerMinute(StorageService):
         try:
             if from_col:
                 from_column_key = self._get_bitmap_key_from_event_uuid(from_col[0])
-                bitmap_keys = self._get_cf_timestamp_bitmap().get('timestamp_bitmap',
+                bitmap_keys_generator = self._get_cf_timestamp_bitmap().xget('timestamp_bitmap',
                     column_start=from_column_key,
-                    column_reversed=True, column_count=100).keys()
+                    column_reversed=True)
             else:
-                bitmap_keys = self._get_cf_timestamp_bitmap().get('timestamp_bitmap',
-                    column_reversed=True, column_count=100).keys()
+                bitmap_keys_generator = self._get_cf_timestamp_bitmap().xget('timestamp_bitmap',
+                    column_reversed=True)
         except NotFoundException:
             return result
-
-        # Transform integer keys to strings
-        row_keys = [str(k) for k in bitmap_keys]
 
         #    - ROW key -> yyyymmddhhmm
         #        + COL key -> host:app:severity:uuidtime
@@ -967,20 +964,24 @@ class StorageServiceRowPerMinute(StorageService):
         #        + COL key -> host:app:severity:uuidtime
         #            + COL value -> json
 
-        for row_key in row_keys:
+        # for row_key in row_keys:
+        bitmap_keys_iter = iter(bitmap_keys_generator)
+        while len(result) < 100:
+            bitmap_col_key, _ = bitmap_keys_iter.next()
+            row_key = str(bitmap_col_key)
             try:
                 ignore_first = False
                 if from_col is None:
-                    cass_result = self._get_cf_logs().get(row_key, column_reversed=True)
+                    cass_result = self._get_cf_logs().xget(row_key, column_reversed=True)
                 else:
-                    cass_result = self._get_cf_logs().get(row_key, column_reversed=True,
-                        column_start=from_col, column_count=101)
+                    cass_result = self._get_cf_logs().xget(row_key, column_reversed=True,
+                        column_start=from_col)
                     ignore_first = True
 
-                for col_key, col_val in cass_result.iteritems():
+                for col_key, col_val in cass_result:
                     if filter_callback is not None and filter_callback(col_key) is False:
                         continue
-                    if ignore_first:
+                    if ignore_first: # FIXME: simplify this `ignore_first` thing!
                         ignore_first = False
                         continue
                     if len(result) < 100:
