@@ -23,7 +23,6 @@ import calendar
 import datetime
 import math
 import time
-import uuid
 
 import pytz
 
