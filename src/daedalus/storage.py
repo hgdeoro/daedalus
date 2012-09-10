@@ -921,9 +921,15 @@ class StorageServiceRowPerMinute(StorageService):
         # not depend on the type of partitioner configured, since it's configured cluster-wide
         # and since RandomPartitioner is the default and sugested, we should work with it.
 
-        # FIXME: StorageServiceRowPerMinute: this well be SOOOOO slow!
-        #         And this method use only 999 rows!
-        row_keys = sorted(self._get_rows_keys(self._get_cf_logs()), reverse=True)
+        # Fist, get "minutes" with messages using bitmap
+        try:
+            bitmap_keys = self._get_cf_timestamp_bitmap().get('timestamp_bitmap',
+                column_reversed=True, column_count=100).keys()
+        except NotFoundException:
+            return result
+
+        # Transform integer keys to strings
+        row_keys = [str(k) for k in bitmap_keys]
 
         #    - ROW key -> yyyymmddhhmm
         #        + COL key -> host:app:severity:uuidtime
