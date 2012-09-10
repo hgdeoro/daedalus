@@ -22,7 +22,7 @@
 import json
 import logging
 
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.core.cache import cache
@@ -102,6 +102,8 @@ def show_message(request, message_id):
     ctx = _ctx()
     with get_service_cm() as service:
         message = service.get_by_id(message_id)
+    if message is None:
+        return HttpResponseNotFound("Message with ID '{0}' was not found".format(message_id))
     ctx['message'] = message
     return HttpResponse(render_to_response('daedalus/frontend/message_show.html',
         context_instance=RequestContext(request, ctx)))
