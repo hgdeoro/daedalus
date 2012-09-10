@@ -90,7 +90,7 @@ def home(request):
         try:
             ctx['result'] = service.query(from_col=from_col)
             if ctx['result']:
-                ctx['last_message_timestamp'] = ctx['result'][-1]['_uuid']
+                ctx['last_message_timestamp'] = ctx['result'][-1]['_id']
         except:
             ctx['render_messages'].append("Error detected while executing query()")
             logger.exception(ctx['render_messages'][-1])
@@ -112,7 +112,7 @@ def search_by_severity(request, severity):
         from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_severity(severity, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['_uuid']
+        last_message_timestamp = result[-1]['_id']
     else:
         last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
@@ -126,7 +126,7 @@ def search_by_application(request, application):
         from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_application(application, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['_uuid']
+        last_message_timestamp = result[-1]['_id']
     else:
         last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,
@@ -140,7 +140,7 @@ def search_by_host(request, host):
         from_col = service.str_to_column_key(request.GET.get('from', None))
         result = service.query_by_host(host, from_col=from_col)
     if result:
-        last_message_timestamp = result[-1]['_uuid']
+        last_message_timestamp = result[-1]['_id']
     else:
         last_message_timestamp = None
     ctx = _ctx(result=result, last_message_timestamp=last_message_timestamp,

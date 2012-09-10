@@ -33,7 +33,7 @@ def msg_2_datetime(msg):
 
 @register.filter(name='msg_2_id')
 def msg_2_id(msg):
-    return msg['_uuid']
+    return msg['_id']
 
 
 @register.filter(name='firstline')

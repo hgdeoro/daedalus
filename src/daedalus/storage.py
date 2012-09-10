@@ -268,7 +268,7 @@ class StorageService(object):
         _check_host(host)
 
         event_uuid = convert_time_to_uuid(float(timestamp), randomize=True)
-        message['_uuid'] = event_uuid.get_hex()
+        message['_id'] = event_uuid.get_hex()
         json_message = json.dumps(message)
 
         with Mutator(pool) as batch:
@@ -663,7 +663,7 @@ class StorageServiceUniqueMessagePlusReferences(StorageService):
             'host': host,
             'severity': severity,
             'timestamp': timestamp,
-            '_uuid': _uuid_hex,
+            '_id': _uuid_hex,
             'message': message,
         })
 
@@ -900,7 +900,7 @@ class StorageServiceRowPerMinute(StorageService):
             'host': host,
             'severity': severity,
             'timestamp': timestamp,
-            '_uuid': _uuid_hex,
+            '_id': _uuid_hex,
             'message': message,
         })
 
