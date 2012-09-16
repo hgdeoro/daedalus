@@ -466,6 +466,48 @@ class BulkSave(StorageBaseTest):
         self._multiproc_bulk_save(_bulk_save_random_messages_to_default_keyspace,
             max_count=max_count, concurrent_num=concurrent_procs)
 
+    def bulk_save_multimsg(self):
+        count = 0
+        with get_service_cm() as storage_service:
+            storage_service.create_keyspace_and_cfs()
+            try:
+                logging.info("Starting insertions...")
+                msg_iter = iter(log_dict_generator(random.randint(1, 999999999)))
+
+                while True:
+                    # Start a multi-message log
+                    message = msg_iter.next()
+                    multi_msg_id = storage_service.start_multimessage(
+                        message['application'], message['host'], 'INFO',
+                        message['timestamp'], message['message'])
+
+                    for _ in range(0, random.randint(2, 7)):
+                        message = msg_iter.next()
+                        storage_service.save_multimessage_log(
+                            message['application'], message['host'], 'INFO',
+                            message['timestamp'], message['message'],
+                            multi_message_key=multi_msg_id)
+
+                    final_status = random.choice([
+                        MULTIMSG_STATUS_FINISHED_OK,
+                        MULTIMSG_STATUS_FINISHED_ERROR,
+                        MULTIMSG_STATUS_FINISHED_UNKNOWN,
+                    ])
+                    message = msg_iter.next()
+                    storage_service.finish_multimessage(
+                        message['application'], message['host'], 'INFO',
+                        message['timestamp'], message['message'],
+                        multi_message_key=multi_msg_id,
+                        final_status=final_status)
+
+                    count += 1
+                    if count % 100 == 0:
+                        logging.info("Inserted %d messages", count)
+
+            except KeyboardInterrupt:
+                logging.info("Stopping...")
+        logging.info("%d messages inserted.", count)
+
 
 class ResetRealKeyspace(StorageBaseTest):
 
