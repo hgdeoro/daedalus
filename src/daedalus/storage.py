@@ -967,12 +967,15 @@ class StorageServiceRowPerMinute(StorageService):
         # for row_key in row_keys:
         bitmap_keys_iter = iter(bitmap_keys_generator)
         iteration_count_control = iter(xrange(1, 101))
-        # FIXME: if the following 'while' breaks because iteration_count_control,
+        # FIXME: StorageServiceRowPerMinute if the following 'while' breaks because iteration_count_control,
         # and the results == 0, could be more results (that would be accesible if
         # used 'iteration_count_control < 200'.. BUT the UI won't show the 'next>>>'
         # link to continue the pagination. This should be fixed!
-        while len(result) < 100 and iteration_count_control.next() < 100:
-            bitmap_col_key, _ = bitmap_keys_iter.next()
+        while len(result) < 100 and iteration_count_control.next() <= 100:
+            try:
+                bitmap_col_key, _ = bitmap_keys_iter.next()
+            except StopIteration:
+                break
             row_key = str(bitmap_col_key)
             try:
                 if from_col is None:
