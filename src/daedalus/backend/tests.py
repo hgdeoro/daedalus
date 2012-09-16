@@ -45,7 +45,8 @@ from daedalus_client import DaedalusClient, DaedalusException, \
 
 from daedalus.proto.random_log_generator import log_dict_generator
 from daedalus.storage import get_service_cm, get_service,\
-    StorageServiceRowPerMinute
+    StorageServiceRowPerMinute, MULTIMSG_STATUS_FINISHED_ERROR,\
+    MULTIMSG_STATUS_FINISHED_OK, MULTIMSG_STATUS_FINISHED_UNKNOWN
 from daedalus.utils import utc_str_timestamp, utc_timestamp2datetime,\
     utc_now, utc_now_from_epoch, ymd_from_epoch, ymd_from_uuid1,\
     backward_time_series_generator, time_series_generator,\
@@ -490,6 +491,39 @@ class ResetRealKeyspace(StorageBaseTest):
         sys_mgr.close()
         self.get_service()._create_keyspace_and_cfs()
         _bulk_save_random_messages_to_real_keyspace(1000)
+
+
+class MultiMessageTest(StorageBaseTest):
+
+    def _gen_msg(self, msg):
+        timestamp = time.time()
+        message = {
+            'application': u'os/backup',
+            'host': u'host1.example.com',
+            'severity': u"INFO",
+            'message': msg,
+            'timestamp': "{0:0.25f}".format(timestamp),
+        }
+        return message
+
+    def test_send_multimessage(self):
+        _truncate_all_column_families()
+
+        for final_status in (MULTIMSG_STATUS_FINISHED_ERROR,
+            MULTIMSG_STATUS_FINISHED_OK, MULTIMSG_STATUS_FINISHED_UNKNOWN):
+
+            # Start a multi-message log
+            message = self._gen_msg("Backup started")
+            multi_msg_id = self.get_service().start_multimessage(**message)
+
+            message = self._gen_msg("Backup of database 'database1' finished OK")
+            message['multi_message_key'] = multi_msg_id
+            self.get_service().save_multimessage_log(**message)
+
+            message = self._gen_msg("Backup finished OK")
+            message['multi_message_key'] = multi_msg_id
+            message['final_status'] = final_status
+            self.get_service().finish_multimessage(**message)
 
 
 class WebBackendTest(TestCase):
