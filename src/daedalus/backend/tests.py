@@ -196,10 +196,7 @@ class BaseTestCase(TestCase):
         self.assertEqual(dt1.second, dt2.second)
 
 
-class StorageTest(BaseTestCase):
-    """
-    Tests of the storage service.
-    """
+class StorageBaseTest(BaseTestCase):
 
     def setUp(self):
         self._storage_service = None
@@ -212,6 +209,12 @@ class StorageTest(BaseTestCase):
         if self._storage_service is None:
             self._storage_service = get_service(cache_enabled=False)
         return self._storage_service
+
+
+class StorageTest(StorageBaseTest):
+    """
+    Tests of the storage service.
+    """
 
     def test_save_and_queries(self):
         _truncate_all_column_families()
@@ -363,7 +366,7 @@ class StorageTest(BaseTestCase):
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
 
-class BulkSave(StorageTest):
+class BulkSave(StorageBaseTest):
     """
     Varios method to run bulk-saves on REAL keyspace (the keyspace used by the application)
     or the DEFAULT keyspace (the used for running the tests).
@@ -463,7 +466,7 @@ class BulkSave(StorageTest):
             max_count=max_count, concurrent_num=concurrent_procs)
 
 
-class ResetRealKeyspace(StorageTest):
+class ResetRealKeyspace(StorageBaseTest):
 
     def _reset_real_keyspace(self):
         """
