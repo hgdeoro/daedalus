@@ -30,17 +30,45 @@
     <table class="table table-striped table-condensed" width="100%">
         <thead>
             <tr>
-                <th>Key</th>
-                <th>Value</th>
+                <th width="20%">Key</th>
+                <th width="80%">Value</th>
             </tr>
         </thead>
         <tbody>
-            {% for key, value in multimessage.meta.iteritems %}
+            <tr>
+                <td style="font-weight: bold; text-align: right;">Host:</td>
+                <td>{{ multimessage.meta.host }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; text-align: right;">Application:</td>
+                <td>{{ multimessage.meta.application }}</td>
+            </tr>
+			<tr>
+			    <td style="font-weight: bold; text-align: right;">
+                    Status:
+                </td>
+			    <td>
+                    {% if multimessage.meta.status == 'OPEN' %}
+                        <span class="label label-warning">{{ multimessage.meta.status }}</span>
+                    {% elif multimessage.meta.status == 'FINISHED_UNKNOWN' %}
+                        <span class="label label-inverse">{{ multimessage.meta.status }}</span>
+                    {% elif multimessage.meta.status == 'FINISHED_ERROR' %}
+                        <span class="label label-important">{{ multimessage.meta.status }}</span>
+                    {% elif multimessage.meta.status == 'FINISHED_OK' %}
+                        <span class="label label-info">{{ multimessage.meta.status }}</span>
+                    {% else %}
+                        <span class="label">desconocido: {{ multimessage.meta.status }}</span>
+                    {% endif %}
+			    </td>
+			</tr>
+			<!--
+            { % for key, value in multimessage.meta.iteritems % }
 	            <tr>
-	                <td style="font-weight: bold; text-align: right;">{{ key|format_underscored_string }}:</td>
-	                <td>{{ value }}</td>
+	                <td style="font-weight: bold; text-align: right;">{ { key | format_underscored_string } }:</td>
+	                <td>{ { value } }</td>
 	            </tr>
-            {% endfor %}
+            { % endfor % }
+            -->
         </tbody>
     </table>
 
