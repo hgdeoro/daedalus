@@ -508,7 +508,7 @@ class BulkSave(StorageBaseTest):
                         multimessage_id=multi_msg_id,
                         final_status=final_status)
 
-                    storage_service.query_multimessages(multi_msg_id)
+                    storage_service.get_multimessage(multi_msg_id)
 
                     count += 1
                     if count % 100 == 0:
@@ -569,35 +569,35 @@ class MultiMessageTest(StorageBaseTest):
             multi_msg_id = self.get_service().start_multimessage(**message)
             self.assertEquals(len(multi_msg_id.split(',')), 5)
 
-            multi_message = self.get_service().query_multimessages(multi_msg_id)
-            self.assertTrue('meta:application' in multi_message)
-            self.assertTrue('meta:host' in multi_message)
-            self.assertTrue('meta:timestamp' in multi_message)
-            self.assertTrue('meta:start_message' in multi_message)
-            self.assertTrue('meta:finish_message' in multi_message)
-            self.assertTrue('meta:status' in multi_message)
-            self.assertTrue('meta:last_message_received' in multi_message)
-            self.assertEqual(multi_message['meta:finish_message'], '')
-            self.assertEqual(multi_message['meta:status'], MULTIMSG_STATUS_OPEN)
-            last_message_received = multi_message['meta:last_message_received']
+            multi_message = self.get_service().get_multimessage(multi_msg_id)
+            self.assertTrue('application' in multi_message['meta'])
+            self.assertTrue('host' in multi_message['meta'])
+            self.assertTrue('timestamp' in multi_message['meta'])
+            self.assertTrue('start_message' in multi_message['meta'])
+            self.assertTrue('finish_message' in multi_message['meta'])
+            self.assertTrue('status' in multi_message['meta'])
+            self.assertTrue('last_message_received' in multi_message['meta'])
+            self.assertEqual(multi_message['meta']['finish_message'], '')
+            self.assertEqual(multi_message['meta']['status'], MULTIMSG_STATUS_OPEN)
+            last_message_received = multi_message['meta']['last_message_received']
 
             # ----- Add a message
             message = self._gen_msg("Backup of database 'database1' finished OK")
             message['multimessage_id'] = multi_msg_id
             self.get_service().save_multimessage_log(**message)
 
-            multi_message = self.get_service().query_multimessages(multi_msg_id)
-            self.assertTrue('meta:application' in multi_message)
-            self.assertTrue('meta:host' in multi_message)
-            self.assertTrue('meta:timestamp' in multi_message)
-            self.assertTrue('meta:start_message' in multi_message)
-            self.assertTrue('meta:finish_message' in multi_message)
-            self.assertTrue('meta:status' in multi_message)
-            self.assertTrue('meta:last_message_received' in multi_message)
-            self.assertEqual(multi_message['meta:finish_message'], '')
-            self.assertEqual(multi_message['meta:status'], MULTIMSG_STATUS_OPEN)
-            self.assertNotEqual(last_message_received, multi_message['meta:last_message_received'])
-            last_message_received = multi_message['meta:last_message_received']
+            multi_message = self.get_service().get_multimessage(multi_msg_id)
+            self.assertTrue('application' in multi_message['meta'])
+            self.assertTrue('host' in multi_message['meta'])
+            self.assertTrue('timestamp' in multi_message['meta'])
+            self.assertTrue('start_message' in multi_message['meta'])
+            self.assertTrue('finish_message' in multi_message['meta'])
+            self.assertTrue('status' in multi_message['meta'])
+            self.assertTrue('last_message_received' in multi_message['meta'])
+            self.assertEqual(multi_message['meta']['finish_message'], '')
+            self.assertEqual(multi_message['meta']['status'], MULTIMSG_STATUS_OPEN)
+            self.assertNotEqual(last_message_received, multi_message['meta']['last_message_received'])
+            last_message_received = multi_message['meta']['last_message_received']
 
             # ----- Finish the multi-message
             message = self._gen_msg("Backup finished OK")
@@ -605,18 +605,18 @@ class MultiMessageTest(StorageBaseTest):
             message['final_status'] = final_status
             self.get_service().finish_multimessage(**message)
 
-            multi_message = self.get_service().query_multimessages(multi_msg_id)
-            self.assertTrue('meta:application' in multi_message)
-            self.assertTrue('meta:host' in multi_message)
-            self.assertTrue('meta:timestamp' in multi_message)
-            self.assertTrue('meta:start_message' in multi_message)
-            self.assertTrue('meta:finish_message' in multi_message)
-            self.assertTrue('meta:status' in multi_message)
-            self.assertTrue('meta:last_message_received' in multi_message)
+            multi_message = self.get_service().get_multimessage(multi_msg_id)
+            self.assertTrue('application' in multi_message['meta'])
+            self.assertTrue('host' in multi_message['meta'])
+            self.assertTrue('timestamp' in multi_message['meta'])
+            self.assertTrue('start_message' in multi_message['meta'])
+            self.assertTrue('finish_message' in multi_message['meta'])
+            self.assertTrue('status' in multi_message['meta'])
+            self.assertTrue('last_message_received' in multi_message['meta'])
 
-            self.assertNotEqual(multi_message['meta:finish_message'], '')
-            self.assertEqual(multi_message['meta:status'], MULTIMSG_STATUS_FINISHED_OK)
-            self.assertNotEqual(last_message_received, multi_message['meta:last_message_received'])
+            self.assertNotEqual(multi_message['meta']['finish_message'], '')
+            self.assertEqual(multi_message['meta']['status'], final_status)
+            self.assertNotEqual(last_message_received, multi_message['meta']['last_message_received'])
 
 
 class WebBackendTest(TestCase):
