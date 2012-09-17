@@ -46,7 +46,8 @@ from daedalus_client import DaedalusClient, DaedalusException, \
 from daedalus.proto.random_log_generator import log_dict_generator
 from daedalus.storage import get_service_cm, get_service,\
     StorageServiceRowPerMinute, MULTIMSG_STATUS_FINISHED_ERROR,\
-    MULTIMSG_STATUS_FINISHED_OK, MULTIMSG_STATUS_FINISHED_UNKNOWN
+    MULTIMSG_STATUS_FINISHED_OK, MULTIMSG_STATUS_FINISHED_UNKNOWN,\
+    MULTIMSG_STATUS_OPEN
 from daedalus.utils import utc_str_timestamp, utc_timestamp2datetime,\
     utc_now, utc_now_from_epoch, ymd_from_epoch, ymd_from_uuid1,\
     backward_time_series_generator, time_series_generator,\
@@ -507,6 +508,8 @@ class BulkSave(StorageBaseTest):
                         multi_message_key=multi_msg_id,
                         final_status=final_status)
 
+                    storage_service.query_multimessages(multi_msg_id)
+
                     count += 1
                     if count % 100 == 0:
                         logging.info("Inserted %d messages", count)
@@ -555,24 +558,65 @@ class MultiMessageTest(StorageBaseTest):
         }
         return message
 
-    def test_send_multimessage(self):
+    def test_save_multimessage(self):
         _truncate_all_column_families()
 
         for final_status in (MULTIMSG_STATUS_FINISHED_ERROR,
             MULTIMSG_STATUS_FINISHED_OK, MULTIMSG_STATUS_FINISHED_UNKNOWN):
 
-            # Start a multi-message log
+            # ----- Start a multi-message log
             message = self._gen_msg("Backup started")
             multi_msg_id = self.get_service().start_multimessage(**message)
+            self.assertEquals(len(multi_msg_id.split(',')), 5)
 
+            multi_message = self.get_service().query_multimessages(multi_msg_id)
+            self.assertTrue('meta:application' in multi_message)
+            self.assertTrue('meta:host' in multi_message)
+            self.assertTrue('meta:timestamp' in multi_message)
+            self.assertTrue('meta:start_message' in multi_message)
+            self.assertTrue('meta:finish_message' in multi_message)
+            self.assertTrue('meta:status' in multi_message)
+            self.assertTrue('meta:last_message_received' in multi_message)
+            self.assertEqual(multi_message['meta:finish_message'], '')
+            self.assertEqual(multi_message['meta:status'], MULTIMSG_STATUS_OPEN)
+            last_message_received = multi_message['meta:last_message_received']
+
+            # ----- Add a message
             message = self._gen_msg("Backup of database 'database1' finished OK")
             message['multi_message_key'] = multi_msg_id
             self.get_service().save_multimessage_log(**message)
 
+            multi_message = self.get_service().query_multimessages(multi_msg_id)
+            self.assertTrue('meta:application' in multi_message)
+            self.assertTrue('meta:host' in multi_message)
+            self.assertTrue('meta:timestamp' in multi_message)
+            self.assertTrue('meta:start_message' in multi_message)
+            self.assertTrue('meta:finish_message' in multi_message)
+            self.assertTrue('meta:status' in multi_message)
+            self.assertTrue('meta:last_message_received' in multi_message)
+            self.assertEqual(multi_message['meta:finish_message'], '')
+            self.assertEqual(multi_message['meta:status'], MULTIMSG_STATUS_OPEN)
+            self.assertNotEqual(last_message_received, multi_message['meta:last_message_received'])
+            last_message_received = multi_message['meta:last_message_received']
+            
+            # ----- Finish the multi-message
             message = self._gen_msg("Backup finished OK")
             message['multi_message_key'] = multi_msg_id
             message['final_status'] = final_status
             self.get_service().finish_multimessage(**message)
+
+            multi_message = self.get_service().query_multimessages(multi_msg_id)
+            self.assertTrue('meta:application' in multi_message)
+            self.assertTrue('meta:host' in multi_message)
+            self.assertTrue('meta:timestamp' in multi_message)
+            self.assertTrue('meta:start_message' in multi_message)
+            self.assertTrue('meta:finish_message' in multi_message)
+            self.assertTrue('meta:status' in multi_message)
+            self.assertTrue('meta:last_message_received' in multi_message)
+
+            self.assertNotEqual(multi_message['meta:finish_message'], '')
+            self.assertEqual(multi_message['meta:status'], MULTIMSG_STATUS_FINISHED_OK)
+            self.assertNotEqual(last_message_received, multi_message['meta:last_message_received'])
 
 
 class WebBackendTest(TestCase):
