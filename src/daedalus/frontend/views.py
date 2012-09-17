@@ -192,3 +192,14 @@ def charts(request, chart_type=None):
 def reset_cache(request):
     cache.clear()
     return HttpResponseRedirect(reverse(home))
+
+
+def show_multimessage(request, multimessage_id):
+    ctx = _ctx()
+    with get_service_cm() as service:
+        multimessage = service.get_multimessage(multimessage_id)
+    if multimessage is None:
+        return HttpResponseNotFound("MultiMessage with ID '{0}' was not found".format(multimessage_id))
+    ctx['multimessage'] = multimessage
+    return HttpResponse(render_to_response('daedalus/frontend/multi_message_show.html',
+        context_instance=RequestContext(request, ctx)))

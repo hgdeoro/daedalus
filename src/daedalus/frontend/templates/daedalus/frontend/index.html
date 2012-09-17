@@ -49,7 +49,8 @@
 	<table class="table table-striped table-condensed" width="100%">
 		<thead>
 			<tr>
-				<th width="5%">Date</th>
+                <th width="5%">Date</th>
+                <th width="1%">&nbsp;</th>
 				<th width="5%">Host</th>
 				<th width="5%"><span title="Application that generated the message">App</span></th>
 				<th width="5%">Severity</th>
@@ -64,6 +65,14 @@
                         <a href="{% url daedalus.frontend.views.show_message item|msg_2_id %}" target="_blank">{{ item|msg_2_datetime|date:'SHORT_DATETIME_FORMAT' }}</a>
                     </span>
                     <a href="javascript:load_message_details('{{ item|msg_2_id }}');"><i class="icon-fullscreen"></i></a>
+                </td>
+                <td>
+                    {% if item.multimessage_id %}
+	                    <a href="{% url daedalus.frontend.views.show_multimessage item.multimessage_id %}"
+	                        title="Multi-Message"><i class="icon-th-list"></i></a>
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
                 </td>
 				<td style="white-space: nowrap;">{{ item.host }}</td>
 				<td style="white-space: nowrap;">{{ item.application }}</td>

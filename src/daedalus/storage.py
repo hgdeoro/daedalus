@@ -1024,8 +1024,11 @@ class StorageServiceRowPerMinute(StorageService):
             'meta:last_message_received': reference_to_msg,
         })
 
-    def query_multimessages(self, multimessage_id):
-        return self._get_cf_multi_messsagelogs().get(multimessage_id)
+    def get_multimessage(self, multimessage_id):
+        try:
+            return self._get_cf_multi_messsagelogs().get(multimessage_id)
+        except NotFoundException:
+            return None
 
     def query(self, from_col=None, filter_callback=None):
         """
