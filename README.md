@@ -202,6 +202,7 @@ Changelog
 
 * Upgrade to pycassa 1.7
 * Backend: new storage: StorageServiceRowPerMinute
+* Created multi-messages log entryies to group related messages
 
 ### v0.0.9
 
