@@ -467,25 +467,31 @@ class BulkSave(StorageBaseTest):
             max_count=max_count, concurrent_num=concurrent_procs)
 
     def bulk_save_multimsg(self):
+        settings.KEYSPACE = settings.KEYSPACE_REAL
+        print "Un-patched value of KEYSPACE to '{0}'".format(settings.KEYSPACE)
         count = 0
         with get_service_cm() as storage_service:
             storage_service.create_keyspace_and_cfs()
             try:
                 logging.info("Starting insertions...")
-                msg_iter = iter(log_dict_generator(random.randint(1, 999999999)))
+                msg_iter = iter(log_dict_generator(random.randint(1, 999999999),
+                    timestamp_generator=sparse_timestamp_generator(random.randint(1, 999999999))))
 
                 while True:
                     # Start a multi-message log
                     message = msg_iter.next()
+                    timestamp = float(message['timestamp'])
+
                     multi_msg_id = storage_service.start_multimessage(
                         message['application'], message['host'], 'INFO',
-                        message['timestamp'], message['message'])
+                        str(timestamp), message['message'])
 
                     for _ in range(0, random.randint(2, 7)):
                         message = msg_iter.next()
+                        timestamp += float(random.randint(5, 20))
                         storage_service.save_multimessage_log(
                             message['application'], message['host'], 'INFO',
-                            message['timestamp'], message['message'],
+                            str(timestamp), message['message'],
                             multi_message_key=multi_msg_id)
 
                     final_status = random.choice([
@@ -494,9 +500,10 @@ class BulkSave(StorageBaseTest):
                         MULTIMSG_STATUS_FINISHED_UNKNOWN,
                     ])
                     message = msg_iter.next()
+                    timestamp += float(random.randint(5, 20))
                     storage_service.finish_multimessage(
                         message['application'], message['host'], 'INFO',
-                        message['timestamp'], message['message'],
+                        str(timestamp), message['message'],
                         multi_message_key=multi_msg_id,
                         final_status=final_status)
 
