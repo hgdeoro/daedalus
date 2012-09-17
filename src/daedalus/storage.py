@@ -984,7 +984,7 @@ class StorageServiceRowPerMinute(StorageService):
         assert column_key is not None
         assert multi_message_key is not None
 
-        reference_to_msg = ','.join(list(row_key) + [str(i) for i in column_key])
+        reference_to_msg = ','.join([row_key] + [str(i) for i in column_key])
 
         self._get_cf_multi_messsagelogs().insert(multi_message_key, {
             'meta:application': application,
@@ -1007,9 +1007,9 @@ class StorageServiceRowPerMinute(StorageService):
 
         row_key, column_key, _ = self.save_log(application, host, severity, timestamp, message,
             multi_message=True, multi_message_key=multi_message_key)
-        reference_to_msg = ','.join(list(row_key) + [str(i) for i in column_key])
+        reference_to_msg = ','.join([row_key] + [str(i) for i in column_key])
         self._get_cf_multi_messsagelogs().insert(multi_message_key, {
-            'finish_status': MULTIMSG_STATUS_FINISHED_OK,
+            'meta:status': MULTIMSG_STATUS_FINISHED_OK,
             'meta:finish_message': reference_to_msg,
             'meta:last_message_received': reference_to_msg,
             reference_to_msg: '',
@@ -1018,11 +1018,14 @@ class StorageServiceRowPerMinute(StorageService):
     def save_multimessage_log(self, application, host, severity, timestamp, message, multi_message_key):
         row_key, column_key, _ = self.save_log(application, host, severity, timestamp, message,
             multi_message=True, multi_message_key=multi_message_key)
-        reference_to_msg = ','.join(list(row_key) + [str(i) for i in column_key])
+        reference_to_msg = ','.join([row_key] + [str(i) for i in column_key])
         self._get_cf_multi_messsagelogs().insert(multi_message_key, {
             reference_to_msg: '',
             'meta:last_message_received': reference_to_msg,
         })
+
+    def query_multimessages(self, multi_message_key):
+        return self._get_cf_multi_messsagelogs().get(multi_message_key)
 
     def query(self, from_col=None, filter_callback=None):
         """
