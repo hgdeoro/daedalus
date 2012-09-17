@@ -198,6 +198,11 @@ Cassandra
 Changelog
 ----------------------------------------
 
+### v0.0.10
+
+* Upgrade to pycassa 1.7
+* Backend: new storage: StorageServiceRowPerMinute
+
 ### v0.0.9
 
 * Frontend: added 'host' column to list of messages

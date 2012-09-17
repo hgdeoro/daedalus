@@ -36,6 +36,11 @@ def msg_2_id(msg):
     return msg['_id']
 
 
+@register.filter(name='format_underscored_string')
+def format_underscored_string(underscored_string):
+    return ' '.join([word.capitalize() for word in underscored_string.split('_')])
+
+
 @register.filter(name='firstline')
 def firstline(full_text):
     return full_text.splitlines()[0]

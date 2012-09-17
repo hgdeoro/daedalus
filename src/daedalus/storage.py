@@ -40,6 +40,7 @@ from daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
     utc_timestamp2datetime, time_series_generator, \
     ymdhm_from_uuid1
 from daedalus_client import DaedalusException
+from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
@@ -1026,9 +1027,32 @@ class StorageServiceRowPerMinute(StorageService):
 
     def get_multimessage(self, multimessage_id):
         try:
-            return self._get_cf_multi_messsagelogs().get(multimessage_id)
+            cass_multimessage = self._get_cf_multi_messsagelogs().get(multimessage_id)
         except NotFoundException:
             return None
+
+        multimessage = {
+            'meta': dict([(key.split(':')[1], value)
+                for key, value in cass_multimessage.iteritems() if key.startswith('meta:')]),
+            'messages': [],
+        }
+
+        messages_ids = [key for key, value in cass_multimessage.iteritems() if not key.startswith('meta:')]
+        query = {}
+        for a_message_id in messages_ids:
+            row_key, k1, k2, k3, k4 = a_message_id.split(',')
+            column_key = self.str_to_column_key(','.join([k1, k2, k3, k4]))
+            if not row_key in query:
+                query[row_key] = []
+            query[row_key].append(column_key)
+
+        for row_key in sorted(query.keys()):
+            columns = self._get_cf_logs().get(row_key, columns=query[row_key]) # column_reversed
+            # print columns
+            for _, col_value in columns.iteritems():
+                multimessage['messages'].append(json.loads(col_value))
+
+        return multimessage
 
     def query(self, from_col=None, filter_callback=None):
         """

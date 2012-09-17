@@ -17,9 +17,9 @@
             </tr>
         </thead>
         <tbody>
-            {% for key, value in multimessage.iteritems %}
+            {% for key, value in multimessage.meta.iteritems %}
 	            <tr>
-	                <td style="font-weight: bold; text-align: right;">{{ key }}:</td>
+	                <td style="font-weight: bold; text-align: right;">{{ key|format_underscored_string }}:</td>
 	                <td>{{ value }}</td>
 	            </tr>
             {% endfor %}
@@ -37,7 +37,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for item in result %}
+			{% for item in multimessage.messages %}
 			<tr>
                 <td style="white-space: nowrap;">
                     <span title="({{ item|msg_2_datetime|timesince }})">
