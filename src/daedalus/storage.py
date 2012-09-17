@@ -40,7 +40,6 @@ from daedalus.utils import ymd_from_uuid1, ymd_from_epoch,\
     utc_timestamp2datetime, time_series_generator, \
     ymdhm_from_uuid1
 from daedalus_client import DaedalusException
-from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
