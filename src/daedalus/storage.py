@@ -912,7 +912,7 @@ class StorageServiceRowPerMinute(StorageService):
         return key_for_bitmap
 
     def save_log(self, application, host, severity, timestamp, message,
-        multi_message=False, multi_message_key=None):
+        multi_message=False, multimessage_id=None):
         """
         Saves a log message.
 
@@ -920,7 +920,7 @@ class StorageServiceRowPerMinute(StorageService):
         - DaedalusException if any parameter isn't valid.
 
         Returns:
-        - tuple with (row_key, column_key, multi_message_key)
+        - tuple with (row_key, column_key, multimessage_id)
         """
         _check_application(application)
         _check_severity(severity)
@@ -962,31 +962,31 @@ class StorageServiceRowPerMinute(StorageService):
         }
 
         if multi_message: # this message is part of a multi-message
-            if multi_message_key:
+            if multimessage_id:
                 # The multi-message key was passed as parameter
-                message_dict['_multi_message_key'] = multi_message_key
+                message_dict['multimessage_id'] = multimessage_id
             else:
-                message_dict['_multi_message_key'] = ','.join([row_key, _id])
+                message_dict['multimessage_id'] = ','.join([row_key, _id])
 
         self._get_cf_logs().insert(row_key, {
             column_key: json.dumps(message_dict),
         })
 
-        return (row_key, column_key, message_dict.get('_multi_message_key', None))
+        return (row_key, column_key, message_dict.get('multimessage_id', None))
 
     def start_multimessage(self, application, host, severity, timestamp, message):
         """
         Starts a multi-message log and returns the identifier
         """
-        row_key, column_key, multi_message_key = self.save_log(application, host, severity, timestamp,
+        row_key, column_key, multimessage_id = self.save_log(application, host, severity, timestamp,
             message, multi_message=True)
         assert row_key is not None
         assert column_key is not None
-        assert multi_message_key is not None
+        assert multimessage_id is not None
 
         reference_to_msg = ','.join([row_key] + [str(i) for i in column_key])
 
-        self._get_cf_multi_messsagelogs().insert(multi_message_key, {
+        self._get_cf_multi_messsagelogs().insert(multimessage_id, {
             'meta:application': application,
             'meta:host': host,
             'meta:timestamp': timestamp,
@@ -997,35 +997,35 @@ class StorageServiceRowPerMinute(StorageService):
             reference_to_msg: '',
         })
 
-        return multi_message_key
+        return multimessage_id
 
     def finish_multimessage(self, application, host, severity, timestamp,
-        message, multi_message_key, final_status=MULTIMSG_STATUS_FINISHED_OK):
+        message, multimessage_id, final_status=MULTIMSG_STATUS_FINISHED_OK):
 
         assert final_status in (MULTIMSG_STATUS_FINISHED_ERROR, MULTIMSG_STATUS_FINISHED_OK,
             MULTIMSG_STATUS_FINISHED_UNKNOWN)
 
         row_key, column_key, _ = self.save_log(application, host, severity, timestamp, message,
-            multi_message=True, multi_message_key=multi_message_key)
+            multi_message=True, multimessage_id=multimessage_id)
         reference_to_msg = ','.join([row_key] + [str(i) for i in column_key])
-        self._get_cf_multi_messsagelogs().insert(multi_message_key, {
+        self._get_cf_multi_messsagelogs().insert(multimessage_id, {
             'meta:status': MULTIMSG_STATUS_FINISHED_OK,
             'meta:finish_message': reference_to_msg,
             'meta:last_message_received': reference_to_msg,
             reference_to_msg: '',
         })
 
-    def save_multimessage_log(self, application, host, severity, timestamp, message, multi_message_key):
+    def save_multimessage_log(self, application, host, severity, timestamp, message, multimessage_id):
         row_key, column_key, _ = self.save_log(application, host, severity, timestamp, message,
-            multi_message=True, multi_message_key=multi_message_key)
+            multi_message=True, multimessage_id=multimessage_id)
         reference_to_msg = ','.join([row_key] + [str(i) for i in column_key])
-        self._get_cf_multi_messsagelogs().insert(multi_message_key, {
+        self._get_cf_multi_messsagelogs().insert(multimessage_id, {
             reference_to_msg: '',
             'meta:last_message_received': reference_to_msg,
         })
 
-    def query_multimessages(self, multi_message_key):
-        return self._get_cf_multi_messsagelogs().get(multi_message_key)
+    def query_multimessages(self, multimessage_id):
+        return self._get_cf_multi_messsagelogs().get(multimessage_id)
 
     def query(self, from_col=None, filter_callback=None):
         """

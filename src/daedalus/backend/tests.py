@@ -493,7 +493,7 @@ class BulkSave(StorageBaseTest):
                         storage_service.save_multimessage_log(
                             message['application'], message['host'], 'INFO',
                             str(timestamp), message['message'],
-                            multi_message_key=multi_msg_id)
+                            multimessage_id=multi_msg_id)
 
                     final_status = random.choice([
                         MULTIMSG_STATUS_FINISHED_OK,
@@ -505,7 +505,7 @@ class BulkSave(StorageBaseTest):
                     storage_service.finish_multimessage(
                         message['application'], message['host'], 'INFO',
                         str(timestamp), message['message'],
-                        multi_message_key=multi_msg_id,
+                        multimessage_id=multi_msg_id,
                         final_status=final_status)
 
                     storage_service.query_multimessages(multi_msg_id)
@@ -583,7 +583,7 @@ class MultiMessageTest(StorageBaseTest):
 
             # ----- Add a message
             message = self._gen_msg("Backup of database 'database1' finished OK")
-            message['multi_message_key'] = multi_msg_id
+            message['multimessage_id'] = multi_msg_id
             self.get_service().save_multimessage_log(**message)
 
             multi_message = self.get_service().query_multimessages(multi_msg_id)
@@ -598,10 +598,10 @@ class MultiMessageTest(StorageBaseTest):
             self.assertEqual(multi_message['meta:status'], MULTIMSG_STATUS_OPEN)
             self.assertNotEqual(last_message_received, multi_message['meta:last_message_received'])
             last_message_received = multi_message['meta:last_message_received']
-            
+
             # ----- Finish the multi-message
             message = self._gen_msg("Backup finished OK")
-            message['multi_message_key'] = multi_msg_id
+            message['multimessage_id'] = multi_msg_id
             message['final_status'] = final_status
             self.get_service().finish_multimessage(**message)
 
