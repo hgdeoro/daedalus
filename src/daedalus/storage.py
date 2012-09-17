@@ -1009,7 +1009,7 @@ class StorageServiceRowPerMinute(StorageService):
             multi_message=True, multimessage_id=multimessage_id)
         reference_to_msg = ','.join([row_key] + [str(i) for i in column_key])
         self._get_cf_multi_messsagelogs().insert(multimessage_id, {
-            'meta:status': MULTIMSG_STATUS_FINISHED_OK,
+            'meta:status': final_status,
             'meta:finish_message': reference_to_msg,
             'meta:last_message_received': reference_to_msg,
             reference_to_msg: '',
