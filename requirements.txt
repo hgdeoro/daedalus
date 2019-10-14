@@ -4,7 +4,7 @@
 #
 
 pycassa==1.7.0
-Django==1.4
+Django==1.11.23
 python-memcached==1.48
 pytz
  
