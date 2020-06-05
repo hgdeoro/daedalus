@@ -86,7 +86,7 @@ setup(
     package_dir={'': 'src'},
     install_requires=[
         'pycassa==1.6.0',
-        'django==1.4',
+        'django==1.11.29',
         'python-memcached',
         'pytz',
         'daedalus-python-client',
